@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // Types
 export interface User {
@@ -44,7 +45,7 @@ export interface Reservation {
   status: 'Pagado' | 'Reembolsado';
 }
 
-interface CurrentBooking {
+export interface CurrentBooking {
   classId: string;
   className: string;
   day: string;
@@ -53,10 +54,14 @@ interface CurrentBooking {
   selectedSeats: number[];
   pricePerSeat: number;
   totalPrice: number;
-  timeLeft: number; // in seconds (e.g., 600 for 10 minutes)
+  timeLeft: number; // in seconds
 }
 
 interface AppState {
+  // Hydration state tracking
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
+
   // Auth state
   user: User | null;
   otpCode: string | null;
@@ -72,7 +77,6 @@ interface AppState {
 
   // Checkout process
   currentBooking: CurrentBooking | null;
-  timerIntervalId: any | null;
 
   // Actions
   login: (email: string, role: 'client' | 'admin') => boolean;
@@ -142,259 +146,266 @@ const initialReservations: Reservation[] = [
 ];
 
 const initialOccupiedSeats: Record<string, number[]> = {
-  // Zumba Wednesday 6-7 PM: has seats 9, 17, 18, 19, 21, 28, 30 occupied
   "c7_MIÉRCOLES 12/05_6:00 PM - 7:00 PM": [9, 17, 18, 19, 21, 28, 30],
-  // Salsa Básica Wednesday 6-7 PM: seat 13 occupied
   "c1_MIÉRCOLES 12/05_6:00 PM - 7:00 PM": [13],
   "c10_LUNES 09/05_6:00 PM - 7:00 PM": [15, 23, 27]
 };
 
-// Create Zustand store
-export const useAppStore = create<AppState>((set, get) => ({
-  user: null,
-  otpCode: null,
-  tempRegisterData: null,
-  
-  instructors: initialInstructors,
-  classes: initialClasses,
-  reservations: initialReservations,
-  occupiedSeats: initialOccupiedSeats,
-  
-  currentBooking: null,
-  timerIntervalId: null,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
-  login: (email, role) => {
-    // Basic mock authentication: any email works!
-    // Set user profile
-    const name = role === 'admin' ? 'Admin' : 'Ana Pérez';
-    const userObj: User = {
-      id: role === 'admin' ? 'admin_1' : 'client_1',
-      name,
-      email,
-      phone: '999888777',
-      role
-    };
-    
-    set({ user: userObj });
-    return true;
-  },
+      user: null,
+      otpCode: null,
+      tempRegisterData: null,
+      
+      instructors: initialInstructors,
+      classes: initialClasses,
+      reservations: initialReservations,
+      occupiedSeats: initialOccupiedSeats,
+      
+      currentBooking: null,
 
-  registerUser: (data) => {
-    // Store temporarily until OTP is verified
-    set({ tempRegisterData: data, otpCode: '247196' }); // mockup OTP
-  },
+      login: (email, role) => {
+        const name = role === 'admin' ? 'Admin' : 'Ana Pérez';
+        const userObj: User = {
+          id: role === 'admin' ? 'admin_1' : 'client_1',
+          name,
+          email,
+          phone: '999888777',
+          role
+        };
+        
+        set({ user: userObj });
+        return true;
+      },
 
-  verifyOtp: (code) => {
-    const { tempRegisterData } = get();
-    if (code === '247196' && tempRegisterData) {
-      // Auto login as client
-      const newUser: User = {
-        id: 'client_' + Date.now(),
-        name: `${tempRegisterData.name || 'Invitado'} ${tempRegisterData.phone || ''}`.trim(),
-        email: tempRegisterData.email || 'correo@ejemplo.com',
-        phone: tempRegisterData.phone || '999888777',
-        role: 'client'
-      };
-      set({ user: newUser, tempRegisterData: null, otpCode: null });
-      return true;
-    }
-    return false;
-  },
+      registerUser: (data) => {
+        set({ tempRegisterData: data, otpCode: '247196' });
+      },
 
-  logout: () => {
-    set({ user: null });
-    get().clearBooking();
-  },
-
-  // Instructor CRUD
-  addInstructor: (instructor) => {
-    const newInstructor: Instructor = {
-      ...instructor,
-      id: 'inst_' + Date.now()
-    };
-    set((state) => ({ instructors: [newInstructor, ...state.instructors] }));
-  },
-
-  updateInstructor: (id, updatedFields) => {
-    set((state) => ({
-      instructors: state.instructors.map((inst) =>
-        inst.id === id ? { ...inst, ...updatedFields } : inst
-      )
-    }));
-  },
-
-  deleteInstructor: (id) => {
-    set((state) => ({
-      instructors: state.instructors.filter((inst) => inst.id !== id)
-    }));
-  },
-
-  // Class CRUD
-  addClass: (classItem) => {
-    const newClass: ClassItem = {
-      ...classItem,
-      id: 'class_' + Date.now()
-    };
-    set((state) => ({ classes: [newClass, ...state.classes] }));
-  },
-
-  updateClass: (id, updatedFields) => {
-    set((state) => ({
-      classes: state.classes.map((cls) =>
-        cls.id === id ? { ...cls, ...updatedFields } : cls
-      )
-    }));
-  },
-
-  deleteClass: (id) => {
-    set((state) => ({
-      classes: state.classes.filter((cls) => cls.id !== id)
-    }));
-  },
-
-  // Client booking actions
-  startBooking: (booking) => {
-    // Clear any previous booking
-    get().clearBooking();
-
-    const newBooking: CurrentBooking = {
-      ...booking,
-      selectedSeats: [],
-      timeLeft: 600, // 10 minutes
-      totalPrice: 0
-    };
-    set({ currentBooking: newBooking });
-  },
-
-  selectSeat: (seatNumber) => {
-    const { currentBooking } = get();
-    if (!currentBooking) return;
-    
-    // Check if seat is occupied
-    const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
-    const occupied = get().occupiedSeats[lockKey] || [];
-    if (occupied.includes(seatNumber)) return;
-
-    // Add seat
-    const selected = [...currentBooking.selectedSeats, seatNumber];
-    set({
-      currentBooking: {
-        ...currentBooking,
-        selectedSeats: selected,
-        totalPrice: selected.length * currentBooking.pricePerSeat
-      }
-    });
-  },
-
-  deselectSeat: (seatNumber) => {
-    const { currentBooking } = get();
-    if (!currentBooking) return;
-
-    const selected = currentBooking.selectedSeats.filter(s => s !== seatNumber);
-    set({
-      currentBooking: {
-        ...currentBooking,
-        selectedSeats: selected,
-        totalPrice: selected.length * currentBooking.pricePerSeat
-      }
-    });
-  },
-
-  decrementTimer: () => {
-    const { currentBooking } = get();
-    if (!currentBooking) return;
-
-    if (currentBooking.timeLeft <= 1) {
-      get().clearBooking();
-    } else {
-      set({
-        currentBooking: {
-          ...currentBooking,
-          timeLeft: currentBooking.timeLeft - 1
+      verifyOtp: (code) => {
+        const { tempRegisterData } = get();
+        if (code === '247196' && tempRegisterData) {
+          const newUser: User = {
+            id: 'client_' + Date.now(),
+            name: `${tempRegisterData.name || 'Invitado'} ${tempRegisterData.phone || ''}`.trim(),
+            email: tempRegisterData.email || 'correo@ejemplo.com',
+            phone: tempRegisterData.phone || '999888777',
+            role: 'client'
+          };
+          set({ user: newUser, tempRegisterData: null, otpCode: null });
+          return true;
         }
-      });
-    }
-  },
-
-  clearBooking: () => {
-    set({ currentBooking: null });
-  },
-
-  confirmBooking: (phoneYape) => {
-    const { currentBooking, user } = get();
-    if (!currentBooking || currentBooking.selectedSeats.length === 0 || !user) return null;
-
-    const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
-    
-    // Add selected seats to occupied
-    const occupied = get().occupiedSeats[lockKey] || [];
-    const newOccupied = [...occupied, ...currentBooking.selectedSeats];
-    
-    // Create reservation
-    const newReservation: Reservation = {
-      id: 'res_' + Date.now(),
-      classId: currentBooking.classId,
-      className: currentBooking.className,
-      time: currentBooking.time,
-      date: currentBooking.day.split(' ')[1] + ' May 2025', // Mock formatted date
-      clientName: user.name,
-      clientPhone: phoneYape,
-      seats: currentBooking.selectedSeats,
-      price: currentBooking.totalPrice,
-      status: 'Pagado'
-    };
-
-    set((state) => ({
-      occupiedSeats: {
-        ...state.occupiedSeats,
-        [lockKey]: newOccupied
+        return false;
       },
-      reservations: [newReservation, ...state.reservations],
-      currentBooking: null
-    }));
 
-    return newReservation;
-  },
+      logout: () => {
+        set({ user: null });
+        get().clearBooking();
+      },
 
-  addManualBooking: (bookingData) => {
-    const classItem = get().classes.find(c => c.id === bookingData.classId);
-    if (!classItem) return false;
+      // Instructor CRUD
+      addInstructor: (instructor) => {
+        const newInstructor: Instructor = {
+          ...instructor,
+          id: 'inst_' + Date.now()
+        };
+        set((state) => ({ instructors: [newInstructor, ...state.instructors] }));
+      },
 
-    // Pick an empty seat automatically
-    const lockKey = `${bookingData.classId}_MIÉRCOLES 12/05_${bookingData.schedule}`;
-    const occupied = get().occupiedSeats[lockKey] || [];
-    
-    let chosenSeat = 1;
-    for (let i = 1; i <= 30; i++) {
-      if (!occupied.includes(i)) {
-        chosenSeat = i;
-        break;
+      updateInstructor: (id, updatedFields) => {
+        set((state) => ({
+          instructors: state.instructors.map((inst) =>
+            inst.id === id ? { ...inst, ...updatedFields } : inst
+          )
+        }));
+      },
+
+      deleteInstructor: (id) => {
+        set((state) => ({
+          instructors: state.instructors.filter((inst) => inst.id !== id)
+        }));
+      },
+
+      // Class CRUD
+      addClass: (classItem) => {
+        const newClass: ClassItem = {
+          ...classItem,
+          id: 'class_' + Date.now()
+        };
+        set((state) => ({ classes: [newClass, ...state.classes] }));
+      },
+
+      updateClass: (id, updatedFields) => {
+        set((state) => ({
+          classes: state.classes.map((cls) =>
+            cls.id === id ? { ...cls, ...updatedFields } : cls
+          )
+        }));
+      },
+
+      deleteClass: (id) => {
+        set((state) => ({
+          classes: state.classes.filter((cls) => cls.id !== id)
+        }));
+      },
+
+      // Client booking actions
+      startBooking: (booking) => {
+        get().clearBooking();
+
+        const newBooking: CurrentBooking = {
+          ...booking,
+          selectedSeats: [],
+          timeLeft: 600, // 10 minutes
+          totalPrice: 0
+        };
+        set({ currentBooking: newBooking });
+      },
+
+      selectSeat: (seatNumber) => {
+        const { currentBooking } = get();
+        if (!currentBooking) return;
+        
+        const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
+        const occupied = get().occupiedSeats[lockKey] || [];
+        if (occupied.includes(seatNumber)) return;
+
+        const selected = [...currentBooking.selectedSeats, seatNumber];
+        set({
+          currentBooking: {
+            ...currentBooking,
+            selectedSeats: selected,
+            totalPrice: selected.length * currentBooking.pricePerSeat
+          }
+        });
+      },
+
+      deselectSeat: (seatNumber) => {
+        const { currentBooking } = get();
+        if (!currentBooking) return;
+
+        const selected = currentBooking.selectedSeats.filter(s => s !== seatNumber);
+        set({
+          currentBooking: {
+            ...currentBooking,
+            selectedSeats: selected,
+            totalPrice: selected.length * currentBooking.pricePerSeat
+          }
+        });
+      },
+
+      decrementTimer: () => {
+        const { currentBooking } = get();
+        if (!currentBooking) return;
+
+        if (currentBooking.timeLeft <= 1) {
+          get().clearBooking();
+        } else {
+          set({
+            currentBooking: {
+              ...currentBooking,
+              timeLeft: currentBooking.timeLeft - 1
+            }
+          });
+        }
+      },
+
+      clearBooking: () => {
+        set({ currentBooking: null });
+      },
+
+      confirmBooking: (phoneYape) => {
+        const { currentBooking, user } = get();
+        if (!currentBooking || currentBooking.selectedSeats.length === 0 || !user) return null;
+
+        const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
+        
+        const occupied = get().occupiedSeats[lockKey] || [];
+        const newOccupied = [...occupied, ...currentBooking.selectedSeats];
+        
+        const newReservation: Reservation = {
+          id: 'res_' + Date.now(),
+          classId: currentBooking.classId,
+          className: currentBooking.className,
+          time: currentBooking.time,
+          date: currentBooking.day.split(' ')[1] + ' May 2025',
+          clientName: user.name,
+          clientPhone: phoneYape,
+          seats: currentBooking.selectedSeats,
+          price: currentBooking.totalPrice,
+          status: 'Pagado'
+        };
+
+        set((state) => ({
+          occupiedSeats: {
+            ...state.occupiedSeats,
+            [lockKey]: newOccupied
+          },
+          reservations: [newReservation, ...state.reservations],
+          currentBooking: null
+        }));
+
+        return newReservation;
+      },
+
+      addManualBooking: (bookingData) => {
+        const classItem = get().classes.find(c => c.id === bookingData.classId);
+        if (!classItem) return false;
+
+        const lockKey = `${bookingData.classId}_MIÉRCOLES 12/05_${bookingData.schedule}`;
+        const occupied = get().occupiedSeats[lockKey] || [];
+        
+        let chosenSeat = 1;
+        for (let i = 1; i <= 30; i++) {
+          if (!occupied.includes(i)) {
+            chosenSeat = i;
+            break;
+          }
+        }
+
+        const newReservation: Reservation = {
+          id: 'res_' + Date.now(),
+          classId: bookingData.classId,
+          className: classItem.title,
+          time: bookingData.schedule,
+          date: '12 May 2025',
+          clientName: `${bookingData.clientName} ${bookingData.clientLastName}`,
+          clientPhone: bookingData.clientPhone,
+          seats: [chosenSeat],
+          price: bookingData.price,
+          status: 'Pagado'
+        };
+
+        const newOccupied = [...occupied, chosenSeat];
+
+        set((state) => ({
+          occupiedSeats: {
+            ...state.occupiedSeats,
+            [lockKey]: newOccupied
+          },
+          reservations: [newReservation, ...state.reservations]
+        }));
+
+        return true;
+      }
+    }),
+    {
+      name: "reservafit-storage",
+      onRehydrateStorage: (state) => {
+        return (hydratedState) => {
+          if (hydratedState) {
+            hydratedState.setHasHydrated(true);
+          }
+        };
+      },
+      partialize: (state) => {
+        const { _hasHydrated, setHasHydrated, ...rest } = state;
+        return rest;
       }
     }
-
-    const newReservation: Reservation = {
-      id: 'res_' + Date.now(),
-      classId: bookingData.classId,
-      className: classItem.title,
-      time: bookingData.schedule,
-      date: '12 May 2025',
-      clientName: `${bookingData.clientName} ${bookingData.clientLastName}`,
-      clientPhone: bookingData.clientPhone,
-      seats: [chosenSeat],
-      price: bookingData.price,
-      status: 'Pagado'
-    };
-
-    const newOccupied = [...occupied, chosenSeat];
-
-    set((state) => ({
-      occupiedSeats: {
-        ...state.occupiedSeats,
-        [lockKey]: newOccupied
-      },
-      reservations: [newReservation, ...state.reservations]
-    }));
-
-    return true;
-  }
-}));
+  )
+);
