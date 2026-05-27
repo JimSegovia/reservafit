@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { Dumbbell, Calendar, Users, Menu, Clock } from "lucide-react";
+import { Calendar, Users, Menu, Clock } from "lucide-react";
+import Logo from "@/components/ui/logo";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -35,10 +36,7 @@ export default function LandingPage() {
       {/* Full-width Header */}
       <header className="w-full h-20 bg-cream border-b border-neutral-200/50 flex justify-between items-center px-6 md:px-16 shrink-0">
         <div className="flex items-center gap-1.5">
-          <Dumbbell className="h-7 w-7 text-primary stroke-[2.5]" />
-          <span className="text-2xl font-black text-neutral-900 tracking-tight">
-            Reserva<span className="text-primary">Fit</span>
-          </span>
+          <Logo className="h-14" />
         </div>
         
         {/* Desktop Header Links */}

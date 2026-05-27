@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
 import Link from "next/link";
-import { Home, Users, FolderGit, Calendar, Receipt, LogOut, Dumbbell } from "lucide-react";
+import { Home, Users, FolderGit, Calendar, Receipt, LogOut } from "lucide-react";
+import Logo from "@/components/ui/logo";
 
 export default function AdminLayout({
   children,
@@ -49,10 +50,7 @@ export default function AdminLayout({
         <div className="flex flex-col">
           {/* Logo */}
           <div className="flex items-center gap-2 px-6 py-6 border-b border-neutral-100">
-            <Dumbbell className="h-6 w-6 text-primary stroke-[2.5]" />
-            <span className="text-xl font-black text-neutral-900 tracking-tight">
-              Reserva<span className="text-primary font-black">Fit</span>
-            </span>
+            <Logo className="h-11" />
             <span className="text-[9px] bg-orange-50 border border-orange-100 text-primary px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ml-1 shrink-0">
               Admin
             </span>

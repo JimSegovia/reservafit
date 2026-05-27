@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
 import { Dumbbell, LogOut, Calendar, Users, Wallet, ChevronRight, UserSquare, FolderGit, Receipt } from "lucide-react";
+import Logo from "@/components/ui/logo";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -58,10 +59,7 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <header className="flex justify-between items-center mb-6 select-none">
         <div className="flex items-center gap-1.5">
-          <Dumbbell className="h-6 w-6 text-primary stroke-[2.5]" />
-          <span className="text-2xl font-black text-neutral-900 tracking-tight">
-            Reserva<span className="text-primary font-black">Fit</span>
-          </span>
+          <Logo className="h-12" />
         </div>
         <button
           onClick={handleLogout}

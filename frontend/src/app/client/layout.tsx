@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
 import { Home, Dumbbell, Receipt, LogOut } from "lucide-react";
+import Logo from "@/components/ui/logo";
 import Link from "next/link";
 
 export default function ClientLayout({
@@ -47,10 +48,7 @@ export default function ClientLayout({
         <div className="flex flex-col">
           {/* Logo */}
           <div className="flex items-center gap-2 px-6 py-6 border-b border-neutral-100">
-            <Dumbbell className="h-6 w-6 text-primary stroke-[2.5]" />
-            <span className="text-xl font-black text-neutral-900 tracking-tight">
-              Reserva<span className="text-primary font-black">Fit</span>
-            </span>
+            <Logo className="h-11" />
           </div>
           
           {/* Navigation Links */}

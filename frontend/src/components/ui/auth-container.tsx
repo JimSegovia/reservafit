@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Dumbbell } from "lucide-react";
+import Logo from "@/components/ui/logo";
 
 interface AuthContainerProps {
   children: React.ReactNode;
@@ -9,22 +9,43 @@ interface AuthContainerProps {
 
 export default function AuthContainer({ children }: AuthContainerProps) {
   return (
-    <div className="w-full h-full bg-cream flex flex-col overflow-hidden">
-      {/* Full-width Header on Desktop */}
-      <header className="hidden md:flex h-20 bg-cream border-b border-neutral-200/50 items-center justify-between px-12 select-none shrink-0">
-        <div className="flex items-center gap-2">
-          <Dumbbell className="h-7 w-7 text-primary stroke-[2.5]" />
-          <span className="text-2xl font-black text-neutral-900 tracking-tight">
-            Reserva<span className="text-primary font-black">Fit</span>
-          </span>
+    <div className="w-full h-full bg-cream md:flex md:flex-row overflow-hidden">
+      {/* Left Side - Image/Branding (Desktop Only) */}
+      <div className="hidden md:flex md:w-1/2 lg:w-3/5 bg-neutral-900 relative flex-col justify-between p-12 overflow-hidden shadow-2xl z-10">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center z-0"
+          style={{ backgroundImage: "url('/images/gym-hero.png')", opacity: 0.6 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent z-0" />
+        
+        {/* Content */}
+        <div className="relative z-10">
+          <Logo className="h-12 brightness-0 invert" />
         </div>
-      </header>
+        
+        <div className="relative z-10 text-white max-w-lg mb-8">
+          <h1 className="text-4xl lg:text-5xl font-black mb-4 leading-tight">
+            Desata tu <span className="text-primary">potencial</span> físico.
+          </h1>
+          <p className="text-neutral-300 text-lg font-medium leading-relaxed">
+            Reserva tus clases favoritas en nuestra sala exclusiva. Entrena, aprende y disfruta al máximo de la mejor experiencia fitness.
+          </p>
+        </div>
+      </div>
 
-      {/* Main Container Area */}
-      <div className="flex-1 flex items-center justify-center overflow-y-auto custom-scroll bg-cream p-0 md:p-8">
-        {/* Floating Card on Desktop, Full screen on Mobile */}
-        <div className="w-full h-full md:h-auto md:max-h-[90%] md:max-w-[560px] bg-cream md:bg-white md:shadow-xl md:border md:border-neutral-200/40 md:rounded-[28px] p-6 md:p-10 flex flex-col">
-          {children}
+      {/* Right Side - Form Container */}
+      <div className="w-full md:w-1/2 lg:w-2/5 h-full flex flex-col overflow-y-auto custom-scroll bg-cream relative z-0">
+        {/* Mobile Header (Hidden on Desktop) */}
+        <header className="flex md:hidden h-20 items-center justify-center px-6 select-none shrink-0 border-b border-neutral-200/50 bg-cream z-10 sticky top-0">
+          <Logo className="h-10" />
+        </header>
+
+        {/* Form Area */}
+        <div className="flex-1 flex items-center justify-center p-6 md:p-12">
+          <div className="w-full max-w-[420px] mx-auto flex flex-col">
+            {children}
+          </div>
         </div>
       </div>
     </div>
