@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { LogOut, Calendar, Users } from "lucide-react";
+import { LogOut, Calendar, Users, User } from "lucide-react";
 import Logo from "@/components/ui/logo";
 
 export default function ClientHomePage() {
@@ -29,13 +29,22 @@ export default function ClientHomePage() {
         <div className="flex items-center gap-1.5">
           <Logo className="h-12" />
         </div>
-        <button
-          onClick={handleLogout}
-          title="Cerrar sesión"
-          className="p-2 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 duration-150 md:hidden"
-        >
-          <LogOut className="h-6 w-6 text-neutral-950" />
-        </button>
+        <div className="flex items-center gap-1.5 md:hidden">
+          {/* Avatar sphere placeholder */}
+          <button
+            className="w-10 h-10 rounded-full bg-orange-100 border border-orange-200 overflow-hidden flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+            title="Ver perfil"
+          >
+            <User className="h-5 w-5 text-primary stroke-[2.2]" />
+          </button>
+          <button
+            onClick={handleLogout}
+            title="Cerrar sesión"
+            className="p-2 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 duration-150 cursor-pointer"
+          >
+            <LogOut className="h-6 w-6 text-neutral-950" />
+          </button>
+        </div>
       </header>
 
       {/* Salutation */}

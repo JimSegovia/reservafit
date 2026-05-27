@@ -78,7 +78,7 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col bg-transparent justify-between select-none relative">
         {/* Loading Overlay */}
         {isLoading && (
-          <div className="absolute -inset-6 md:-inset-12 bg-neutral-950/75 backdrop-blur-xs z-50 flex flex-col items-center justify-center gap-3">
+          <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-xs z-50 flex flex-col items-center justify-center gap-3">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
             <span className="text-white font-bold text-sm tracking-wide">Iniciando sesión...</span>
           </div>

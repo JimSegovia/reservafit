@@ -58,7 +58,13 @@ export default function ClassDetailPage() {
       {/* Header Hero Image with Back Button */}
       <div className="relative w-full h-60 bg-neutral-200 select-none">
         <img
-          src="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop"
+          src={
+            classItem.id === "c7"
+              ? "/images/zumba.jpg"
+              : classItem.id === "c8"
+              ? "/images/salsa.png"
+              : "/images/bachata.png"
+          }
           alt={classItem.title}
           className="w-full h-full object-cover"
         />

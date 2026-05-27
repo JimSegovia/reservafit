@@ -13,10 +13,57 @@ export default function CalendarPage() {
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(4); // May
   const [currentCalendarYear, setCurrentCalendarYear] = useState(2026);
   const [mounted, setMounted] = useState(false);
+  const [animationClass, setAnimationClass] = useState("");
+
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handlePrevWeek = () => {
+    setAnimationClass("animate-slide-left");
+    setSelectedDate((prev) => {
+      const prevWeek = new Date(prev);
+      prevWeek.setDate(prev.getDate() - 7);
+      return prevWeek;
+    });
+    setTimeout(() => setAnimationClass(""), 250);
+  };
+
+  const handleNextWeek = () => {
+    setAnimationClass("animate-slide-right");
+    setSelectedDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(prev.getDate() + 7);
+      return next;
+    });
+    setTimeout(() => setAnimationClass(""), 250);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      handleNextWeek();
+    } else if (isRightSwipe) {
+      handlePrevWeek();
+    }
+  };
 
   const monthsNames = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
@@ -153,17 +200,43 @@ export default function CalendarPage() {
         <h2 className="text-2xl font-black text-neutral-950">Calendario</h2>
       </header>
 
-      {/* Week Heading Dropdown Toggle */}
-      <div className="flex justify-center mb-4 select-none">
+      {/* Dynamic Style for animations */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slideInLeft {
+          from { transform: translateX(-20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInRight {
+          from { transform: translateX(20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-left {
+          animation: slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-slide-right {
+          animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}} />
+
+      {/* Week Heading Dropdown Toggle with Chevrons */}
+      <div className="flex justify-between items-center mb-4 select-none max-w-xs mx-auto w-full gap-2">
+        <button
+          onClick={handlePrevWeek}
+          className="p-2 hover:bg-neutral-100 rounded-full transition-all active:scale-90 text-primary cursor-pointer shrink-0"
+          title="Semana anterior"
+        >
+          <ChevronLeft className="h-5 w-5 stroke-[2.5]" />
+        </button>
+
         <button
           onClick={() => {
             setCurrentCalendarMonth(selectedDate.getMonth());
             setCurrentCalendarYear(selectedDate.getFullYear());
             setShowYearCalendar(!showYearCalendar);
           }}
-          className="flex items-center bg-white border border-neutral-200 px-4 py-2 rounded-full shadow-sm hover:border-neutral-350 transition-all font-bold active:scale-98"
+          className="flex-grow flex items-center justify-center bg-white border border-neutral-200 px-4 py-2 rounded-full shadow-sm hover:border-neutral-350 transition-all font-bold active:scale-98 cursor-pointer"
         >
-          <span className="text-sm font-black text-neutral-950 mr-2">
+          <span className="text-sm font-black text-neutral-950 mr-2 truncate">
             {formatWeekRange(monday)}
           </span>
           {showYearCalendar ? (
@@ -171,6 +244,14 @@ export default function CalendarPage() {
           ) : (
             <ChevronDown className="h-4.5 w-4.5 text-primary stroke-[3]" />
           )}
+        </button>
+
+        <button
+          onClick={handleNextWeek}
+          className="p-2 hover:bg-neutral-100 rounded-full transition-all active:scale-90 text-primary cursor-pointer shrink-0"
+          title="Semana siguiente"
+        >
+          <ChevronRight className="h-5 w-5 stroke-[2.5]" />
         </button>
       </div>
 
@@ -231,8 +312,13 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* Week Days List */}
-      <div className="flex justify-between mb-6 px-1 select-none">
+      {/* Week Days List with Swipe Touch Handlers and Animations */}
+      <div 
+        className={`flex justify-between mb-6 px-1 select-none transition-all ${animationClass}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         {weekDays.map((day, idx) => {
           const isSelected = day.date.getDate() === selectedDate.getDate() && 
                              day.date.getMonth() === selectedDate.getMonth() &&
@@ -241,8 +327,8 @@ export default function CalendarPage() {
             <button
               key={idx}
               onClick={() => setSelectedDate(day.date)}
-              className={`items-center flex flex-col p-2.5 rounded-xl w-[45px] transition-all ${
-                isSelected ? "bg-primary text-white font-black" : "bg-transparent text-neutral-950 hover:bg-neutral-100/50"
+              className={`items-center flex flex-col p-2.5 rounded-xl w-[45px] transition-all cursor-pointer ${
+                isSelected ? "bg-primary text-white font-black animate-scaleIn" : "bg-transparent text-neutral-950 hover:bg-neutral-100/50"
               }`}
             >
               <span className={`text-[9px] font-black block tracking-wider ${isSelected ? "text-white/80" : "text-neutral-500"}`}>
@@ -295,9 +381,7 @@ export default function CalendarPage() {
                     <ChevronRight className="h-4 w-4 text-neutral-400 shrink-0" />
                   </button>
                 ) : (
-                  <div className="h-full flex items-center pl-3 text-neutral-300 text-xs font-semibold italic">
-                    Disponible
-                  </div>
+                  <div className="h-full min-h-[50px]"></div>
                 )}
               </div>
             </div>

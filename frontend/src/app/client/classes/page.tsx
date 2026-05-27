@@ -61,10 +61,10 @@ export default function ClassesPage() {
               <img
                 src={
                   cls.id === "c7"
-                    ? "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop"
+                    ? "/images/zumba.jpg"
                     : cls.id === "c8"
-                    ? "https://images.unsplash.com/photo-1524594152303-9fd13543dd6e?q=80&w=400&auto=format&fit=crop"
-                    : "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400&auto=format&fit=crop"
+                    ? "/images/salsa.png"
+                    : "/images/bachata.png"
                 }
                 alt={cls.title}
                 className="w-full h-full object-cover"
