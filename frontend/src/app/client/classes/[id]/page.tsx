@@ -54,7 +54,7 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll">
+    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll animate-page-slide">
       {/* Header Hero Image with Back Button */}
       <div className="relative w-full h-60 bg-neutral-200 select-none">
         <img

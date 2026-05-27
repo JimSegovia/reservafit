@@ -45,23 +45,77 @@ export default function HorariosDisponiblesPage() {
   }, []);
 
   const [selectedDay, setSelectedDay] = useState(days[1].fullLabel);
+  const [selectedIndex, setSelectedIndex] = useState(1);
+  const [activeTransition, setActiveTransition] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Auto-scroll center selected day card
-  useEffect(() => {
-    if (!mounted) return;
-    const selectedIdx = days.findIndex((d) => d.fullLabel === selectedDay);
-    if (selectedIdx !== -1 && scrollRef.current) {
-      const containerWidth = scrollRef.current.clientWidth;
-      const cardWidth = 74; // w-16 is 64px + gap 10px
-      const offset = selectedIdx * cardWidth - containerWidth / 2 + cardWidth / 2;
-      scrollRef.current.scrollTo({ left: Math.max(0, offset), behavior: "smooth" });
+  const visibleDays = useMemo(() => {
+    const getSafeDay = (idx: number) => {
+      const safeIdx = Math.max(0, Math.min(days.length - 1, idx));
+      return days[safeIdx];
+    };
+    return [
+      getSafeDay(selectedIndex - 2),
+      getSafeDay(selectedIndex - 1),
+      getSafeDay(selectedIndex),
+      getSafeDay(selectedIndex + 1),
+      getSafeDay(selectedIndex + 2),
+    ];
+  }, [selectedIndex, days]);
+
+  const handleDayClick = (clickedIdxInVisible: number) => {
+    if (clickedIdxInVisible === 2) return; // Ya está seleccionado el del centro
+    
+    if (clickedIdxInVisible === 3) {
+      // Siguiente día
+      setActiveTransition("translateX(-40%)");
+      setTimeout(() => {
+        setSelectedIndex((prev) => {
+          const nextVal = Math.min(days.length - 1, prev + 1);
+          setSelectedDay(days[nextVal].fullLabel);
+          return nextVal;
+        });
+        setActiveTransition("");
+      }, 300);
+    } else if (clickedIdxInVisible === 1) {
+      // Anterior día
+      setActiveTransition("translateX(0%)");
+      setTimeout(() => {
+        setSelectedIndex((prev) => {
+          const prevVal = Math.max(0, prev - 1);
+          setSelectedDay(days[prevVal].fullLabel);
+          return prevVal;
+        });
+        setActiveTransition("");
+      }, 300);
+    } else if (clickedIdxInVisible === 4) {
+      // Avanzar 2 días
+      setActiveTransition("translateX(-60%)");
+      setTimeout(() => {
+        setSelectedIndex((prev) => {
+          const nextVal = Math.min(days.length - 1, prev + 2);
+          setSelectedDay(days[nextVal].fullLabel);
+          return nextVal;
+        });
+        setActiveTransition("");
+      }, 300);
+    } else if (clickedIdxInVisible === 0) {
+      // Retroceder 2 días
+      setActiveTransition("translateX(20%)");
+      setTimeout(() => {
+        setSelectedIndex((prev) => {
+          const prevVal = Math.max(0, prev - 2);
+          setSelectedDay(days[prevVal].fullLabel);
+          return prevVal;
+        });
+        setActiveTransition("");
+      }, 300);
     }
-  }, [selectedDay, days, mounted]);
+  };
 
   // Generate dynamic slots based on selected date to simulate live availability
   const getSlotsForDay = (day: string) => {
@@ -93,12 +147,19 @@ export default function HorariosDisponiblesPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6">
+    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6 animate-page-slide">
+      {/* Dynamic style for ease-out-expo */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .ease-out-expo {
+          transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}} />
+
       {/* Header */}
       <header className="flex justify-between items-center mb-6 select-none">
         <button
           onClick={() => router.back()}
-          className="p-1 hover:bg-neutral-100 rounded-full transition-colors active:scale-90"
+          className="p-1 hover:bg-neutral-100 rounded-full transition-colors active:scale-90 cursor-pointer"
         >
           <ArrowLeft className="h-6 w-6 text-neutral-950" />
         </button>
@@ -108,42 +169,44 @@ export default function HorariosDisponiblesPage() {
             Clase: {classItem.title}
           </p>
         </div>
-        <button className="p-1 hover:bg-neutral-100 rounded-full relative transition-colors">
+        <button className="p-1 hover:bg-neutral-100 rounded-full relative transition-colors cursor-pointer">
           <Bell className="h-6 w-6 text-neutral-950" />
           <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
       </header>
 
-      {/* Day selection tabs horizontal track */}
-      <div
-        ref={scrollRef}
-        className="flex gap-2.5 overflow-x-auto custom-scroll mb-6 py-2 select-none"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {days.map((day) => {
-          const isSelected = day.fullLabel === selectedDay;
-          return (
-            <button
-              key={day.id}
-              onClick={() => setSelectedDay(day.fullLabel)}
-              className={`w-16 h-20 rounded-2xl border shrink-0 flex flex-col items-center justify-between py-2 px-1 shadow-sm transition-all duration-150 active:scale-95 ${
-                isSelected
-                  ? "bg-primary border-primary text-white scale-[1.03]"
-                  : "bg-white border-neutral-250 text-neutral-950 hover:border-neutral-350"
-              }`}
-            >
-              <span className={`text-[9px] font-black tracking-wider uppercase block ${isSelected ? "text-white/80" : "text-neutral-400"}`}>
-                {day.monthLabel}
-              </span>
-              <span className="text-xl font-black leading-none my-0.5">
-                {day.dayNum}
-              </span>
-              <span className={`text-[9px] font-black block uppercase ${isSelected ? "text-white" : "text-neutral-500"}`}>
-                {day.dayName}
-              </span>
-            </button>
-          );
-        })}
+      {/* Day selection viewport - Shows exactly 3 days */}
+      <div className="w-full overflow-hidden relative py-2 select-none mb-6">
+        <div
+          className="flex gap-0 w-[166.67%] transition-transform duration-300 ease-out-expo"
+          style={{ transform: activeTransition ? activeTransition : 'translateX(-20%)' }}
+        >
+          {visibleDays.map((day, idx) => {
+            const isSelected = idx === 2;
+            return (
+              <div key={day.id + "-" + idx} className="w-[20%] px-1 flex justify-center shrink-0">
+                <button
+                  onClick={() => handleDayClick(idx)}
+                  className={`w-full max-w-[70px] h-20 rounded-2xl border flex flex-col items-center justify-between py-2 px-1 shadow-sm transition-all duration-150 active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? "bg-primary border-primary text-white scale-[1.03]"
+                      : "bg-white border-neutral-250 text-neutral-950 hover:border-neutral-350"
+                  }`}
+                >
+                  <span className={`text-[9px] font-black block tracking-wider uppercase ${isSelected ? "text-white/80" : "text-neutral-400"}`}>
+                    {day.monthLabel}
+                  </span>
+                  <span className="text-xl font-black leading-none my-0.5">
+                    {day.dayNum}
+                  </span>
+                  <span className={`text-[9px] font-black block uppercase ${isSelected ? "text-white" : "text-neutral-500"}`}>
+                    {day.dayName}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Slots List */}
