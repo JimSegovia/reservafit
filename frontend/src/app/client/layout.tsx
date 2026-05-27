@@ -99,12 +99,12 @@ export default function ClientLayout({
       {/* Main Workspace */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Content area: offset bottom on mobile, no offset on desktop */}
-        <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+        <div className="flex-1 flex flex-col overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
           {children}
         </div>
 
         {/* Mobile Bottom Navigation Bar (Hidden on desktop) */}
-        <nav className="md:hidden absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-neutral-100 flex justify-around items-center z-40 select-none shadow-lg">
+        <nav className="md:hidden absolute bottom-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-white border-t border-neutral-100 flex justify-around items-center z-40 select-none shadow-lg">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             

@@ -60,13 +60,8 @@ export default function RegisterPage() {
 
   return (
     <AuthContainer>
-      <div className="flex-1 flex flex-col bg-transparent h-full overflow-y-auto custom-scroll px-4 py-2 justify-between">
+      <div className="flex-1 flex flex-col bg-transparent px-4 py-2 justify-start">
         <div>
-          {/* Top Header Mock Icon */}
-          <div className="flex justify-end mb-4">
-            <SlidersHorizontal className="h-5 w-5 text-neutral-300 stroke-[2]" />
-          </div>
-
           {/* Large Profile Icon */}
           <div className="flex flex-col items-center mb-6 select-none">
             <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-orange-500/10">
