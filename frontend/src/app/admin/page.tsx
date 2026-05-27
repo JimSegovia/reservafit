@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6">
+    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6 md:max-w-4xl md:mx-auto md:w-full md:px-8">
       {/* Header */}
       <header className="flex justify-between items-center mb-6 select-none">
         <div className="flex items-center gap-1.5">
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         <button
           onClick={handleLogout}
           title="Cerrar sesión"
-          className="p-2 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 duration-150"
+          className="p-2 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 duration-150 md:hidden"
         >
           <LogOut className="h-6 w-6 text-neutral-950" />
         </button>
