@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
 import { Dumbbell, Eye, EyeOff, Square, CheckSquare, Clock, User, Mail, Lock } from "lucide-react";
 import AuthContainer from "@/components/ui/auth-container";
+import Logo from "@/components/ui/logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,15 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const _hasHydrated = useAppStore((state) => state._hasHydrated);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -58,17 +68,28 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthContainer>
+    <AuthContainer mobileBgImage="/images/iniciar-sesion-mobile.jpg">
       <div className="flex-1 flex flex-col bg-transparent justify-between select-none">
         <div>
-          {/* Avatar Header as in desktop mockup */}
+          {/* Header */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-orange-500/10">
+            {/* Desktop: User Avatar. Mobile: ReservaFit Logo */}
+            <div className="hidden md:flex w-24 h-24 rounded-full bg-primary items-center justify-center shadow-lg shadow-orange-500/10">
               <User className="h-12 w-12 text-white stroke-[2.2]" />
             </div>
-            <h2 className="text-2xl font-black text-neutral-950 mt-4">Iniciar sesión</h2>
-            <p className="text-neutral-500 text-xs text-center mt-2 leading-relaxed px-4 font-semibold">
+            
+            <div className="flex md:hidden mb-2 justify-center w-full px-8">
+              <Logo className="h-16" />
+            </div>
+
+            <h2 className="text-2xl font-black text-neutral-950 mt-4">Iniciar Sesión</h2>
+            
+            {/* Subtitles */}
+            <p className="text-neutral-500 text-xs text-center mt-2 leading-relaxed px-4 font-semibold hidden md:block">
               Inicia sesión para ver las clases que tenemos preparadas para ti.
+            </p>
+            <p className="text-neutral-700 text-sm text-center mt-2 leading-relaxed px-4 font-black md:hidden">
+              Continúa reservando tu clase favorita.
             </p>
           </div>
 
@@ -82,30 +103,30 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {/* Email Field */}
             <div className="flex flex-col gap-1 w-full">
-              <label className="text-neutral-500 font-extrabold text-xs ml-1">Correo electrónico</label>
+              <label className="hidden md:block text-neutral-500 font-extrabold text-xs ml-1">Correo electrónico</label>
               <div className="flex items-center border border-neutral-300 rounded-xl bg-white px-3 py-3.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-                <Mail className="h-5 w-5 text-neutral-400 stroke-[2.2]" />
+                <Mail className="hidden md:block h-5 w-5 text-neutral-400 stroke-[2.2]" />
                 <input
                   type="email"
-                  placeholder="Correo@ejemplo.com"
+                  placeholder={isMobile ? "Usuario o correo electrónico" : "Correo@ejemplo.com"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 ml-2 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-300 focus:outline-none"
+                  className="flex-1 md:ml-2 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-400 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div className="flex flex-col gap-1 w-full">
-              <label className="text-neutral-500 font-extrabold text-xs ml-1">Contraseña</label>
+              <label className="hidden md:block text-neutral-500 font-extrabold text-xs ml-1">Contraseña</label>
               <div className="flex items-center border border-neutral-300 rounded-xl bg-white px-3 py-3.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all relative">
-                <Lock className="h-5 w-5 text-neutral-400 stroke-[2.2]" />
+                <Lock className="hidden md:block h-5 w-5 text-neutral-400 stroke-[2.2]" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="****************"
+                  placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex-1 ml-2 pr-10 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-300 focus:outline-none"
+                  className="flex-1 md:ml-2 pr-10 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-400 focus:outline-none"
                 />
                 <button
                   type="button"
