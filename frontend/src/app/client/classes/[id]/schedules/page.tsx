@@ -70,48 +70,35 @@ export default function HorariosDisponiblesPage() {
   const handleDayClick = (clickedIdxInVisible: number) => {
     if (clickedIdxInVisible === 2) return; // Ya está seleccionado el del centro
     
+    const targetDay = visibleDays[clickedIdxInVisible];
+    setSelectedDay(targetDay.fullLabel);
+
     if (clickedIdxInVisible === 3) {
       // Siguiente día
       setActiveTransition("translateX(-40%)");
       setTimeout(() => {
-        setSelectedIndex((prev) => {
-          const nextVal = Math.min(days.length - 1, prev + 1);
-          setSelectedDay(days[nextVal].fullLabel);
-          return nextVal;
-        });
+        setSelectedIndex((prev) => Math.min(days.length - 1, prev + 1));
         setActiveTransition("");
       }, 300);
     } else if (clickedIdxInVisible === 1) {
       // Anterior día
       setActiveTransition("translateX(0%)");
       setTimeout(() => {
-        setSelectedIndex((prev) => {
-          const prevVal = Math.max(0, prev - 1);
-          setSelectedDay(days[prevVal].fullLabel);
-          return prevVal;
-        });
+        setSelectedIndex((prev) => Math.max(0, prev - 1));
         setActiveTransition("");
       }, 300);
     } else if (clickedIdxInVisible === 4) {
       // Avanzar 2 días
       setActiveTransition("translateX(-60%)");
       setTimeout(() => {
-        setSelectedIndex((prev) => {
-          const nextVal = Math.min(days.length - 1, prev + 2);
-          setSelectedDay(days[nextVal].fullLabel);
-          return nextVal;
-        });
+        setSelectedIndex((prev) => Math.min(days.length - 1, prev + 2));
         setActiveTransition("");
       }, 300);
     } else if (clickedIdxInVisible === 0) {
       // Retroceder 2 días
       setActiveTransition("translateX(20%)");
       setTimeout(() => {
-        setSelectedIndex((prev) => {
-          const prevVal = Math.max(0, prev - 2);
-          setSelectedDay(days[prevVal].fullLabel);
-          return prevVal;
-        });
+        setSelectedIndex((prev) => Math.max(0, prev - 2));
         setActiveTransition("");
       }, 300);
     }
@@ -176,32 +163,24 @@ export default function HorariosDisponiblesPage() {
       </header>
 
       {/* Day selection viewport - Shows exactly 3 days */}
-      <div className="w-full overflow-hidden relative py-2 select-none mb-6">
+      <div className="w-full overflow-hidden relative py-4 select-none mb-6">
         <div
-          className="flex gap-0 w-[166.67%] transition-transform duration-300 ease-out-expo"
+          className="flex gap-0 w-[166.67%] transition-transform duration-300 ease-out-expo items-center"
           style={{ transform: activeTransition ? activeTransition : 'translateX(-20%)' }}
         >
           {visibleDays.map((day, idx) => {
-            const isSelected = idx === 2;
+            const isSelected = day.fullLabel === selectedDay;
             return (
-              <div key={day.id + "-" + idx} className="w-[20%] px-1 flex justify-center shrink-0">
+              <div key={day.id + "-" + idx} className="w-[20%] px-1 flex justify-center items-center shrink-0">
                 <button
                   onClick={() => handleDayClick(idx)}
-                  className={`w-full max-w-[70px] h-20 rounded-2xl border flex flex-col items-center justify-between py-2 px-1 shadow-sm transition-all duration-150 active:scale-95 cursor-pointer ${
+                  className={`px-3 py-2 rounded-xl text-[10px] sm:text-xs font-black tracking-wide uppercase select-none text-center transition-all duration-150 active:scale-95 cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? "bg-primary border-primary text-white scale-[1.03]"
-                      : "bg-white border-neutral-250 text-neutral-950 hover:border-neutral-350"
+                      ? "bg-primary text-white shadow-md shadow-orange-500/20"
+                      : "text-neutral-950 hover:text-neutral-700"
                   }`}
                 >
-                  <span className={`text-[9px] font-black block tracking-wider uppercase ${isSelected ? "text-white/80" : "text-neutral-400"}`}>
-                    {day.monthLabel}
-                  </span>
-                  <span className="text-xl font-black leading-none my-0.5">
-                    {day.dayNum}
-                  </span>
-                  <span className={`text-[9px] font-black block uppercase ${isSelected ? "text-white" : "text-neutral-500"}`}>
-                    {day.dayName}
-                  </span>
+                  {day.fullLabel}
                 </button>
               </div>
             );
