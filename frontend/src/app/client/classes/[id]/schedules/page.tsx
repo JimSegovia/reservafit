@@ -46,62 +46,15 @@ export default function HorariosDisponiblesPage() {
 
   const [selectedDay, setSelectedDay] = useState(days[1].fullLabel);
   const [selectedIndex, setSelectedIndex] = useState(1);
-  const [activeTransition, setActiveTransition] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const visibleDays = useMemo(() => {
-    const getSafeDay = (idx: number) => {
-      const safeIdx = Math.max(0, Math.min(days.length - 1, idx));
-      return days[safeIdx];
-    };
-    return [
-      getSafeDay(selectedIndex - 2),
-      getSafeDay(selectedIndex - 1),
-      getSafeDay(selectedIndex),
-      getSafeDay(selectedIndex + 1),
-      getSafeDay(selectedIndex + 2),
-    ];
-  }, [selectedIndex, days]);
-
-  const handleDayClick = (clickedIdxInVisible: number) => {
-    if (clickedIdxInVisible === 2) return; // Ya está seleccionado el del centro
-    
-    const targetDay = visibleDays[clickedIdxInVisible];
-    setSelectedDay(targetDay.fullLabel);
-
-    if (clickedIdxInVisible === 3) {
-      // Siguiente día
-      setActiveTransition("translateX(-40%)");
-      setTimeout(() => {
-        setSelectedIndex((prev) => Math.min(days.length - 1, prev + 1));
-        setActiveTransition("");
-      }, 300);
-    } else if (clickedIdxInVisible === 1) {
-      // Anterior día
-      setActiveTransition("translateX(0%)");
-      setTimeout(() => {
-        setSelectedIndex((prev) => Math.max(0, prev - 1));
-        setActiveTransition("");
-      }, 300);
-    } else if (clickedIdxInVisible === 4) {
-      // Avanzar 2 días
-      setActiveTransition("translateX(-60%)");
-      setTimeout(() => {
-        setSelectedIndex((prev) => Math.min(days.length - 1, prev + 2));
-        setActiveTransition("");
-      }, 300);
-    } else if (clickedIdxInVisible === 0) {
-      // Retroceder 2 días
-      setActiveTransition("translateX(20%)");
-      setTimeout(() => {
-        setSelectedIndex((prev) => Math.max(0, prev - 2));
-        setActiveTransition("");
-      }, 300);
-    }
+  const handleDayClick = (clickedIndex: number) => {
+    setSelectedIndex(clickedIndex);
+    setSelectedDay(days[clickedIndex].fullLabel);
   };
 
   // Generate dynamic slots based on selected date to simulate live availability
@@ -143,10 +96,10 @@ export default function HorariosDisponiblesPage() {
       `}} />
 
       {/* Header */}
-      <header className="flex justify-between items-center mb-6 select-none">
+      <header className="flex justify-between items-center mb-6 select-none shrink-0">
         <button
           onClick={() => router.back()}
-          className="p-1 hover:bg-neutral-100 rounded-full transition-colors active:scale-90 cursor-pointer"
+          className="p-1 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 cursor-pointer"
         >
           <ArrowLeft className="h-6 w-6 text-neutral-950" />
         </button>
@@ -163,15 +116,18 @@ export default function HorariosDisponiblesPage() {
       </header>
 
       {/* Day selection viewport - Shows exactly 3 days */}
-      <div className="w-full overflow-hidden relative py-4 select-none mb-6">
+      <div className="w-full overflow-hidden relative py-4 select-none mb-6 shrink-0">
         <div
-          className="flex gap-0 w-[166.67%] transition-transform duration-300 ease-out-expo items-center"
-          style={{ transform: activeTransition ? activeTransition : 'translateX(-20%)' }}
+          className="flex gap-0 transition-transform duration-300 ease-out-expo items-center"
+          style={{
+            width: `${days.length * 33.3333}%`,
+            transform: `translateX(calc((1 - ${selectedIndex}) * 100% / ${days.length}))`
+          }}
         >
-          {visibleDays.map((day, idx) => {
+          {days.map((day, idx) => {
             const isSelected = day.fullLabel === selectedDay;
             return (
-              <div key={day.id + "-" + idx} className="w-[20%] px-1 flex justify-center items-center shrink-0">
+              <div key={day.id + "-" + idx} style={{ width: `${100 / days.length}%` }} className="px-1 flex justify-center items-center shrink-0">
                 <button
                   onClick={() => handleDayClick(idx)}
                   className={`px-3 py-2 rounded-xl text-[10px] sm:text-xs font-black tracking-wide uppercase select-none text-center transition-all duration-150 active:scale-95 cursor-pointer whitespace-nowrap ${
