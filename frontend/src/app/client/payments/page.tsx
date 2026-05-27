@@ -23,7 +23,7 @@ export default function ClientPaymentsHistoryPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6">
+    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6 animate-page-slide">
       {/* Header */}
       <header className="flex items-center mb-6 select-none">
         <button
