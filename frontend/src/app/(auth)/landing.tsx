@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
@@ -9,7 +10,7 @@ export default function LandingScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1 px-6 py-4">
+      <ScrollView contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16 }}>
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center">

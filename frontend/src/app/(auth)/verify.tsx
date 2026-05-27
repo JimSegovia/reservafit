@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -67,9 +68,8 @@ export default function VerifyScreen() {
         className="flex-1"
       >
         <ScrollView 
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+          contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, justifyContent: 'center', paddingVertical: 16, paddingBottom: 30 }} 
           showsVerticalScrollIndicator={false}
-          className="flex-1 px-6 justify-center py-4"
         >
           {/* OTP Icon */}
           <Animated.View entering={ZoomIn.duration(200)} className="items-center mb-8">

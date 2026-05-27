@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -20,11 +21,10 @@ export default function SuccessScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4 justify-center"
-      >
+<ScrollView 
+         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30, justifyContent: 'center' }} 
+         showsVerticalScrollIndicator={false}
+       >
         {/* Success Icon */}
         <View className="items-center mb-8">
           <Animated.View entering={ZoomIn.duration(200).springify()} className="w-24 h-24 rounded-full bg-green-500 items-center justify-center shadow-lg shadow-green-500/20">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/useStore';
 
@@ -17,9 +18,8 @@ export default function ClassesSelectorScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
       >
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(200)} className="mb-4">

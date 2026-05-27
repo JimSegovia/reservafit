@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -136,11 +137,10 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
-      >
+<ScrollView 
+         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
+         showsVerticalScrollIndicator={false}
+       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
           <TouchableOpacity onPress={() => router.replace('/(client)/(tabs)/classes')}>

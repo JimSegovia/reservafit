@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -48,11 +49,10 @@ export default function ClassDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
-        showsVerticalScrollIndicator={false}
-        className="flex-1"
-      >
+<ScrollView 
+         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingBottom: 30 }}
+         showsVerticalScrollIndicator={false}
+       >
         {/* Header Hero Image with Back Button */}
         <Animated.View entering={FadeIn.duration(200)} className="relative w-full h-64 bg-gray-200">
           <Image
