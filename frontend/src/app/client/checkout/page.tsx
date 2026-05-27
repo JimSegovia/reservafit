@@ -75,8 +75,12 @@ export default function CheckoutPage() {
 
       {/* Yape Logo / Mascot Circle */}
       <div className="flex flex-col items-center mb-6 select-none">
-        <div className="w-20 h-20 rounded-full bg-purple-700 flex items-center justify-center shadow-md shadow-purple-500/10">
-          <span className="text-white text-3xl font-black italic tracking-tighter">yape</span>
+        <div className="h-16 flex items-center justify-center select-none">
+          <img
+            src="/images/yapelogo.png"
+            alt="Yape"
+            className="h-full object-contain"
+          />
         </div>
         <p className="text-neutral-400 text-xs font-bold mt-3 text-center">
           Yape es el único medio de pago aceptado.

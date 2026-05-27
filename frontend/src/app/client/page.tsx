@@ -6,6 +6,17 @@ import { useAppStore } from "@/store/useStore";
 import { LogOut, Calendar, Users, User } from "lucide-react";
 import Logo from "@/components/ui/logo";
 
+const getClassImage = (className: string) => {
+  const nameLower = className.toLowerCase();
+  if (nameLower.includes("zumba")) {
+    return "/images/zumba.jpg";
+  }
+  if (nameLower.includes("salsa")) {
+    return "/images/salsa.png";
+  }
+  return "/images/bachata.png"; // Fallback para Reageton
+};
+
 export default function ClientHomePage() {
   const router = useRouter();
   const user = useAppStore((state) => state.user);
@@ -19,7 +30,7 @@ export default function ClientHomePage() {
 
   // Filter reservations for this client (only paid ones)
   const clientReservations = reservations.filter(
-    (res) => res.status === "Pagado"
+    (res) => res.status === "Pagado" && (res.clientPhone === user?.phone || res.clientName === user?.name)
   );
 
   return (
@@ -87,8 +98,8 @@ export default function ClientHomePage() {
               {/* Visual Card Image Header */}
               <div className="w-full h-24 bg-neutral-200 relative select-none">
                 <img
-                  src="https://images.unsplash.com/photo-1524594152303-9fd13543dd6e?q=80&w=400&auto=format&fit=crop"
-                  alt="Clase reservada"
+                  src={getClassImage(res.className)}
+                  alt={res.className}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -103,8 +114,8 @@ export default function ClientHomePage() {
                   </h3>
                 </div>
                 
-                <span className="text-base font-extrabold text-neutral-900 mb-3 bg-neutral-50 border border-neutral-100 rounded-full px-3 py-1 text-center">
-                  {res.time}
+                <span className="text-sm font-extrabold text-neutral-900 mb-3 bg-neutral-50 border border-neutral-100 rounded-full px-3 py-1.5 text-center">
+                  {res.date} • {res.time}
                 </span>
                 
                 {/* Details Footer */}

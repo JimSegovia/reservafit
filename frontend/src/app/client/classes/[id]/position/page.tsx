@@ -52,7 +52,10 @@ export default function PositionSelectorPage() {
   };
 
   const handleContinue = () => {
-    if (currentBooking.selectedSeats.length === 0) return;
+    if (currentBooking.selectedSeats.length === 0) {
+      alert("Por favor, primero seleccione un cupo.");
+      return;
+    }
     router.push("/client/checkout");
   };
 
@@ -146,10 +149,9 @@ export default function PositionSelectorPage() {
       <div className="mt-auto">
         <button
           onClick={handleContinue}
-          disabled={currentBooking.selectedSeats.length === 0}
-          className={`w-full py-4 rounded-2xl text-base font-bold transition-all shadow-lg text-center ${
+          className={`w-full py-4 rounded-2xl text-base font-bold transition-all shadow-lg text-center cursor-pointer ${
             currentBooking.selectedSeats.length === 0
-              ? "bg-neutral-350 text-white cursor-not-allowed"
+              ? "bg-neutral-300 text-neutral-500 hover:bg-neutral-400 active:scale-[0.99]"
               : "bg-primary hover:bg-primary-dark text-white shadow-orange-500/10 hover:shadow-orange-500/20 active:scale-[0.98]"
           }`}
         >

@@ -138,11 +138,9 @@ const initialClasses: ClassItem[] = [
 ];
 
 const initialReservations: Reservation[] = [
-  { id: 'r1', classId: 'c1', className: 'Salsa Básica', time: '6:00 PM - 7:00 PM', date: '12 May 2025', clientName: 'Andrea Garcia', clientPhone: '987654321', seats: [12], price: 40, status: 'Pagado' },
-  { id: 'r2', classId: 'c2', className: 'Bachata Intermedio', time: '7:00 PM - 8:00 PM', date: '12 May 2025', clientName: 'Maria Lopez', clientPhone: '923456789', seats: [14], price: 40, status: 'Pagado' },
-  { id: 'r3', classId: 'c3', className: 'Reggaetón Fit', time: '8:00 PM - 9:00 PM', date: '11 May 2025', clientName: 'Carlos Gómez', clientPhone: '956789123', seats: [4], price: 40, status: 'Pagado' },
-  { id: 'r4', classId: 'c1', className: 'Salsa Básica', time: '6:00 PM - 7:00 PM', date: '11 May 2025', clientName: 'Juan Pérez', clientPhone: '981234567', seats: [2], price: 40, status: 'Pagado' },
-  { id: 'r5', classId: 'c2', className: 'Bachata Intermedio', time: '7:00 PM - 8:00 PM', date: '10 May 2025', clientName: 'Luis Fernández', clientPhone: '911223344', seats: [22], price: 40, status: 'Reembolsado' },
+  { id: 'r1', classId: 'c7', className: 'Zumba', time: '5:00 PM - 6:00 PM', date: 'MIÉRCOLES 12/05', clientName: 'Ana Pérez', clientPhone: '999888777', seats: [12], price: 40, status: 'Pagado' },
+  { id: 'r2', classId: 'c8', className: 'Salsa', time: '7:00 PM - 8:00 PM', date: 'JUEVES 13/05', clientName: 'Ana Pérez', clientPhone: '999888777', seats: [15], price: 40, status: 'Pagado' },
+  { id: 'r3', classId: 'c9', className: 'Reageton', time: '9:00 PM - 10:00 PM', date: 'VIERNES 14/05', clientName: 'Ana Pérez', clientPhone: '999888777', seats: [4], price: 40, status: 'Pagado' },
 ];
 
 const initialOccupiedSeats: Record<string, number[]> = {
@@ -332,7 +330,7 @@ export const useAppStore = create<AppState>()(
           classId: currentBooking.classId,
           className: currentBooking.className,
           time: currentBooking.time,
-          date: currentBooking.day.split(' ')[1] + ' May 2025',
+          date: currentBooking.day,
           clientName: user.name,
           clientPhone: phoneYape,
           seats: currentBooking.selectedSeats,
