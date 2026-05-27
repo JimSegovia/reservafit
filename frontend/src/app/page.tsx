@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { Calendar, Users, Menu, Clock } from "lucide-react";
+import { Calendar, Users, Clock } from "lucide-react";
 import Logo from "@/components/ui/logo";
 
 export default function LandingPage() {
@@ -54,11 +54,6 @@ export default function LandingPage() {
             Iniciar sesión
           </button>
         </div>
-
-        {/* Mobile Header Menu Button */}
-        <button className="md:hidden p-1.5 hover:bg-neutral-100 rounded-full transition-colors active:scale-95 duration-150">
-          <Menu className="h-6 w-6 text-neutral-950" />
-        </button>
       </header>
 
       {/* Main Section */}

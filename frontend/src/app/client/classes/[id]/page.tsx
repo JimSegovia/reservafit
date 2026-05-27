@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
 import { ChevronLeft, User, Calendar, Clock, Users, Palette } from "lucide-react";
@@ -12,11 +12,59 @@ export default function ClassDetailPage() {
   const classes = useAppStore((state) => state.classes);
   const startBooking = useAppStore((state) => state.startBooking);
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-
+  const [translateY, setTranslateY] = useState("100%");
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [startY, setStartY] = useState(0);
+  
   useEffect(() => {
     setMounted(true);
+    const timer = setTimeout(() => {
+      setTranslateY("0%");
+    }, 50);
+    return () => clearTimeout(timer);
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (containerRef.current && containerRef.current.scrollTop === 0) {
+      setStartY(e.touches[0].clientY);
+      setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+    if (diff > 0) {
+      setDragOffset(diff);
+    } else {
+      setDragOffset(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragOffset > 120) {
+      setTranslateY("100%");
+      setDragOffset(0);
+      setTimeout(() => {
+        router.back();
+      }, 250);
+    } else {
+      setDragOffset(0);
+    }
+  };
+
+  const handleBack = () => {
+    setTranslateY("100%");
+    setTimeout(() => {
+      router.back();
+    }, 250);
+  };
 
   const classId = (params.id as string) || "c10";
   const classItem = classes.find((c) => c.id === classId) || classes[0];
@@ -54,7 +102,25 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll animate-page-slide">
+    <div
+      ref={containerRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className={`flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll ${
+        isDragging ? "" : "bottom-sheet-transition"
+      }`}
+      style={{
+        transform: isDragging
+          ? `translateY(${dragOffset}px)`
+          : `translateY(${translateY})`
+      }}
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        .bottom-sheet-transition {
+          transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}} />
       {/* Header Hero Image with Back Button */}
       <div className="relative w-full h-60 bg-neutral-200 select-none">
         <img
@@ -70,8 +136,8 @@ export default function ClassDetailPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
         <button
-          onClick={() => router.back()}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/45 hover:bg-black/60 flex items-center justify-center text-white transition-colors active:scale-90"
+          onClick={handleBack}
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/45 hover:bg-black/60 flex items-center justify-center text-white transition-colors active:scale-90 cursor-pointer"
         >
           <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
         </button>
