@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { ArrowLeft, Bell, Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 
 export default function HorariosDisponiblesPage() {
   const router = useRouter();
@@ -109,10 +109,7 @@ export default function HorariosDisponiblesPage() {
             Clase: {classItem.title}
           </p>
         </div>
-        <button className="p-1 hover:bg-neutral-100 rounded-full relative transition-colors cursor-pointer">
-          <Bell className="h-6 w-6 text-neutral-950" />
-          <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <div className="w-8"></div> {/* Spacer to keep the title centered */}
       </header>
 
       {/* Day selection viewport - Shows exactly 3 days */}

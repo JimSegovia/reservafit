@@ -34,7 +34,7 @@ export default function ClientHomePage() {
   );
 
   return (
-    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto custom-scroll px-6 py-6 md:max-w-4xl md:mx-auto md:w-full md:px-8 animate-page-slide">
+    <div className="flex-1 flex flex-col bg-cream h-full overflow-y-auto no-scrollbar px-6 py-6 md:max-w-4xl md:mx-auto md:w-full md:px-8 animate-page-slide">
       {/* Header */}
       <header className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-1.5">

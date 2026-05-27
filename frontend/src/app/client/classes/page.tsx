@@ -22,6 +22,8 @@ export default function ClassesPage() {
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [tabTouchStart, setTabTouchStart] = useState<number | null>(null);
+  const [tabTouchEnd, setTabTouchEnd] = useState<number | null>(null);
   const minSwipeDistance = 50;
 
   useEffect(() => {
@@ -167,15 +169,18 @@ export default function ClassesPage() {
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -185,6 +190,28 @@ export default function ClassesPage() {
       handleNextWeek();
     } else if (isRightSwipe) {
       handlePrevWeek();
+    }
+  };
+
+  const handleTabTouchStart = (e: React.TouchEvent) => {
+    setTabTouchEnd(null);
+    setTabTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTabTouchMove = (e: React.TouchEvent) => {
+    setTabTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTabTouchEnd = () => {
+    if (!tabTouchStart || !tabTouchEnd) return;
+    const distance = tabTouchStart - tabTouchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && activeTab === "categories") {
+      setActiveTab("calendar");
+    } else if (isRightSwipe && activeTab === "calendar") {
+      setActiveTab("categories");
     }
   };
 
@@ -258,7 +285,12 @@ export default function ClassesPage() {
       `}} />
 
       {/* Sliding Content Container */}
-      <div className="flex-1 overflow-hidden relative w-full h-full">
+      <div 
+        onTouchStart={handleTabTouchStart}
+        onTouchMove={handleTabTouchMove}
+        onTouchEnd={handleTabTouchEnd}
+        className="flex-1 overflow-hidden relative w-full h-full"
+      >
         <div 
           className="flex h-full w-[200%] transition-transform duration-300 ease-out-expo"
           style={{
