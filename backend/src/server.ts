@@ -1,6 +1,7 @@
 import app from './app.js';
 import prisma from './config/prisma.js';
 import 'dotenv/config';
+import { iniciarCronJobs } from './utils/cron.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -19,5 +20,13 @@ async function bootstrap() {
     process.exit(1); // Detiene la ejecución si no hay base de datos disponible
   }
 }
+
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+  
+  // Iniciamos el recolector de basura de reservas vencidas
+  iniciarCronJobs();
+  console.log('⏱️  [CRON] Tareas programadas en ejecución');
+});
 
 bootstrap();
