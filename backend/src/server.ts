@@ -1,0 +1,23 @@
+import app from './app.js';
+import prisma from './config/prisma.js';
+import 'dotenv/config';
+
+const PORT = process.env.PORT || 3000;
+
+async function bootstrap() {
+  try {
+    // Validamos la conexión lanzando una consulta rápida antes de levantar el puerto
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('✅ Conexión nativa a la base de datos en Railway establecida de forma segura.');
+
+    // Inicializamos la escucha del servidor HTTP
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor de ReservaFit corriendo de manera exitosa en http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Error crítico al inicializar los servicios del backend:', error);
+    process.exit(1); // Detiene la ejecución si no hay base de datos disponible
+  }
+}
+
+bootstrap();
