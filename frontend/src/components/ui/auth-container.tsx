@@ -53,7 +53,7 @@ export default function AuthContainer({ children, mobileBgImage, hideMobileHeade
       {/* Right Side - Form Container */}
       <div className={`w-full md:w-1/2 lg:w-2/5 h-full flex flex-col overflow-y-auto custom-scroll bg-cream relative z-0 mobile-custom-bg pb-[env(safe-area-inset-bottom)]`}>
         {/* Mobile Header (Hidden on Desktop & when custom mobile background is present) */}
-        {!mobileBgImage && (
+        {!mobileBgImage && !hideMobileHeader && (
           <header className="flex md:hidden h-20 items-center justify-center px-6 select-none shrink-0 border-b border-neutral-200/50 bg-cream z-10 sticky top-0">
             <Logo className="h-10" />
           </header>
