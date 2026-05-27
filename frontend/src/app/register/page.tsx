@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { User, Mail, Phone, Lock, Eye, EyeOff, SlidersHorizontal } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import AuthContainer from "@/components/ui/auth-container";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const _hasHydrated = useAppStore((state) => state._hasHydrated);
 
   useEffect(() => {
@@ -39,15 +41,19 @@ export default function RegisterPage() {
       return;
     }
     
-    registerUser({
-      name: `${name} ${lastName}`,
-      email,
-      phone,
-      role: "client"
-    });
-
+    setIsLoading(true);
     setError("");
-    router.push("/verify");
+
+    setTimeout(() => {
+      registerUser({
+        name: `${name} ${lastName}`,
+        email,
+        phone,
+        role: "client"
+      });
+      setIsLoading(false);
+      router.push("/verify");
+    }, 1200);
   };
 
   if (!_hasHydrated) {
@@ -59,8 +65,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthContainer>
-      <div className="flex-1 flex flex-col bg-transparent px-4 py-2 justify-start">
+    <AuthContainer hideMobileHeader={true}>
+      <div className="flex-1 flex flex-col bg-transparent px-4 py-2 justify-start relative">
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute -inset-6 md:-inset-12 bg-neutral-950/75 backdrop-blur-xs z-50 flex flex-col items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+            <span className="text-white font-bold text-sm tracking-wide">Creando cuenta...</span>
+          </div>
+        )}
         <div>
           {/* Large Profile Icon */}
           <div className="flex flex-col items-center mb-6 select-none">
@@ -172,12 +185,12 @@ export default function RegisterPage() {
           {/* Login redirection */}
           <div className="flex justify-center items-center text-sm font-medium">
             <span className="text-neutral-500">¿Ya tienes cuenta?&nbsp;</span>
-            <button
-              onClick={() => router.push("/login")}
+            <Link
+              href="/login"
               className="text-primary font-black hover:underline"
             >
               Inicia sesión
-            </button>
+            </Link>
           </div>
         </div>
       </div>

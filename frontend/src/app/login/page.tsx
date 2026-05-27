@@ -6,6 +6,7 @@ import { useAppStore } from "@/store/useStore";
 import { Dumbbell, Eye, EyeOff, Square, CheckSquare, Clock, User, Mail, Lock } from "lucide-react";
 import AuthContainer from "@/components/ui/auth-container";
 import Logo from "@/components/ui/logo";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const _hasHydrated = useAppStore((state) => state._hasHydrated);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -47,16 +49,20 @@ export default function LoginPage() {
       return;
     }
 
-    const role = email.toLowerCase().includes("admin") ? "admin" : "client";
-    
-    login(email, role);
+    setIsLoading(true);
     setError("");
 
-    if (role === "admin") {
-      router.replace("/admin");
-    } else {
-      router.replace("/client");
-    }
+    setTimeout(() => {
+      const role = email.toLowerCase().includes("admin") ? "admin" : "client";
+      login(email, role);
+      setIsLoading(false);
+      
+      if (role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/client");
+      }
+    }, 1200);
   };
 
   if (!_hasHydrated) {
@@ -69,7 +75,15 @@ export default function LoginPage() {
 
   return (
     <AuthContainer mobileBgImage="/images/iniciar-sesion-mobile.jpg">
-      <div className="flex-1 flex flex-col bg-transparent justify-between select-none">
+      <div className="flex-1 flex flex-col bg-transparent justify-between select-none relative">
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute -inset-6 md:-inset-12 bg-neutral-950/75 backdrop-blur-xs z-50 flex flex-col items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+            <span className="text-white font-bold text-sm tracking-wide">Iniciando sesión...</span>
+          </div>
+        )}
+
         <div>
           {/* Header */}
           <div className="flex flex-col items-center mb-6">
@@ -160,13 +174,12 @@ export default function LoginPage() {
             {/* Register redirection */}
             <div className="flex justify-center items-center mt-3 text-sm font-medium">
               <span className="text-neutral-500">¿No tienes cuenta?&nbsp;</span>
-              <button
-                type="button"
-                onClick={() => router.push("/register")}
+              <Link
+                href="/register"
                 className="text-primary font-black hover:underline"
               >
                 Regístrate
-              </button>
+              </Link>
             </div>
 
             {/* Submit Button */}

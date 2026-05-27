@@ -6,9 +6,10 @@ import Logo from "@/components/ui/logo";
 interface AuthContainerProps {
   children: React.ReactNode;
   mobileBgImage?: string;
+  hideMobileHeader?: boolean;
 }
 
-export default function AuthContainer({ children, mobileBgImage }: AuthContainerProps) {
+export default function AuthContainer({ children, mobileBgImage, hideMobileHeader }: AuthContainerProps) {
   return (
     <div className="w-full h-full bg-cream md:flex md:flex-row overflow-hidden">
       {/* Dynamic Style for Mobile Background */}
