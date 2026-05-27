@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useStore";
-import { Dumbbell, Eye, EyeOff, Square, CheckSquare, Clock } from "lucide-react";
+import { Dumbbell, Eye, EyeOff, Square, CheckSquare, Clock, User, Mail, Lock } from "lucide-react";
 import AuthContainer from "@/components/ui/auth-container";
 
 export default function LoginPage() {
@@ -59,21 +59,16 @@ export default function LoginPage() {
 
   return (
     <AuthContainer>
-      <div className="flex-1 flex flex-col bg-cream h-full justify-between overflow-y-auto custom-scroll">
-        <div className="px-6 py-6 flex-1 flex flex-col justify-center">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-1.5 mt-2 mb-6">
-            <Dumbbell className="h-7 w-7 text-primary stroke-[2.5]" />
-            <span className="text-3xl font-black text-neutral-900 tracking-tight">
-              Reserva<span className="text-primary">Fit</span>
-            </span>
-          </div>
-
-          {/* Headline */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-black text-neutral-950">Iniciar Sesión</h2>
-            <p className="text-neutral-500 text-sm mt-1.5 font-medium">
-              Continúa reservando tu clase favorita.
+      <div className="flex-1 flex flex-col bg-transparent justify-between select-none">
+        <div>
+          {/* Avatar Header as in desktop mockup */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-orange-500/10">
+              <User className="h-12 w-12 text-white stroke-[2.2]" />
+            </div>
+            <h2 className="text-2xl font-black text-neutral-950 mt-4">Iniciar sesión</h2>
+            <p className="text-neutral-500 text-xs text-center mt-2 leading-relaxed px-4 font-semibold">
+              Inicia sesión para ver las clases que tenemos preparadas para ti.
             </p>
           </div>
 
@@ -83,37 +78,47 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Inputs Form */}
+          {/* Form */}
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div className="w-full">
-              <input
-                type="email"
-                placeholder="Usuario o correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-neutral-300 rounded-xl bg-white px-4 py-4 text-neutral-900 text-sm font-semibold placeholder-neutral-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-              />
+            {/* Email Field */}
+            <div className="flex flex-col gap-1 w-full">
+              <label className="text-neutral-500 font-extrabold text-xs ml-1">Correo electrónico</label>
+              <div className="flex items-center border border-neutral-300 rounded-xl bg-white px-3 py-3.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                <Mail className="h-5 w-5 text-neutral-400 stroke-[2.2]" />
+                <input
+                  type="email"
+                  placeholder="Correo@ejemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 ml-2 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-300 focus:outline-none"
+                />
+              </div>
             </div>
 
-            <div className="w-full relative flex items-center">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-neutral-300 rounded-xl bg-white pl-4 pr-12 py-4 text-neutral-900 text-sm font-semibold placeholder-neutral-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 p-1 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-neutral-600 transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+            {/* Password Field */}
+            <div className="flex flex-col gap-1 w-full">
+              <label className="text-neutral-500 font-extrabold text-xs ml-1">Contraseña</label>
+              <div className="flex items-center border border-neutral-300 rounded-xl bg-white px-3 py-3.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all relative">
+                <Lock className="h-5 w-5 text-neutral-400 stroke-[2.2]" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="****************"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="flex-1 ml-2 pr-10 bg-transparent text-neutral-900 text-sm font-semibold placeholder-neutral-300 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 p-1 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-neutral-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
 
             {/* Remember Me and Forgot Password */}
-            <div className="flex justify-between items-center mt-1 mb-4 select-none">
+            <div className="flex justify-between items-center mt-1 select-none">
               <div
                 onClick={() => setRememberMe(!rememberMe)}
                 className="flex items-center gap-1.5 cursor-pointer"
@@ -131,48 +136,34 @@ export default function LoginPage() {
               </button>
             </div>
 
+            {/* Register redirection */}
+            <div className="flex justify-center items-center mt-3 text-sm font-medium">
+              <span className="text-neutral-500">¿No tienes cuenta?&nbsp;</span>
+              <button
+                type="button"
+                onClick={() => router.push("/register")}
+                className="text-primary font-black hover:underline"
+              >
+                Regístrate
+              </button>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary-dark text-white text-base font-bold py-4 rounded-2xl transition-all shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 active:scale-[0.98] duration-150"
+              className="w-full bg-primary hover:bg-primary-dark text-white text-base font-bold py-4 rounded-2xl transition-all shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 active:scale-[0.98] duration-150 mt-4 cursor-pointer"
             >
               Ingresar
             </button>
           </form>
-
-          {/* Register redirection */}
-          <div className="flex justify-center items-center mt-6 text-sm font-medium">
-            <span className="text-neutral-500">¿No tienes cuenta?&nbsp;</span>
-            <button
-              type="button"
-              onClick={() => router.push("/register")}
-              className="text-primary font-black hover:underline"
-            >
-              Regístrate
-            </button>
-          </div>
-
-          {/* Minimum duration warning */}
-          <div className="flex items-center justify-center gap-1.5 mt-6 py-1 select-none">
-            <Clock className="h-4 w-4 text-neutral-900" />
-            <span className="text-xs text-neutral-950 font-bold">
-              Reserva mínima: 10 minutos
-            </span>
-          </div>
         </div>
 
-        {/* Decorative images at the bottom */}
-        <div className="flex justify-between items-end mt-auto opacity-35 select-none pointer-events-none">
-          <img
-            src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200&auto=format&fit=crop"
-            alt="Gym plates mockup"
-            className="w-20 h-20 rounded-tr-3xl object-cover shadow-inner"
-          />
-          <img
-            src="https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?q=80&w=200&auto=format&fit=crop"
-            alt="Yoga mat mockup"
-            className="w-20 h-20 rounded-tl-3xl object-cover shadow-inner"
-          />
+        {/* Minimum duration warning */}
+        <div className="flex items-center justify-center gap-1.5 mt-6 py-1 select-none text-neutral-550 font-bold">
+          <Clock className="h-4 w-4" />
+          <span className="text-xs">
+            Reserva mínima: 10 minutos
+          </span>
         </div>
       </div>
     </AuthContainer>

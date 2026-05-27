@@ -77,7 +77,7 @@ export default function VerifyPage() {
 
   return (
     <AuthContainer>
-      <div className="flex-1 flex flex-col bg-cream h-full justify-center px-6 py-6 overflow-y-auto custom-scroll">
+      <div className="flex-1 flex flex-col bg-transparent h-full justify-center px-4 py-2 overflow-y-auto custom-scroll">
         <div className="w-full max-w-sm mx-auto flex flex-col items-center">
           {/* OTP Graphic Icon */}
           <div className="items-center mb-8 flex flex-col select-none">
