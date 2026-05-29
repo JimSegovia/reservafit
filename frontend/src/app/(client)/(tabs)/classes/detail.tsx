@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useEffect } from 'react';
@@ -13,6 +14,8 @@ export default function ClassDetailScreen() {
   const { id } = useLocalSearchParams();
   const classes = useAppStore((state) => state.classes);
   const startBooking = useAppStore((state) => state.startBooking);
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
 
   // If no ID is passed, default to 'c10' (Baile funcional) to match V7 mockup exactly!
   const classId = (id as string) || 'c10';
@@ -47,8 +50,7 @@ export default function ClassDetailScreen() {
     };
   });
 
-  return (
-    <SafeAreaView className="flex-1 bg-cream">
+  const content = (
 <ScrollView 
          contentContainerStyle={{ flexGrow: 1, flex: 1, paddingBottom: 30 }}
          showsVerticalScrollIndicator={false}
@@ -158,7 +160,7 @@ export default function ClassDetailScreen() {
                 </View>
                 <View>
                   <Text className="text-[10px] text-gray-400 font-bold uppercase">Temática</Text>
-                  <View className="bg-magenta-100 px-3 py-0.5 rounded-full border border-magenta-200 mt-0.5 bg-pink-100">
+                  <View className="bg-pink-100 px-3 py-0.5 rounded-full border border-pink-200 mt-0.5">
                     <Text className="text-pink-700 text-xs font-bold">{classItem.theme}</Text>
                   </View>
                 </View>
@@ -182,6 +184,11 @@ export default function ClassDetailScreen() {
           </Text>
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
   );
+
+  if (isWeb) {
+    return <ClientDesktopShell title={classItem.title} subtitle="Detalle de clase">{content}</ClientDesktopShell>;
+  }
+
+  return <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>;
 }

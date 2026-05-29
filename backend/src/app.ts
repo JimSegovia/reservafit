@@ -1,11 +1,13 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import routerApi from './routes/index.js';
+import { PaymentsController } from './controllers/payments.controller.js';
 
 const app: Application = express();
 
 // Middlewares globales indispensables
 app.use(cors());
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), PaymentsController.handleWebhook);
 app.use(express.json()); // Permite capturar los req.body en formato JSON
 
 // Punto de montaje central para toda la API RESTful

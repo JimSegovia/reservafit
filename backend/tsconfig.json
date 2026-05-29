@@ -8,7 +8,8 @@
     "esModuleInterop": true,                             /* Permite importar módulos antiguos de JS sin errores */
     "forceConsistentCasingInFileNames": true,            /* Evita errores entre Windows y Linux por mayúsculas */
     "strict": true,                                      /* ACTIVA EL SEGURO DE VIDA: Cero errores de tipos */
-    "skipLibCheck": true                                 /* Acelera la compilación ignorando librerías externas */
+    "skipLibCheck": true,                                /* Acelera la compilación ignorando librerías externas */
+    "types": ["node"]                                    /* Habilita tipos globales como process */
   },
   "include": ["src/**/*"]                                /* Dile a TS que solo compile lo que está en src/ */
 }

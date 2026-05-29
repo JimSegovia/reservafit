@@ -25,20 +25,26 @@ export default function AdminManualBookingScreen() {
   const [paymentType, setPaymentType] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
   const [price, setPrice] = useState('40.00');
 
-  // Load default class selections
+  // Load default class selections (use callback to avoid dependency issues)
   useEffect(() => {
-    if (classes.length > 0) {
-      setSelectedClassId(classes[0].id);
-    }
-  }, [classes]);
+    const loadDefaultClass = () => {
+      if (classes.length > 0) {
+        setSelectedClassId(classes[0].id);
+      }
+    };
+    loadDefaultClass();
+  }, []);
 
   // Load default schedules based on class selection
   useEffect(() => {
-    const selectedClass = classes.find(c => c.id === selectedClassId);
-    if (selectedClass) {
-      setSelectedSchedule(selectedClass.slots?.[0] || selectedClass.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM');
-      setPrice(selectedClass.price.toFixed(2));
-    }
+    const loadSchedule = () => {
+      const selectedClass = classes.find(c => c.id === selectedClassId);
+      if (selectedClass) {
+        setSelectedSchedule(selectedClass.slots?.[0] || selectedClass.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM');
+        setPrice(selectedClass.price.toFixed(2));
+      }
+    };
+    loadSchedule();
   }, [selectedClassId]);
 
   const handleRegister = () => {
