@@ -1,6 +1,5 @@
-import { PrismaClient, MetodoPago, EstadoPago, Pago } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { MetodoPago, EstadoPago, Pago } from '@prisma/client';
+import prisma from '../config/prisma';
 
 export class PagoRepository {
   async crearPagoConCheckoutSession(data: {

@@ -1,6 +1,7 @@
 import cron from 'node-cron';
-import { PrismaClient, EstadoReserva } from '@prisma/client';
-const prisma = new PrismaClient();
+import { EstadoReserva } from '@prisma/client';
+import prisma from '../config/prisma';
+
 export function iniciarCronJobs() {
   // Ejecuta cada minuto
   cron.schedule('* * * * *', async () => {

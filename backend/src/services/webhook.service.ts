@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
-import { PrismaClient, EstadoPago, EstadoReserva } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { EstadoPago, EstadoReserva } from '@prisma/client';
+import prisma from '../config/prisma';
 
 export class WebhookService {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
