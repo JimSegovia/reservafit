@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
-import { RegisterDTO } from '../types/auth.types.js';
+import { RegisterDTO, LoginDTO } from '../types/auth.types.js';
 
 export class AuthController {
   
@@ -19,6 +19,20 @@ export class AuthController {
     } catch (error: any) {
       // Si el servicio lanza un error (ej. "correo ya registrado"), lo atrapamos aquí
       res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async login(req: Request, res: Response): Promise<void> {
+    try {
+      const data: LoginDTO = req.body;
+      const resultado = await AuthService.loginUsuario(data);
+
+      res.status(200).json({
+        mensaje: 'Login exitoso',
+        ...resultado
+      });
+    } catch (error: any) {
+      res.status(401).json({ error: error.message });
     }
   }
 }
