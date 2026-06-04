@@ -1,12 +1,13 @@
 import Stripe from 'stripe';
-import { PagoRepository } from '../repositories/pago.repository';
+import { PagoRepository } from '../repositories/pago.repository.js';
+import { envs } from '../config/env.js'; // Importamos tu nuevo objeto validador
 
-// 1. SOLUCIÓN: Ajustamos la versión a la que exige estrictamente tu SDK instalado
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+// ¡Mira qué limpio queda! TypeScript ya sabe que es un string válido.
+const stripe = new Stripe(envs.STRIPE_SECRET_KEY, {
   apiVersion: '2026-04-22.dahlia', 
 });
 
-const CLIENT_BASE_URL = process.env.CLIENT_BASE_URL || 'http://localhost:3000';
+const CLIENT_BASE_URL = envs.CLIENT_BASE_URL;
 
 export class PagoService {
   private pagoRepository = new PagoRepository();
