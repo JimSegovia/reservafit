@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { Loader } from '@/components/ui/loader';
+import { Button } from '@/components/ui/button';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -178,19 +179,12 @@ export default function VerifyScreen() {
 
               {/* Verification Button */}
               <Animated.View entering={FadeInDown.duration(200).delay(150)} className="mb-2">
-                <TouchableOpacity
+                <Button
+                  label="Verificar"
                   onPress={handleVerify}
                   disabled={isSubmitDisabled}
-                  activeOpacity={0.7}
-                  className={`w-full bg-primary items-center justify-center shadow-lg shadow-orange-500/20 ${isWeb ? 'py-5 rounded-md' : 'py-4 rounded-2xl'} ${isSubmitDisabled ? 'opacity-50' : ''}`}
-                  style={{ minHeight: isWeb ? 76 : 56 }}
-                >
-                  {loading ? (
-                    <Loader variant="button" label="Verificando..." />
-                  ) : (
-                    <Text className={`${isWeb ? 'text-[22px]' : 'text-base'} text-white font-bold`}>Verificar</Text>
-                  )}
-                </TouchableOpacity>
+                  loading={loading}
+                />
               </Animated.View>
             </View>
           </View>

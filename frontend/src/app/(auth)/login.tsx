@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { Loader } from '@/components/ui/loader';
+import { Button } from '@/components/ui/button';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -247,19 +248,12 @@ export default function LoginScreen() {
 
             {/* Submit Button */}
             <Animated.View entering={FadeInDown.duration(200).delay(200)} className={isWeb ? 'mt-2' : 'mb-6'}>
-              <TouchableOpacity
+              <Button
+                label="Ingresar"
                 onPress={handleLogin}
                 disabled={isSubmitDisabled}
-                activeOpacity={0.7}
-                className={`w-full bg-primary rounded-xl items-center justify-center shadow-lg shadow-orange-500/20 ${isWeb ? 'py-3' : 'py-4'} ${isSubmitDisabled ? 'opacity-50' : ''}`}
-                style={{ minHeight: isWeb ? 48 : 56 }}
-              >
-                {loading ? (
-                  <Loader variant="button" label="Iniciando sesión..." />
-                ) : (
-                  <Text className="text-white text-base font-bold">Ingresar</Text>
-                )}
-              </TouchableOpacity>
+                loading={loading}
+              />
             </Animated.View>
 
             {/* Register redirection (Mobile order: below button) */}

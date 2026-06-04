@@ -10,6 +10,10 @@ module.exports = {
           DEFAULT: "#FF7A00",
           dark: "#E06B00",
         },
+        secondary: {
+          DEFAULT: "#1F0F08",
+          dark: "#0F0704",
+        },
         cream: "#FAF8F5",
         success: {
           bg: "#E8F5E9",
@@ -20,6 +24,11 @@ module.exports = {
           bg: "#FFEBEE",
           text: "#C62828",
           border: "#E53935",
+        },
+        warning: {
+          bg: "#FFFDE7",
+          text: "#F57F17",
+          border: "#FBC02D",
         },
         occupy: "#B0BEC5",
         special: {
