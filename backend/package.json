@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/server.ts",
+    "postinstall": "prisma generate",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "prisma:migrate:prod": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
