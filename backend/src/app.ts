@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import routerApi from './routes/index.js';
+import paymentRoutes from './routes/payment.routes.js';
 import { PaymentsController } from './controllers/payments.controller.js';
 
 const app: Application = express();
@@ -11,6 +12,7 @@ app.use(express.json()); // Permite capturar los req.body en formato JSON
 
 // Toda la API pasa por index.ts
 app.use('/api', routerApi);
+app.use('/api/payments', paymentRoutes);
 
 // Capturador de 404 (siempre al final)
 app.use((req, res) => {

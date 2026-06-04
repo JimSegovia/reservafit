@@ -1,9 +1,9 @@
+import 'dotenv/config';
 import app from './app.js';
 import prisma from './config/prisma.js';
-import 'dotenv/config';
 import { iniciarCronJobs } from './utils/cron.js';
 
-const PORT = process.env.PORT || 300;
+const PORT = process.env.PORT || 4000;
 
 async function bootstrap() {
   try {
@@ -23,7 +23,7 @@ async function bootstrap() {
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-  
+
   // Iniciamos el recolector de basura de reservas vencidas
   iniciarCronJobs();
   console.log('⏱️  [CRON] Tareas programadas en ejecución');

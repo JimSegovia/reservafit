@@ -28,15 +28,42 @@ export default function CheckoutScreen() {
     setShowPopup(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    
+    try {
+      // Endpoint de tu backend para generar la preferencia (Checkout Pro)
+      const API_URL = 'http://localhost:4000/api/payments/checkout'; 
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: currentBooking.totalPrice,
+          description: `Clase: ${currentBooking.className} - Asientos: ${currentBooking.selectedSeats.join(', ')}`
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.initPoint) {
+        setShowPopup(false);
+        confirmBooking(''); // Registra la intención localmente
+        
+        // Redirección directa al Checkout Pro oficial de Mercado Pago
+        window.location.href = result.initPoint; 
+      } else {
+        showToast(result.error || 'No se pudo generar el enlace de Mercado Pago.', 'error');
+      }
+
+    } catch (error) {
+      console.error("Error al conectar con el servidor de pagos:", error);
+      showToast('Error de conexión con el servidor. Inténtalo de nuevo.', 'error');
+    } finally {
       setIsProcessing(false);
-      confirmBooking('');
-      setShowPopup(false);
-      showToast('¡Pago exitoso y reserva confirmada!', 'success');
-      router.replace('/(client)/success');
-    }, 1500);
+    }
   };
 
   const isSubmitDisabled = isProcessing;
@@ -89,8 +116,6 @@ export default function CheckoutScreen() {
           <Text className="text-[14px] font-bold text-gray-600">Total a pagar:</Text>
           <Text className="text-[26px] font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
         </View>
-
-        
 
         <TouchableOpacity
           onPress={handlePay}
