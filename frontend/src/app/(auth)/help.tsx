@@ -53,12 +53,9 @@ export default function HelpScreen() {
           <TouchableOpacity onPress={() => router.push('/(auth)/landing')} className="flex-row items-center">
             <ExpoImage
               source={require('../../../assets/images/logo.svg')}
-              style={{ width: 32, height: 32 }}
-              className="mr-1.5"
+              style={{ width: 160, height: 50 }}
+              contentFit="contain"
             />
-            <Text className="text-[28px] font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -86,12 +83,9 @@ export default function HelpScreen() {
                 <View className="flex-row items-center">
                   <ExpoImage
                     source={require('../../../assets/images/logo.svg')}
-                    style={{ width: 24, height: 24 }}
-                    className="mr-1"
+                    style={{ width: 120, height: 35 }}
+                    contentFit="contain"
                   />
-                  <Text className="text-lg font-bold ml-1 text-black">
-                    Reserva<Text className="text-primary">Fit</Text>
-                  </Text>
                 </View>
               </Animated.View>
             )}

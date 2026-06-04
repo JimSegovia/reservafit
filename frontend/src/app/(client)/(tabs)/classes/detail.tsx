@@ -65,7 +65,7 @@ export default function ClassDetailScreen() {
                 ? require('../../../../../assets/images/Salsa.jpeg')
                 : require('../../../../../assets/images/bachata.jpg')
             }
-            className="w-full h-full object-cover"
+            style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
           />
           <TouchableOpacity
             onPress={() => router.back()}

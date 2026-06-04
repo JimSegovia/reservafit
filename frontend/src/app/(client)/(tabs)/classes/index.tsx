@@ -303,15 +303,16 @@ export default function ClassesSelectorScreen() {
               <View className="flex-row flex-wrap gap-4 mt-4">
                 {categoryClasses.map((cls) => (
                   <View key={cls.id} className="w-[31%] border border-gray-200 rounded-2xl overflow-hidden bg-white">
-                    <Image 
+                    <Image
                       source={
-                        cls.id === 'c7' 
-                          ? require('../../../../../assets/images/zumba.jpg') 
-                          : cls.id === 'c8' 
-                          ? require('../../../../../assets/images/Salsa.jpeg') 
+                        cls.id === 'c7'
+                          ? require('../../../../../assets/images/zumba.jpg')
+                          : cls.id === 'c8'
+                          ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
-                      } 
-                      className="w-full h-44 object-cover" 
+                      }
+                      style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 260 }}
+                      resizeMode="cover"
                     />
                     <View className="p-4">
                       <Text className="text-[16px] font-extrabold text-black">{cls.title}</Text>
@@ -567,7 +568,8 @@ export default function ClassesSelectorScreen() {
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
-                      className="w-full h-32 object-cover"
+                      style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 180 }}
+                      resizeMode="cover"
                     />
 
                     <View className="p-4 items-center">

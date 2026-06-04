@@ -16,11 +16,11 @@ export default function LandingScreen() {
     <SafeAreaView className="flex-1 bg-cream p-0 m-0">
       {/* Web Navigation */}
       {isWeb ? (
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-155 bg-white shadow-sm z-10">
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-12 border-b border-gray-155 bg-white shadow-sm z-10 w-full overflow-hidden">
           <View className="flex-row items-center">
             <ExpoImage
               source={require('../../../assets/images/logo.svg')}
-              style={{ width: 190, height: 62 }}
+              style={{ width: 160, height: 50 }}
               contentFit="contain"
             />
           </View>
@@ -29,16 +29,16 @@ export default function LandingScreen() {
               <Text className="text-gray-650 font-bold text-sm">Ayuda / FAQ</Text>
             </TouchableOpacity>
             <Button
-              label="Registrarse"
-              onPress={() => router.push('/(auth)/register')}
-              variant="outline"
-              className="py-2.5 px-6 min-h-0 h-11"
-            />
-            <Button
               label="Iniciar sesión"
               onPress={() => router.push('/(auth)/login')}
+              variant="outline"
+              className="py-2.5 px-8 min-h-0 h-11 !w-auto"
+            />
+            <Button
+              label="Registrarse"
+              onPress={() => router.push('/(auth)/register')}
               variant="primary"
-              className="py-2.5 px-6 min-h-0 h-11"
+              className="py-2.5 px-8 min-h-0 h-11 !w-auto"
             />
           </View>
         </Animated.View>
@@ -71,11 +71,10 @@ export default function LandingScreen() {
            {/* Left/Main text content */}
            <View className={`${isWeb ? 'flex-1 pr-6' : 'mb-8'}`}>
              <Animated.View entering={FadeInDown.duration(250).delay(50)}>
-               <Text className={`font-extrabold text-black leading-tight ${isWeb ? 'text-5xl lg:text-6xl text-left' : 'text-[34px] text-center'}`}>
-                 Entrena a tu ritmo,{"\n"}
-                 asegura tu <Text className="text-primary">espacio</Text>
+               <Text className={`font-extrabold text-black leading-tight ${isWeb ? 'text-6xl lg:text-[64px] text-left max-w-xl' : 'text-[38px] text-center max-w-sm mx-auto'}`}>
+                 Entrena a tu ritmo, asegura tu <Text className="text-primary">espacio</Text>
                </Text>
-               <Text className={`text-gray-500 mt-5 text-base lg:text-lg leading-relaxed ${isWeb ? 'text-left' : 'text-center'} max-w-xl mx-auto`}>
+               <Text className={`text-gray-500 mt-5 text-base lg:text-lg leading-relaxed max-w-xl ${isWeb ? 'text-left' : 'text-center mx-auto'}`}>
                  La forma más simple y rápida de reservar tu cupo en sala. Elige tu clase favorita, selecciona tu ubicación y prepárate para entrenar.
                </Text>
              </Animated.View>
@@ -86,13 +85,13 @@ export default function LandingScreen() {
                  <Button
                    label="Iniciar sesión"
                    onPress={() => router.push('/(auth)/login')}
-                   variant="primary"
+                   variant="outline"
                    className="min-h-0 h-12"
                  />
                  <Button
-                   label="Crear una cuenta"
+                   label="Registrarse"
                    onPress={() => router.push('/(auth)/register')}
-                   variant="outline"
+                   variant="primary"
                    className="min-h-0 h-12"
                  />
                  <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-1">
@@ -104,12 +103,12 @@ export default function LandingScreen() {
 
           {/* Right/Hero Image Column */}
           <Animated.View entering={ZoomIn.duration(250).delay(100)} className={`items-center justify-center ${isWeb ? 'flex-1' : 'mt-4'}`}>
-            <View className={`w-full overflow-hidden bg-gray-200 shadow-xl ${isWeb ? 'aspect-[4/3] rounded-[40px] max-w-[600px]' : 'h-64 rounded-[30px]'}`}>
-              <Image
-                source={require('../../../assets/images/zumba.jpg')}
-                className="w-full h-full object-cover"
-              />
-            </View>
+              <View className={`w-full overflow-hidden bg-gray-200 shadow-xl ${isWeb ? 'aspect-[4/3] rounded-[40px] max-w-[600px]' : 'h-64 rounded-[30px]'}`}>
+                <Image
+                  source={require('../../../assets/images/zumba.jpg')}
+                  style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                />
+              </View>
           </Animated.View>
         </View>
       </ScrollView>

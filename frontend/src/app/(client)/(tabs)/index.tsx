@@ -14,10 +14,55 @@ import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 type DesktopTab = 'mis-clases' | 'clases-hoy' | 'calendario';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const getMonday = (date: Date) => {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  const day = copy.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  copy.setDate(copy.getDate() + diffToMonday);
+  return copy;
+};
+
+const getSlotLabel = (timeRange: string) => {
+  const start = timeRange.split('-')[0]?.trim();
+  if (!start) return null;
+  const normalized = start.toUpperCase();
+  if (normalized.includes('AM') || normalized.includes('PM')) return normalized;
+  return null;
+};
+
+const getEventColor = (title: string) => {
+  const lower = title.toLowerCase();
+  if (lower.includes('zumba')) return '#fed7aa';
+  if (lower.includes('salsa')) return '#ddd6fe';
+  if (lower.includes('bachata')) return '#bfdbfe';
+  return '#d1fae5';
+};
+
+const formatDashboardRange = (weekStart: Date) => {
+  const weekEnd = new Date(weekStart.getTime() + DAY_MS * 6);
+  const sameMonth = weekStart.getMonth() === weekEnd.getMonth() && weekStart.getFullYear() === weekEnd.getFullYear();
+  if (sameMonth) {
+    return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekStart.toLocaleDateString('es-ES', { month: 'short' })}, ${weekStart.getFullYear()}`;
+  }
+  const startText = weekStart.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  const endText = weekEnd.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  return `${startText} - ${endText}, ${weekEnd.getFullYear()}`;
+};
+
 export default function ClientHomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isCompactDesktop = width < 1180;
+  const horizontalPadding = width < 900 ? 52 : 120;
+  const calendarViewportWidth = Math.max(width - horizontalPadding, 540);
+  const timeColumnWidth = width < 900 ? 54 : 60;
+  const dayColumnWidth = width < 900 ? 66 : 80;
+  const calendarTableMinWidth = timeColumnWidth + dayColumnWidth * 7;
+
 
   const user = useAppStore((state) => state.user);
   const logout = useAppStore((state) => state.logout);
@@ -32,6 +77,19 @@ export default function ClientHomeScreen() {
   
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [reservationToCancel, setReservationToCancel] = useState<string | null>(null);
+
+  const earliestReservationWeekStart = useMemo(() => {
+    const paidReservations = reservations.filter((res) => res.status === 'Pagado');
+    if (paidReservations.length === 0) return null;
+    const parsedDates = paidReservations
+      .map((res) => new Date(res.date))
+      .filter((date) => !Number.isNaN(date.getTime()));
+    if (parsedDates.length === 0) return null;
+    const earliestDate = parsedDates.reduce((min, date) => (date < min ? date : min), parsedDates[0]);
+    return getMonday(earliestDate);
+  }, [reservations]);
+
+  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => earliestReservationWeekStart ?? getMonday(new Date()));
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -64,15 +122,49 @@ export default function ClientHomeScreen() {
     [classes]
   );
 
-  const weekDays = ['Lun 20', 'Mar 21', 'Mié 22', 'Jue 23', 'Vie 24', 'Sáb 25', 'Dom 26'];
-  const calendarEvents = [
-    { day: 0, time: '6:00 PM', title: 'Zumba', color: 'bg-orange-300' },
-    { day: 0, time: '7:00 PM', title: 'Salsa', color: 'bg-purple-300' },
-    { day: 2, time: '6:00 PM', title: 'Zumba', color: 'bg-orange-300' },
-    { day: 2, time: '7:00 PM', title: 'Salsa', color: 'bg-purple-300' },
-    { day: 4, time: '6:00 PM', title: 'Zumba', color: 'bg-orange-300' },
-    { day: 4, time: '7:00 PM', title: 'Salsa', color: 'bg-purple-300' },
-  ];
+  const weeklyCalendarData = useMemo(() => {
+    const paidReservations = reservations.filter((res) => res.status === 'Pagado');
+    const parsed = paidReservations
+      .map((res) => ({
+        ...res,
+        parsedDate: new Date(res.date),
+        slotLabel: getSlotLabel(res.time),
+      }))
+      .filter((res) => !Number.isNaN(res.parsedDate.getTime()) && !!res.slotLabel);
+
+    const weekStart = selectedWeekStart;
+    const weekDays = Array.from({ length: 7 }).map((_, dayOffset) => {
+      const date = new Date(weekStart.getTime() + DAY_MS * dayOffset);
+      const weekday = date.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
+      return {
+        key: date.toISOString(),
+        label: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+        dayNumber: date.getDate(),
+        date,
+      };
+    });
+
+    const events = parsed.map((res) => {
+      const normalizedDate = new Date(res.parsedDate);
+      normalizedDate.setHours(0, 0, 0, 0);
+      const dayIdx = Math.round((normalizedDate.getTime() - weekStart.getTime()) / DAY_MS);
+      return {
+        id: res.id,
+        dayIdx,
+        slot: res.slotLabel as string,
+        title: res.className,
+        time: res.time,
+      };
+    }).filter((event) => event.dayIdx >= 0 && event.dayIdx <= 6);
+
+    return {
+      weekDays,
+      weekRangeLabel: formatDashboardRange(weekStart),
+      events,
+    };
+  }, [reservations, selectedWeekStart]);
+
+  const weekSlots = ['6:00 AM', '12:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
 
   if (loading && !isWeb) { // Show full screen loader only on mobile
     return (
@@ -134,7 +226,8 @@ export default function ClientHomeScreen() {
                     ? require('../../../../assets/images/Salsa.jpeg')
                     : require('../../../../assets/images/bachata.jpg')
                 }
-                className="w-full h-24 object-cover"
+                style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 200 }}
+                resizeMode="cover"
               />
               <View className="p-4 items-center">
                 <View className="flex-row items-center mb-1">
@@ -206,14 +299,15 @@ export default function ClientHomeScreen() {
                             <Text className="text-[20px] font-bold text-gray-700 leading-none mt-1">{20 + idx}</Text>
                             </View>
                             <Image
-                            source={
+                              source={
                                 cls.id === 'c7'
-                                ? require('../../../../assets/images/zumba.jpg')
-                                : cls.id === 'c8'
-                                ? require('../../../../assets/images/Salsa.jpeg')
-                                : require('../../../../assets/images/bachata.jpg')
-                            }
-                            className="w-[88px] h-full object-cover"
+                                  ? require('../../../../assets/images/zumba.jpg')
+                                  : cls.id === 'c8'
+                                  ? require('../../../../assets/images/Salsa.jpeg')
+                                  : require('../../../../assets/images/bachata.jpg')
+                              }
+                              style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
+                              resizeMode="cover"
                             />
                             <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: cls.title, time: '7:00 PM - 8:00 PM', date: '12 May 2025', seat: '13', status: 'Pagado' })}>
                             <View>
@@ -255,12 +349,13 @@ export default function ClientHomeScreen() {
                         {dashboardClasses.slice(0, 2).map((cls, idx) => (
                         <View key={cls.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white flex-row min-h-[132px]">
                             <Image
-                            source={
+                              source={
                                 idx === 0
-                                ? require('../../../../assets/images/zumba.jpg')
-                                : require('../../../../assets/images/Salsa.jpeg')
-                            }
-                            className="w-[240px] h-full object-cover"
+                                  ? require('../../../../assets/images/zumba.jpg')
+                                  : require('../../../../assets/images/Salsa.jpeg')
+                              }
+                              style={{ width: 240, height: '100%', aspectRatio: 16 / 9 }}
+                              resizeMode="cover"
                             />
                             <View className="flex-1 px-5 py-4 justify-between">
                             <View>
@@ -287,41 +382,52 @@ export default function ClientHomeScreen() {
 
                 {activeTab === 'calendario' && (
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
-                    <View className="flex-row justify-between items-center mb-5 px-2">
+                    <View className={`mb-5 px-2 ${isCompactDesktop ? 'flex-col items-start gap-y-3' : 'flex-row justify-between items-center'}`}>
                         <View className="flex-row items-center">
                         <Ionicons name="calendar-outline" size={26} color="#666" />
                         <Text className="text-[15px] font-bold text-black ml-3">Mi semana</Text>
                         </View>
-                        <View className="flex-row items-center gap-x-4">
-                        <Text className="text-[20px] font-semibold text-gray-500">20 - 26 May, 2024</Text>
-                        <Ionicons name="chevron-back" size={18} color="#555" />
-                        <Ionicons name="chevron-forward" size={18} color="#555" />
+                        <View className={`flex-row items-center ${isCompactDesktop ? 'gap-x-3' : 'gap-x-4'}`}>
+                        <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[20px]'} font-semibold text-gray-500`}>{weeklyCalendarData.weekRangeLabel}</Text>
+                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
+                          <Ionicons name="chevron-back" size={18} color="#555" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
+                          <Ionicons name="chevron-forward" size={18} color="#555" />
+                        </TouchableOpacity>
                         </View>
                     </View>
 
-                    <View className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View
+                      className="border border-gray-200 rounded-2xl overflow-hidden bg-white"
+                      style={{
+                        minWidth: Math.max(calendarTableMinWidth, calendarViewportWidth),
+                        width: Math.max(calendarTableMinWidth, calendarViewportWidth),
+                      }}
+                    >
                         <View className="flex-row border-b border-gray-200">
-                        <View className="w-[85px]" />
-                        {weekDays.map((day, dayIdx) => (
-                            <View key={day} className={`flex-1 items-center py-4 border-l border-gray-200 ${dayIdx === 0 ? 'border-l-0' : ''}`}>
-                            <Text className="text-[15px] font-bold text-gray-700 text-center">{day.split(' ')[0]}</Text>
-                            <Text className="text-[18px] font-bold text-gray-700">{day.split(' ')[1]}</Text>
+                        <View style={{ width: timeColumnWidth }} />
+                        {weeklyCalendarData.weekDays.map((day, dayIdx) => (
+                            <View key={day.key} className={`flex-1 items-center py-4 border-l border-gray-200 ${dayIdx === 0 ? 'border-l-0' : ''}`}>
+                            <Text className={`${isCompactDesktop ? 'text-[13px]' : 'text-[15px]'} font-bold text-gray-700 text-center`}>{day.label}</Text>
+                            <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[18px]'} font-bold text-gray-700`}>{day.dayNumber}</Text>
                             </View>
                         ))}
                         </View>
 
-                        {['6 AM', '12 PM', '6 PM', '8 PM'].map((slot, slotIdx) => (
+                        {weekSlots.map((slot) => (
                         <View key={slot} className="flex-row border-b border-gray-200 last:border-b-0 min-h-[88px]">
-                            <View className="w-[85px] items-center justify-center border-r border-gray-200 bg-gray-50">
-                            <Text className="text-[15px] font-bold text-gray-600">{slot}</Text>
+                            <View className="items-center justify-center border-r border-gray-200 bg-gray-50" style={{ width: timeColumnWidth }}>
+                            <Text className={`${isCompactDesktop ? 'text-[13px]' : 'text-[15px]'} font-bold text-gray-600`}>{slot.replace(':00', '')}</Text>
                             </View>
                             {Array.from({ length: 7 }).map((_, dayIdx) => {
-                            const event = calendarEvents.find((ev) => ev.day === dayIdx && ((slotIdx === 2 && ev.time === '6:00 PM') || (slotIdx === 3 && ev.time === '7:00 PM')));
+                            const event = weeklyCalendarData.events.find((ev) => ev.dayIdx === dayIdx && ev.slot === slot);
                             return (
                                 <View key={`${slot}-${dayIdx}`} className="flex-1 border-l border-gray-200 p-2 justify-center">
                                 {event ? (
-                                    <View className={`${event.color} rounded-lg px-3 py-3 items-center`}>
-                                    <Text className="text-black font-bold text-sm">{event.title}</Text>
+                                    <View className="rounded-lg px-3 py-3 items-center" style={{ backgroundColor: getEventColor(event.title) }}>
+                                    <Text className={`${isCompactDesktop ? 'text-xs' : 'text-sm'} text-black font-bold`}>{event.title}</Text>
                                     <Text className="text-black font-bold text-xs mt-0.5">{event.time}</Text>
                                     </View>
                                 ) : null}
@@ -331,6 +437,7 @@ export default function ClientHomeScreen() {
                         </View>
                         ))}
                     </View>
+                    </ScrollView>
                     </Animated.View>
                 )}
                 </View>
