@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-na
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -62,7 +63,11 @@ export default function AdminBookingsHistoryScreen() {
         {/* History List */}
         <View className="gap-y-4 mb-6">
           {reservations.length === 0 ? (
-            <Text className="text-center text-gray-500 py-8">No hay registros de reservas.</Text>
+            <EmptyState
+              variant="no-bookings"
+              title="Sin historial de reservas"
+              message="No hay registros de reservas en el sistema."
+            />
           ) : (
             reservations.map((res, idx) => {
               const isPaid = res.status === 'Pagado';

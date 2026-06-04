@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -143,7 +144,13 @@ export default function AdminClassesScreen() {
         {/* Classes List */}
         <View className="gap-y-4 mb-6">
           {filteredClasses.length === 0 ? (
-            <Text className="text-center text-gray-500 py-8">No se encontraron clases.</Text>
+            <EmptyState
+              variant="no-results"
+              title="No se encontraron clases"
+              message={search ? `No hay clases que coincidan con la búsqueda "${search}".` : "No hay clases registradas en el sistema."}
+              actionLabel={search ? "Limpiar búsqueda" : "Agregar clase"}
+              onAction={search ? () => setSearch('') : openAddModal}
+            />
           ) : (
             filteredClasses.map((cls) => {
               const isActive = cls.status === 'Activo';

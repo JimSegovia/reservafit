@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { Loader } from '@/components/ui/loader';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ReservationQuickDetail } from '@/components/reservation-quick-detail';
@@ -115,18 +116,13 @@ export default function ClientHomeScreen() {
 
           <View className="gap-y-4 mb-6">
             {clientReservations.length === 0 ? (
-              <Animated.View entering={FadeInDown.duration(200).delay(150)} className="bg-white border border-gray-100 rounded-3xl p-8 items-center justify-center">
-                <Ionicons name="calendar-outline" size={48} color="#FF7A00" className="opacity-50" />
-                <Text className="text-gray-500 text-sm mt-3 text-center">
-                  No tienes reservas activas para esta semana.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => router.push('/(client)/(tabs)/classes')}
-                  className="bg-primary px-6 py-3 rounded-full mt-4"
-                >
-                  <Text className="text-white font-bold text-sm">Explorar clases</Text>
-                </TouchableOpacity>
-              </Animated.View>
+              <EmptyState
+                variant="no-bookings"
+                title="No tienes reservas activas"
+                message="No tienes reservas activas para esta semana."
+                actionLabel="Explorar clases"
+                onAction={() => router.push('/(client)/(tabs)/classes')}
+              />
             ) : (
               clientReservations.map((res, idx) => (
                 <Animated.View
