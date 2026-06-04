@@ -118,6 +118,7 @@ interface AppState {
 
   showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
   hideToast: () => void;
+  cancelReservation: (id: string) => void;
 }
 
 // Initial Data representing mockup values
@@ -416,5 +417,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   hideToast: () => {
     set({ toast: null });
+  },
+
+  cancelReservation: (id) => {
+    set((state) => ({
+      reservations: state.reservations.map((res) =>
+        res.id === id ? { ...res, status: 'Reembolsado' as const } : res
+      )
+    }));
   }
 }));
