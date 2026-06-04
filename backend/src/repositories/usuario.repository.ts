@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js';
 import { RegisterDTO } from '../types/auth.types.js';
+import { Prisma } from '@prisma/client';
 
 export class UsuarioRepository {
   
@@ -13,7 +14,7 @@ export class UsuarioRepository {
   // 2. Crear Usuario y Cuenta en una sola transacción
   static async crearUsuarioConCuenta(data: RegisterDTO, contrasenaHasheada: string) {
     // Usamos una transacción para que, si falla la cuenta, el usuario tampoco se cree
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       
       const nuevoUsuario = await tx.usuario.create({
         data: {

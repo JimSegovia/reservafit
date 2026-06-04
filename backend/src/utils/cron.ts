@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { PrismaClient, EstadoReserva } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 const prisma = new PrismaClient();
 export function iniciarCronJobs() {
   // Ejecuta cada minuto
@@ -16,7 +17,7 @@ export function iniciarCronJobs() {
       });
       for (const { id_reserva } of reservasVencidas) {
         try {
-          await prisma.$transaction(async (tx) => {
+          await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 2a. Actualizar reserva a Cancelada_Timeout
             await tx.reserva.update({
               where: { id_reserva },

@@ -12,7 +12,7 @@ export class ReservaRepository {
     id_detalle_clase: string,
     numero_cupo: number
   ): Promise<{ reserva: Reserva; detalleReserva: DetalleReserva }> {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Creamos la cabecera de la reserva con expiración a 10 min
       const reserva = await tx.reserva.create({
         data: {
@@ -35,7 +35,7 @@ export class ReservaRepository {
         });
 
         return { reserva, detalleReserva };
-      } catch (err) {
+      } catch (err: any) {
         // Capturamos específicamente la violación de unicidad de Prisma (P2002)
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
           throw new Error('Cupo no disponible');

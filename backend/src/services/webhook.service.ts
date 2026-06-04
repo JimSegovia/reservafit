@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { PrismaClient, EstadoPago, EstadoReserva } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,7 @@ export class WebhookService {
         request.signature,
         this.STRIPE_WEBHOOK_SECRET
       );
-    } catch (err) {
+    } catch (err: any) {
       throw new Error('Invalid Stripe signature');
     }
 
@@ -51,7 +52,7 @@ export class WebhookService {
         throw new Error('Metadata id_reserva missing in session');
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.webHookProcesado.create({
         data: {
           id_evento,
