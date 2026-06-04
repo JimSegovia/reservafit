@@ -109,11 +109,11 @@ export default function LandingScreen() {
         {/* Elements only for Mobile (Info Cards) */}
         {!isWeb && (
           <Animated.View entering={FadeInDown.duration(250).delay(150)} className="flex-row justify-between bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mb-6 mt-4">
-            <View className="flex-1 flex-row items-center border-r border-gray-155 pr-2">
+            <View className="flex-1 flex-row items-center border-r border-gray-200 pr-2">
               <Ionicons name="people-outline" size={24} color="black" />
               <View className="ml-2">
                 <Text className="text-sm font-bold text-black">Una sala</Text>
-                <Text className="text-xs text-gray-500">Cupo 30</Text>
+                <Text className="text-xs text-gray-500">Capacidad: 30 personas</Text>
               </View>
             </View>
             <View className="flex-1 flex-row items-center pl-4">

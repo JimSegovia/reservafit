@@ -39,7 +39,7 @@ export default function ClientPaymentsHistoryScreen() {
         <View className="flex-row border-b border-gray-200 py-4 px-8 bg-[#faf7f2]">
           <Text className="flex-1 text-center text-[18px] font-extrabold text-gray-700">Fecha</Text>
           <Text className="flex-1 text-center text-[18px] font-extrabold text-gray-700">Clase</Text>
-          <Text className="flex-1 text-center text-[18px] font-extrabold text-gray-700">Pago</Text>
+          <Text className="flex-1 text-center text-[18px] font-extrabold text-gray-700">Monto</Text>
           <Text className="flex-1 text-center text-[18px] font-extrabold text-gray-700">Estado</Text>
         </View>
         <View className="px-8 py-4">
@@ -49,7 +49,7 @@ export default function ClientPaymentsHistoryScreen() {
               <View key={res.id} className={`flex-row items-center py-5 ${idx !== reservations.length - 1 ? 'border-b border-gray-200' : ''}`}>
                 <Text className="flex-1 text-center text-[14px] font-semibold text-black">{res.date}. {res.time.split(' ')[0] || '6:00 PM'}</Text>
                 <Text className="flex-1 text-center text-[14px] font-semibold text-black">{res.className}</Text>
-                <Text className="flex-1 text-center text-[14px] font-semibold text-black">S/. {res.price.toFixed(2)}</Text>
+                <Text className="flex-1 text-center text-[14px] font-semibold text-black">S/ {res.price.toFixed(2)}</Text>
                 <View className="flex-1 items-center"><View className={`px-4 py-2 rounded-xl ${isPaid ? 'bg-green-50' : 'bg-orange-50'}`}><Text className={`text-[13px] font-bold ${isPaid ? 'text-green-700' : 'text-orange-700'}`}>{res.status}</Text></View></View>
               </View>
             );

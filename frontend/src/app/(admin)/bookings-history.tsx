@@ -89,7 +89,7 @@ export default function AdminBookingsHistoryScreen() {
                   </View>
 
                   <View className="items-end">
-                    <Text className="text-base font-bold text-black mb-1.5">S/. {res.price.toFixed(2)}</Text>
+                    <Text className="text-base font-bold text-black mb-1.5">S/ {res.price.toFixed(2)}</Text>
                     
                     <View
                       className={`px-3 py-1 rounded-full border ${
