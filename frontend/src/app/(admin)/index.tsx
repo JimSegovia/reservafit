@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
+import { Image as ExpoImage } from 'expo-image';
+
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function AdminDashboardScreen() {
@@ -59,7 +61,11 @@ export default function AdminDashboardScreen() {
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center">
-            <Ionicons name="body-outline" size={28} color="#FF7A00" />
+            <ExpoImage
+              source={require('../../../assets/images/logo.svg')}
+              style={{ width: 28, height: 28 }}
+              className="mr-1.5"
+            />
             <Text className="text-2xl font-bold ml-1 text-black">
               Reserva<Text className="text-primary">Fit</Text>
             </Text>

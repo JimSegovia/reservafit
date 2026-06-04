@@ -58,7 +58,13 @@ export default function ClassDetailScreen() {
         {/* Header Hero Image with Back Button */}
         <Animated.View entering={FadeIn.duration(200)} className="relative w-full h-64 bg-gray-200">
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop' }}
+            source={
+              classItem.title.toLowerCase().includes('zumba')
+                ? require('../../../../../../assets/images/zumba.jpg')
+                : classItem.title.toLowerCase().includes('salsa')
+                ? require('../../../../../../assets/images/Salsa.jpeg')
+                : require('../../../../../../assets/images/bachata.jpg')
+            }
             className="w-full h-full object-cover"
           />
           <TouchableOpacity
@@ -91,10 +97,11 @@ export default function ClassDetailScreen() {
               <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
                 <Ionicons name="person-outline" size={20} color="#FF7A00" />
               </View>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop' }}
-                className="w-9 h-9 rounded-full mr-2 object-cover"
-              />
+              <View className="w-9 h-9 rounded-full bg-amber-700 items-center justify-center mr-2">
+                <Text className="text-white font-bold text-xs">
+                  {classItem.instructorName.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
               <View>
                 <Text className="text-[10px] text-gray-400 font-bold uppercase">Instructor</Text>
                 <Text className="text-sm font-extrabold text-black">{classItem.instructorName}</Text>

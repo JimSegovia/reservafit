@@ -61,7 +61,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
         <View>
           <View className="flex-row items-center mb-10 mt-2">
             <ExpoImage
-              source={require('@/../assets/images/logo.svg')}
+              source={require('../../assets/images/logo.svg')}
               style={{ width: 34, height: 34 }}
               className="mr-2"
             />

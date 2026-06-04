@@ -306,10 +306,10 @@ export default function ClassesSelectorScreen() {
                     <Image 
                       source={
                         cls.id === 'c7' 
-                          ? require('@/../assets/images/zumba.jpg') 
+                          ? require('../../../../../../assets/images/zumba.jpg') 
                           : cls.id === 'c8' 
-                          ? require('@/../assets/images/Salsa.jpeg') 
-                          : require('@/../assets/images/bachata.jpg')
+                          ? require('../../../../../../assets/images/Salsa.jpeg') 
+                          : require('../../../../../../assets/images/bachata.jpg')
                       } 
                       className="w-full h-44 object-cover" 
                     />
@@ -562,10 +562,10 @@ export default function ClassesSelectorScreen() {
                     <Image
                       source={
                         cls.id === 'c7'
-                          ? require('@/../assets/images/zumba.jpg')
+                          ? require('../../../../../../assets/images/zumba.jpg')
                           : cls.id === 'c8'
-                          ? require('@/../assets/images/Salsa.jpeg')
-                          : require('@/../assets/images/bachata.jpg')
+                          ? require('../../../../../../assets/images/Salsa.jpeg')
+                          : require('../../../../../../assets/images/bachata.jpg')
                       }
                       className="w-full h-32 object-cover"
                     />

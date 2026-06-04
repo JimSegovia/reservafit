@@ -95,7 +95,7 @@ export default function ClientHomeScreen() {
             <View>
               <View className="flex-row items-center mb-10 mt-2">
                 <ExpoImage
-                  source={require('@/../assets/images/logo.svg')}
+                  source={require('../../../../../assets/images/logo.svg')}
                   style={{ width: 34, height: 34 }}
                   className="mr-2"
                 />
@@ -182,10 +182,10 @@ export default function ClientHomeScreen() {
                         <Image
                           source={
                             cls.id === 'c7'
-                              ? require('@/../assets/images/zumba.jpg')
+                              ? require('../../../../../assets/images/zumba.jpg')
                               : cls.id === 'c8'
-                              ? require('@/../assets/images/Salsa.jpeg')
-                              : require('@/../assets/images/bachata.jpg')
+                              ? require('../../../../../assets/images/Salsa.jpeg')
+                              : require('../../../../../assets/images/bachata.jpg')
                           }
                           className="w-[88px] h-full object-cover"
                         />
@@ -231,8 +231,8 @@ export default function ClientHomeScreen() {
                         <Image
                           source={
                             idx === 0
-                              ? require('@/../assets/images/zumba.jpg')
-                              : require('@/../assets/images/Salsa.jpeg')
+                              ? require('../../../../../assets/images/zumba.jpg')
+                              : require('../../../../../assets/images/Salsa.jpeg')
                           }
                           className="w-[240px] h-full object-cover"
                         />
@@ -319,7 +319,7 @@ export default function ClientHomeScreen() {
           <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
             <View className="flex-row items-center">
               <ExpoImage
-                source={require('@/../assets/images/logo.svg')}
+                source={require('../../../../../assets/images/logo.svg')}
                 style={{ width: 28, height: 28 }}
                 className="mr-1.5"
               />
@@ -361,10 +361,10 @@ export default function ClientHomeScreen() {
                   <Image
                     source={
                       res.className.toLowerCase().includes('zumba')
-                        ? require('@/../assets/images/zumba.jpg')
+                        ? require('../../../../../assets/images/zumba.jpg')
                         : res.className.toLowerCase().includes('salsa')
-                        ? require('@/../assets/images/Salsa.jpeg')
-                        : require('@/../assets/images/bachata.jpg')
+                        ? require('../../../../../assets/images/Salsa.jpeg')
+                        : require('../../../../../assets/images/bachata.jpg')
                     }
                     className="w-full h-24 object-cover"
                   />
