@@ -99,7 +99,7 @@ export default function LoginScreen() {
       {/* Background Image only for mobile - spans entire screen including status bar */}
       {!isWeb && (
         <Image
-          source={require('../../../../assets/images/iniciar sesion mobile.jpg')}
+          source={require('../../../assets/images/iniciar sesion mobile.jpg')}
           style={StyleSheet.absoluteFill}
           className="opacity-90"
           resizeMode="cover"
@@ -111,7 +111,7 @@ export default function LoginScreen() {
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-300/50 bg-cream z-10">
           <TouchableOpacity onPress={() => router.push('/help' as any)} className="flex-row items-center">
             <ExpoImage
-              source={require('../../../../assets/images/logo.svg')}
+              source={require('../../../assets/images/logo.svg')}
               style={{ width: 32, height: 32 }}
               className="mr-1.5"
             />
@@ -153,7 +153,7 @@ export default function LoginScreen() {
               <Animated.View entering={ZoomIn.duration(200)} className="items-center mb-6">
                 <View className="w-32 h-32 rounded-3xl bg-white items-center justify-center shadow-md overflow-hidden">
                   <ExpoImage
-                    source={require('../../../../assets/images/logo.svg')}
+                    source={require('../../../assets/images/logo.svg')}
                     style={{ width: 90, height: 90 }}
                     contentFit="contain"
                   />

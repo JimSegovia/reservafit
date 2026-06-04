@@ -19,7 +19,7 @@ export default function LandingScreen() {
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-6 px-12 border-b border-gray-155 bg-white shadow-sm z-10">
           <View className="flex-row items-center">
             <ExpoImage
-              source={require('../../../../assets/images/logo.svg')}
+              source={require('../../../assets/images/logo.svg')}
               style={{ width: 32, height: 32 }}
               className="mr-1.5"
             />
@@ -61,7 +61,7 @@ export default function LandingScreen() {
           <Animated.View entering={FadeIn.duration(200)} className="items-center mb-10">
             <View className="flex-row items-center">
               <ExpoImage
-                source={require('../../../../assets/images/logo.svg')}
+                source={require('../../../assets/images/logo.svg')}
                 style={{ width: 36, height: 36 }}
                 className="mr-1.5"
               />
@@ -109,7 +109,7 @@ export default function LandingScreen() {
           <Animated.View entering={ZoomIn.duration(250).delay(100)} className={`items-center justify-center ${isWeb ? 'flex-1' : 'mt-4'}`}>
             <View className={`w-full overflow-hidden bg-gray-200 shadow-xl ${isWeb ? 'aspect-[4/3] rounded-[40px] max-w-[600px]' : 'h-64 rounded-[30px]'}`}>
               <Image
-                source={require('../../../../assets/images/zumba.jpg')}
+                source={require('../../../assets/images/zumba.jpg')}
                 className="w-full h-full object-cover"
               />
             </View>

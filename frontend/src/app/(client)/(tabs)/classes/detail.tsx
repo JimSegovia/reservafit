@@ -60,10 +60,10 @@ export default function ClassDetailScreen() {
           <Image
             source={
               classItem.title.toLowerCase().includes('zumba')
-                ? require('../../../../../../assets/images/zumba.jpg')
+                ? require('../../../../../assets/images/zumba.jpg')
                 : classItem.title.toLowerCase().includes('salsa')
-                ? require('../../../../../../assets/images/Salsa.jpeg')
-                : require('../../../../../../assets/images/bachata.jpg')
+                ? require('../../../../../assets/images/Salsa.jpeg')
+                : require('../../../../../assets/images/bachata.jpg')
             }
             className="w-full h-full object-cover"
           />

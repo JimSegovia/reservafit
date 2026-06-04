@@ -95,7 +95,7 @@ export default function VerifyScreen() {
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-300/50 bg-cream z-10">
           <TouchableOpacity onPress={() => router.push('/(auth)/landing')} className="flex-row items-center">
             <ExpoImage
-              source={require('../../../../assets/images/logo.svg')}
+              source={require('../../../assets/images/logo.svg')}
               style={{ width: 32, height: 32 }}
               className="mr-1.5"
             />
