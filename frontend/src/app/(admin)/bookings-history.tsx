@@ -24,7 +24,10 @@ export default function AdminBookingsHistoryScreen() {
           <TouchableOpacity onPress={() => router.replace('/(admin)')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
-          <Text className="text-2xl font-extrabold text-black">Historial</Text>
+          <View>
+            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
+            <Text className="text-2xl font-extrabold text-black mt-0.5">Historial</Text>
+          </View>
         </Animated.View>
 
         {/* Tab Selection (Reservas / Pagos) */}

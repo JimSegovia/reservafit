@@ -63,11 +63,14 @@ export default function AdminInstructorsScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center flex-1 mr-2">
             <TouchableOpacity onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
-            <Text className="text-2xl font-extrabold text-black">Instructores</Text>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
+              <Text className="text-2xl font-extrabold text-black mt-0.5">Instructores</Text>
+            </View>
           </View>
 
           {/* Add Button */}

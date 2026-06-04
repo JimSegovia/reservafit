@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { Button } from '@/components/ui/button';
 
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 export default function AdminManualBookingScreen() {
   const router = useRouter();
+  const showToast = useAppStore((state) => state.showToast);
   
   const allClasses = useAppStore((state) => state.classes);
   const classes = allClasses.filter(c => c.status === 'Activo');
@@ -24,57 +26,57 @@ export default function AdminManualBookingScreen() {
   const [selectedSchedule, setSelectedSchedule] = useState('');
   const [paymentType, setPaymentType] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
   const [price, setPrice] = useState('40.00');
+  const [loading, setLoading] = useState(false);
 
-  // Load default class selections (use callback to avoid dependency issues)
+  // Load default class selections
   useEffect(() => {
-    const loadDefaultClass = () => {
-      if (classes.length > 0) {
-        setSelectedClassId(classes[0].id);
-      }
-    };
-    loadDefaultClass();
+    if (classes.length > 0) {
+      setSelectedClassId(classes[0].id);
+    }
   }, []);
 
   // Load default schedules based on class selection
   useEffect(() => {
-    const loadSchedule = () => {
-      const selectedClass = classes.find(c => c.id === selectedClassId);
-      if (selectedClass) {
-        setSelectedSchedule(selectedClass.slots?.[0] || selectedClass.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM');
-        setPrice(selectedClass.price.toFixed(2));
-      }
-    };
-    loadSchedule();
+    const selectedClass = classes.find(c => c.id === selectedClassId);
+    if (selectedClass) {
+      setSelectedSchedule(selectedClass.slots?.[0] || selectedClass.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM');
+      setPrice(selectedClass.price.toFixed(2));
+    }
   }, [selectedClassId]);
 
   const handleRegister = () => {
     if (!clientName || !clientLastName || !clientEmail || !clientPhone || !selectedClassId || !selectedSchedule) {
-      Alert.alert('Error', 'Por favor llena todos los campos de cliente y reserva.');
+      showToast('Por favor llena todos los campos de cliente y reserva.', 'warning');
       return;
     }
 
-    const success = addManualBooking({
-      clientName,
-      clientLastName,
-      clientEmail,
-      clientPhone,
-      classId: selectedClassId,
-      schedule: selectedSchedule,
-      paymentType,
-      price: parseFloat(price) || 40.00
-    });
+    setLoading(true);
 
-    if (success) {
-      Alert.alert('Éxito', 'La reserva manual fue registrada exitosamente.');
-      // Clear fields
-      setClientName('');
-      setClientLastName('');
-      setClientEmail('');
-      setClientPhone('');
-      router.push('/(admin)/bookings-history');
-    } else {
-      Alert.alert('Error', 'No se pudo registrar la reserva. Intenta de nuevo.');
-    }
+    setTimeout(() => {
+      setLoading(false);
+      const success = addManualBooking({
+        clientName,
+        clientLastName,
+        clientEmail,
+        clientPhone,
+        classId: selectedClassId,
+        schedule: selectedSchedule,
+        paymentType,
+        price: parseFloat(price) || 40.00
+      });
+
+      if (success) {
+        showToast('La reserva manual fue registrada exitosamente.', 'success');
+        // Clear fields
+        setClientName('');
+        setClientLastName('');
+        setClientEmail('');
+        setClientPhone('');
+        router.push('/(admin)/bookings-history');
+      } else {
+        showToast('No se pudo registrar la reserva. Intenta de nuevo.', 'error');
+      }
+    }, 1200);
   };
 
   const activeClass = classes.find(c => c.id === selectedClassId);
@@ -83,7 +85,7 @@ export default function AdminManualBookingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -91,7 +93,10 @@ export default function AdminManualBookingScreen() {
           <TouchableOpacity onPress={() => router.replace('/(admin)')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
-          <Text className="text-xl font-extrabold text-black">Registrar reserva manual</Text>
+          <View>
+            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Reserva Manual</Text>
+            <Text className="text-2xl font-extrabold text-black mt-0.5 font-sans">Reserva manual</Text>
+          </View>
         </Animated.View>
 
         {/* Section: Datos del cliente */}
@@ -222,12 +227,12 @@ export default function AdminManualBookingScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text className="text-gray-500 font-bold text-xs ml-1">Monto (S/.)</Text>
+            <Text className="text-gray-500 font-bold text-xs ml-1">Monto (S/)</Text>
             <TextInput
               value={price}
               onChangeText={setPrice}
               keyboardType="numeric"
-              placeholder="S/ 40.00"
+              placeholder="40.00"
               placeholderTextColor="#9CA3AF"
               className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm"
             />
@@ -236,18 +241,18 @@ export default function AdminManualBookingScreen() {
 
         {/* Action Button */}
         <Animated.View entering={FadeInDown.duration(200).delay(200)}>
-          <TouchableOpacity
+          <Button
+            label="Registrar reserva"
             onPress={handleRegister}
-            activeOpacity={0.7}
-            className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mb-4"
-          >
-            <Text className="text-white text-base font-bold">Registrar reserva</Text>
-          </TouchableOpacity>
+            disabled={loading}
+            loading={loading}
+            variant="primary"
+          />
         </Animated.View>
 
         {/* Capacity Indicator */}
-        <Animated.Text entering={FadeInDown.duration(200).delay(250)} className="text-center text-gray-500 text-xs font-bold mb-4">
-          Cupos disponibles {enrolledStr}
+        <Animated.Text entering={FadeInDown.duration(200).delay(250)} className="text-center text-gray-500 text-xs font-bold mb-4 mt-2">
+          Cupos disponibles: {enrolledStr}
         </Animated.Text>
       </ScrollView>
     </SafeAreaView>

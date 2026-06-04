@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
@@ -17,6 +17,7 @@ export default function AdminClassesScreen() {
 
   const [search, setSearch] = useState('');
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,6 +31,14 @@ export default function AdminClassesScreen() {
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+      showToast('Lista de clases actualizada.', 'success');
+    }, 1200);
+  };
 
   const openAddModal = () => {
     setEditingId(null);
@@ -96,6 +105,7 @@ export default function AdminClassesScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
         className="flex-1 px-6 py-4"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
@@ -103,7 +113,10 @@ export default function AdminClassesScreen() {
             <TouchableOpacity onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
-            <Text className="text-2xl font-extrabold text-black">Clases</Text>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Clases</Text>
+              <Text className="text-2xl font-extrabold text-black mt-0.5">Clases</Text>
+            </View>
           </View>
 
           {/* Add Button */}
