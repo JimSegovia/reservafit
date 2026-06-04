@@ -4,18 +4,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { Loader } from '@/components/ui/loader';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function VerifyScreen() {
   const router = useRouter();
   const verifyOtp = useAppStore((state) => state.verifyOtp);
+  const showToast = useAppStore((state) => state.showToast);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
   const [code, setCode] = useState<string[]>(['2', '4', '7', '1', '9', '6']); // prefilled with mockup numbers for easy demo
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(45);
+  const [loading, setLoading] = useState(false);
 
   const inputsRef = [
     useRef<TextInput>(null),
@@ -35,12 +38,13 @@ export default function VerifyScreen() {
   }, [countdown]);
 
   const handleChangeText = (text: string, index: number) => {
+    const cleanText = text.replace(/[^0-9]/g, '');
     const newCode = [...code];
-    newCode[index] = text;
+    newCode[index] = cleanText;
     setCode(newCode);
 
     // Auto focus next input
-    if (text.length > 0 && index < 5) {
+    if (cleanText.length > 0 && index < 5) {
       inputsRef[index + 1].current?.focus();
     }
   };
@@ -54,14 +58,34 @@ export default function VerifyScreen() {
 
   const handleVerify = () => {
     const fullCode = code.join('');
-    const success = verifyOtp(fullCode);
-    if (success) {
-      setError('');
-      router.replace('/(client)/(tabs)');
-    } else {
-      setError('Código OTP inválido o expirado. Usa "247196".');
+    if (fullCode.length < 6) {
+      showToast('Por favor ingresa el código completo de 6 dígitos.', 'warning');
+      return;
     }
+
+    setLoading(true);
+    setError('');
+
+    setTimeout(() => {
+      setLoading(false);
+      const success = verifyOtp(fullCode);
+      if (success) {
+        showToast('¡Cuenta verificada y sesión iniciada!', 'success');
+        router.replace('/(client)/(tabs)');
+      } else {
+        setError('Código OTP inválido o expirado. Usa "247196".');
+        showToast('Código de verificación incorrecto.', 'error');
+      }
+    }, 1200);
   };
+
+  const handleResend = () => {
+    if (countdown > 0) return;
+    setCountdown(45);
+    showToast('Código OTP reenviado con éxito.', 'info');
+  };
+
+  const isSubmitDisabled = loading || code.join('').length < 6;
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
@@ -86,12 +110,21 @@ export default function VerifyScreen() {
             paddingHorizontal: isWeb ? 0 : 24,
             paddingVertical: isWeb ? 36 : 16,
             paddingBottom: 30,
-            justifyContent: isWeb ? 'center' : 'center',
+            justifyContent: 'center',
           }}
           showsVerticalScrollIndicator={false}
         >
           <View className={`mx-auto ${isWeb ? 'w-full max-w-[1120px] px-6' : 'w-full'}`}>
-            <View className={`mx-auto bg-white ${isWeb ? 'w-full rounded-2xl border border-gray-200 shadow-[0_8px_18px_rgba(0,0,0,0.14)] px-8 py-12' : 'px-0 py-0'}`}>
+            <View className={`mx-auto bg-white ${isWeb ? 'w-full rounded-2xl border border-gray-200 shadow-[0_8px_18px_rgba(0,0,0,0.14)] px-8 py-12' : 'px-6 py-8 rounded-2xl border border-gray-100 shadow-sm'}`}>
+              
+              {/* Back Button for Mobile */}
+              {!isWeb && (
+                <TouchableOpacity onPress={() => router.push('/(auth)/register')} className="flex-row items-center py-1 mb-4">
+                  <Ionicons name="arrow-back" size={24} color="black" />
+                  <Text className="text-sm font-semibold ml-1">Volver</Text>
+                </TouchableOpacity>
+              )}
+
               {/* OTP Icon */}
               <Animated.View entering={ZoomIn.duration(200)} className={`items-center ${isWeb ? 'mb-10' : 'mb-8'}`}>
                 <View className={`${isWeb ? 'w-36 h-36' : 'w-32 h-32'} rounded-full bg-orange-100 items-center justify-center`}>
@@ -101,13 +134,13 @@ export default function VerifyScreen() {
                 </View>
                 <Text className={`${isWeb ? 'text-[44px]' : 'text-2xl'} font-bold text-black mt-6 text-center`}>Verifica tu cuenta</Text>
                 <Text className={`${isWeb ? 'text-[22px] leading-7 px-10' : 'text-sm leading-relaxed px-6'} text-center text-gray-500`}>
-                  Hemos enviado un código OTP a tu correo
+                  Hemos enviado un código de verificación (OTP) a tu correo
                   {'\n'}electrónico
                 </Text>
               </Animated.View>
 
               {error ? (
-                <Animated.Text entering={FadeIn.duration(150)} className="text-red-500 text-sm text-center mb-4">
+                <Animated.Text entering={FadeIn.duration(150)} className="text-red-500 text-sm text-center mb-4 font-semibold">
                   {error}
                 </Animated.Text>
               ) : null}
@@ -126,29 +159,37 @@ export default function VerifyScreen() {
                     className={`${isWeb ? 'w-20 h-32 text-[52px] bg-[#fbf8f1]' : 'w-12 h-14 text-xl bg-white'} border border-gray-300 rounded-md text-center font-bold text-black mx-1`}
                     placeholderTextColor="#9CA3AF"
                     selectTextOnFocus
+                    editable={!loading}
                   />
                 ))}
               </Animated.View>
 
               {/* Resend Link */}
               <Animated.View entering={FadeInDown.duration(200).delay(100)} className="items-center mb-8">
-                <Text className={`${isWeb ? 'text-[20px]' : 'text-sm'} text-gray-500 font-semibold text-center`}>
-                  ¿No recibiste el código?{' '}
-                  <Text className="text-primary font-bold">
-                    Reenviar {countdown > 0 ? `(00:${countdown < 10 ? '0' : ''}${countdown})` : ''}
+                <TouchableOpacity onPress={handleResend} disabled={countdown > 0 || loading}>
+                  <Text className={`${isWeb ? 'text-[20px]' : 'text-sm'} text-gray-500 font-semibold text-center`}>
+                    ¿No recibiste el código?{' '}
+                    <Text className={`font-bold ${countdown > 0 ? 'text-gray-400' : 'text-primary'}`}>
+                      Reenviar {countdown > 0 ? `(00:${countdown < 10 ? '0' : ''}${countdown})` : ''}
+                    </Text>
                   </Text>
-                </Text>
+                </TouchableOpacity>
               </Animated.View>
 
               {/* Verification Button */}
               <Animated.View entering={FadeInDown.duration(200).delay(150)} className="mb-2">
                 <TouchableOpacity
                   onPress={handleVerify}
+                  disabled={isSubmitDisabled}
                   activeOpacity={0.7}
-                  className={`w-full bg-primary items-center shadow-lg shadow-orange-500/20 ${isWeb ? 'py-5 rounded-md' : 'py-4 rounded-2xl'}`}
-                  style={isWeb ? { minHeight: 76 } : undefined}
+                  className={`w-full bg-primary items-center justify-center shadow-lg shadow-orange-500/20 ${isWeb ? 'py-5 rounded-md' : 'py-4 rounded-2xl'} ${isSubmitDisabled ? 'opacity-50' : ''}`}
+                  style={{ minHeight: isWeb ? 76 : 56 }}
                 >
-                  <Text className={`${isWeb ? 'text-[22px]' : 'text-base'} text-white font-bold`}>Verificar</Text>
+                  {loading ? (
+                    <Loader variant="button" label="Verificando..." />
+                  ) : (
+                    <Text className={`${isWeb ? 'text-[22px]' : 'text-base'} text-white font-bold`}>Verificar</Text>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>

@@ -56,11 +56,19 @@ interface CurrentBooking {
   timeLeft: number; // in seconds (e.g., 600 for 10 minutes)
 }
 
+export interface ToastInfo {
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
 interface AppState {
   // Auth state
   user: User | null;
   otpCode: string | null;
   tempRegisterData: Partial<User> | null;
+  
+  // Toast state
+  toast: ToastInfo | null;
   
   // Data lists
   instructors: Instructor[];
@@ -107,6 +115,9 @@ interface AppState {
     paymentType: 'Efectivo' | 'Tarjeta';
     price: number;
   }) => boolean;
+
+  showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+  hideToast: () => void;
 }
 
 // Initial Data representing mockup values
@@ -162,6 +173,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   currentBooking: null,
   timerIntervalId: null,
+  toast: null,
 
   login: (email, role) => {
     // Basic mock authentication: any email works!
@@ -396,5 +408,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return true;
+  },
+
+  showToast: (message, type = 'info') => {
+    set({ toast: { message, type } });
+  },
+
+  hideToast: () => {
+    set({ toast: null });
   }
 }));

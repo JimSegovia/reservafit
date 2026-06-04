@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { Loader } from '@/components/ui/loader';
 
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ReservationQuickDetail } from '@/components/reservation-quick-detail';
@@ -22,6 +23,23 @@ export default function ClientHomeScreen() {
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-cream justify-center items-center">
+        <Loader variant="inline" label="Cargando tu panel de control..." />
+      </SafeAreaView>
+    );
+  }
+
 
   const handleLogout = () => {
     logout();

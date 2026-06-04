@@ -5,14 +5,20 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
+import { Loader } from '@/components/ui/loader';
 
 export default function CheckoutScreen() {
   const router = useRouter();
   const currentBooking = useAppStore((state) => state.currentBooking);
   const confirmBooking = useAppStore((state) => state.confirmBooking);
-  const [phone, setPhone] = useState('9XX XXX XXX');
+  const showToast = useAppStore((state) => state.showToast);
+  
+  const [phone, setPhone] = useState('999888777');
   const [code, setCode] = useState('123456');
   const [showPopup, setShowPopup] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const [codeError, setCodeError] = useState('');
 
   useEffect(() => {
     if (!currentBooking) {
@@ -22,76 +28,186 @@ export default function CheckoutScreen() {
 
   if (!currentBooking) return null;
 
-  const handlePay = () => setShowPopup(true);
+  const validatePhone = (text: string) => {
+    const clean = text.replace(/[^0-9]/g, '');
+    setPhone(clean);
+    if (!clean) {
+      setPhoneError('El celular es obligatorio.');
+    } else if (clean.length !== 9 || !clean.startsWith('9')) {
+      setPhoneError('Debe tener 9 dígitos y empezar con 9.');
+    } else {
+      setPhoneError('');
+    }
+  };
+
+  const validateCode = (text: string) => {
+    const clean = text.replace(/[^0-9]/g, '');
+    setCode(clean);
+    if (!clean) {
+      setCodeError('El código de aprobación es obligatorio.');
+    } else if (clean.length !== 6) {
+      setCodeError('Debe tener exactamente 6 dígitos.');
+    } else {
+      setCodeError('');
+    }
+  };
+
+  const handlePay = () => {
+    if (!phone || !code) {
+      validatePhone(phone);
+      validateCode(code);
+      showToast('Por favor completa todos los campos requeridos.', 'warning');
+      return;
+    }
+    if (phoneError || codeError) {
+      showToast('Por favor corrige los errores de validación.', 'warning');
+      return;
+    }
+    setShowPopup(true);
+  };
 
   const handleConfirm = () => {
-    confirmBooking(phone);
-    setShowPopup(false);
-    router.replace('/(client)/success');
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      confirmBooking(phone);
+      setShowPopup(false);
+      showToast('¡Pago con Yape exitoso y reserva confirmada!', 'success');
+      router.replace('/(client)/success');
+    }, 1500);
   };
+
+  const isSubmitDisabled = isProcessing || !phone || !code || !!phoneError || !!codeError;
 
   const content = (
     <View className="bg-[#faf5ef] rounded-[24px] p-5 w-full max-w-[480px] mx-auto border border-gray-100 shadow-sm">
-      <View className="flex-row items-start justify-between">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={38} color="black" />
+      <View className="flex-row items-center justify-between mb-4">
+        <TouchableOpacity onPress={() => router.back()} className="flex-row items-center py-1">
+          <Ionicons name="arrow-back" size={24} color="black" />
+          <Text className="text-sm font-semibold ml-1">Volver</Text>
         </TouchableOpacity>
-        <Text className="text-[22px] font-extrabold text-black">Pagar con Yape</Text>
+        <Text className="text-[20px] font-extrabold text-black">Pagar con Yape</Text>
         <View className="w-10" />
       </View>
 
-      <View className="items-center mt-5 mb-4">
-        <View className="w-20 h-20 rounded-full bg-[#7f1bb5] items-center justify-center">
-          <Text className="text-white text-2xl font-extrabold">Y</Text>
+      {/* Step Indicator (H3: Paso 1, 2, 3) */}
+      <View className="flex-row items-center justify-center mb-6 gap-x-2 px-2">
+        <View className="flex-row items-center">
+          <View className="w-6 h-6 rounded-full bg-orange-200 items-center justify-center"><Text className="text-xs font-bold text-orange-800">1</Text></View>
+          <Text className="text-xs text-gray-500 font-bold ml-1">Clase</Text>
         </View>
-        <Text className="text-[16px] text-center mt-4">Yape es el único medio de pago aceptado.</Text>
+        <View className="w-6 h-[2px] bg-orange-200" />
+        <View className="flex-row items-center">
+          <View className="w-6 h-6 rounded-full bg-orange-200 items-center justify-center"><Text className="text-xs font-bold text-orange-800">2</Text></View>
+          <Text className="text-xs text-gray-500 font-bold ml-1">Asientos</Text>
+        </View>
+        <View className="w-6 h-[2px] bg-primary" />
+        <View className="flex-row items-center">
+          <View className="w-6 h-6 rounded-full bg-primary items-center justify-center"><Text className="text-xs font-bold text-white">3</Text></View>
+          <Text className="text-xs text-primary font-bold ml-1">Pago Yape</Text>
+        </View>
+      </View>
+
+      <View className="items-center mt-2 mb-4">
+        <View className="w-16 h-16 rounded-full bg-[#7f1bb5] items-center justify-center">
+          <Text className="text-white text-2xl font-bold">Y</Text>
+        </View>
+        <Text className="text-[14px] text-center mt-3 text-gray-600">Yape es el único medio de pago móvil aceptado en web.</Text>
       </View>
 
       <View className="bg-[#fdeedb] rounded-[24px] p-4 mx-auto w-full max-w-[460px]">
-        <Text className="text-[20px] font-extrabold text-black mb-3">Resumen del pedido</Text>
-        <View className="bg-white rounded-[16px] p-4 border border-[#f5e0c8]">
-          <View className="flex-row justify-between mb-3"><Text className="text-[15px]">Clase</Text><Text className="text-[15px] font-bold">{currentBooking.className}</Text></View>
-          <View className="flex-row justify-between mb-3"><Text className="text-[15px]">Horario</Text><Text className="text-[15px] font-bold">{currentBooking.time}</Text></View>
-          <View className="flex-row justify-between mb-3"><Text className="text-[15px]">Asiento</Text><Text className="text-[15px] font-bold">{currentBooking.selectedSeats.join(', ')}</Text></View>
-          <View className="flex-row justify-between"><Text className="text-[15px]">Fecha</Text><Text className="text-[15px] font-bold">{currentBooking.day}</Text></View>
+        <Text className="text-[18px] font-extrabold text-black mb-3">Resumen de tu clase</Text>
+        <View className="bg-white rounded-[16px] p-4 border border-[#f5e0c8] gap-y-2.5">
+          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Clase</Text><Text className="text-[14px] font-bold text-black">{currentBooking.className}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Horario</Text><Text className="text-[14px] font-bold text-black">{currentBooking.time}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Asiento(s)</Text><Text className="text-[14px] font-bold text-black">{currentBooking.selectedSeats.join(', ')}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Fecha</Text><Text className="text-[14px] font-bold text-black">{currentBooking.day}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Instructor</Text><Text className="text-[14px] font-bold text-black">{currentBooking.instructorName}</Text></View>
         </View>
 
-        <View className="mt-6">
-          <Text className="text-[15px] font-bold text-gray-500">Monto a pagar</Text>
-          <Text className="text-[36px] font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
+        <View className="mt-4 flex-row justify-between items-center bg-white/50 p-3 rounded-xl">
+          <Text className="text-[14px] font-bold text-gray-600">Total a pagar:</Text>
+          <Text className="text-[26px] font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
         </View>
 
-        <View className="mt-4">
-          <Text className="text-[15px] font-bold text-gray-500 mb-2">Número de celular Yape</Text>
-          <TextInput value={phone} onChangeText={setPhone} className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-[15px]" />
-          <Text className="text-[15px] font-bold text-gray-500 mb-2 mt-4">Código de Aprobacion</Text>
-          <TextInput value={code} onChangeText={setCode} className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-[15px]" />
+        <View className="mt-4 gap-y-3">
+          <View>
+            <View className="flex-row items-center mb-1 ml-1">
+              <Ionicons name="phone-portrait-outline" size={14} color="#FF7A00" className="mr-1" />
+              <Text className="text-gray-600 font-bold text-xs">Celular Yape</Text>
+            </View>
+            <TextInput
+              value={phone}
+              onChangeText={validatePhone}
+              keyboardType="phone-pad"
+              maxLength={9}
+              className={`bg-white border rounded-xl px-4 py-3 text-[14px] text-black ${phoneError ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder="999888777"
+            />
+            {phoneError ? <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{phoneError}</Text> : null}
+          </View>
+
+          <View>
+            <View className="flex-row items-center mb-1 ml-1">
+              <Ionicons name="key-outline" size={14} color="#FF7A00" className="mr-1" />
+              <Text className="text-gray-600 font-bold text-xs">Código de Aprobación</Text>
+            </View>
+            <TextInput
+              value={code}
+              onChangeText={validateCode}
+              keyboardType="number-pad"
+              maxLength={6}
+              className={`bg-white border rounded-xl px-4 py-3 text-[14px] text-black ${codeError ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder="Código de 6 dígitos"
+            />
+            {codeError ? <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{codeError}</Text> : null}
+          </View>
         </View>
 
-        <TouchableOpacity onPress={handlePay} className="bg-primary rounded-2xl py-3 items-center mt-5">
-          <Text className="text-white text-[16px] font-semibold">Pagar con Yape</Text>
+        <TouchableOpacity
+          onPress={handlePay}
+          disabled={isSubmitDisabled}
+          className={`bg-primary rounded-2xl py-4 items-center justify-center mt-5 ${isSubmitDisabled ? 'opacity-50' : ''}`}
+          style={{ minHeight: 52 }}
+        >
+          <Text className="text-white text-[16px] font-bold">Pagar con Yape</Text>
         </TouchableOpacity>
 
-        <View className="flex-row items-center justify-center mt-5 gap-x-3">
-          <Ionicons name="time-outline" size={20} color="#222" />
-          <Text className="text-[13px]">Reserva bloqueada por 09:45min</Text>
+        <View className="flex-row items-center justify-center mt-4 gap-x-2">
+          <Ionicons name="time-outline" size={16} color="#FF7A00" />
+          <Text className="text-[12px] text-gray-500 font-semibold">Reserva bloqueada por 10:00 minutos</Text>
         </View>
       </View>
 
       <Modal transparent visible={showPopup} animationType="fade">
         <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center">
+          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center shadow-2xl border border-gray-150">
             <View className="w-16 h-16 rounded-full bg-green-500 items-center justify-center mb-5">
               <Ionicons name="checkmark" size={40} color="white" />
             </View>
-            <Text className="text-[24px] font-extrabold text-center">Confirmar pago</Text>
-            <Text className="text-gray-600 text-center mt-3 text-[16px]">¿Deseas confirmar el pago de tu reserva?</Text>
+            <Text className="text-[22px] font-extrabold text-center text-black">Confirmar pago</Text>
+            <Text className="text-gray-600 text-center mt-3 text-[15px] leading-relaxed">
+              ¿Deseas confirmar el pago de tu reserva por <Text className="font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>?
+            </Text>
             <View className="flex-row gap-x-3 mt-8 w-full">
-              <TouchableOpacity onPress={() => setShowPopup(false)} className="flex-1 bg-gray-200 rounded-xl py-4 items-center">
-                <Text className="text-[16px] font-semibold">Cancelar</Text>
+              <TouchableOpacity
+                onPress={() => setShowPopup(false)}
+                disabled={isProcessing}
+                className="flex-1 bg-gray-150 rounded-xl py-4 items-center"
+              >
+                <Text className="text-[16px] font-bold text-gray-700">Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleConfirm} className="flex-1 bg-primary rounded-xl py-4 items-center">
-                <Text className="text-white text-[16px] font-semibold">Pagar</Text>
+              <TouchableOpacity
+                onPress={handleConfirm}
+                disabled={isProcessing}
+                className="flex-1 bg-primary rounded-xl py-4 items-center justify-center"
+                style={{ minHeight: 48 }}
+              >
+                {isProcessing ? (
+                  <Loader variant="button" label="Pagando..." />
+                ) : (
+                  <Text className="text-white text-[16px] font-bold">Pagar</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
