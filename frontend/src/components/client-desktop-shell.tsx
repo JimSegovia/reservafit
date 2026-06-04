@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Image as ExpoImage } from 'expo-image';
 
 type Props = {
   children: React.ReactNode;
@@ -59,7 +60,11 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
       <View className="w-[280px] bg-[#1f0f08] px-6 py-8 justify-between">
         <View>
           <View className="flex-row items-center mb-10 mt-2">
-            <Ionicons name="body-outline" size={34} color="#FF7A00" />
+            <ExpoImage
+              source={require('@/../assets/images/logo.svg')}
+              style={{ width: 34, height: 34 }}
+              className="mr-2"
+            />
             <Text className="text-[26px] font-bold ml-1 text-white">
               Reserva<Text className="text-primary">Fit</Text>
             </Text>

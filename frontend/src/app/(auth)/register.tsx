@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { Loader } from '@/components/ui/loader';
 import { Button } from '@/components/ui/button';
+import { Image as ExpoImage } from 'expo-image';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -150,7 +151,11 @@ export default function RegisterScreen() {
       {isWeb && (
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-300/50 bg-cream z-10">
           <TouchableOpacity onPress={() => router.push('/(auth)/landing')} className="flex-row items-center">
-            <Ionicons name="body-outline" size={32} color="#FF7A00" />
+            <ExpoImage
+              source={require('@/../assets/images/logo.svg')}
+              style={{ width: 32, height: 32 }}
+              className="mr-1.5"
+            />
             <Text className="text-[28px] font-bold ml-1 text-black">
               Reserva<Text className="text-primary">Fit</Text>
             </Text>
@@ -182,7 +187,11 @@ export default function RegisterScreen() {
                   <Text className="text-sm font-semibold ml-1">Volver</Text>
                 </TouchableOpacity>
                 <View className="flex-row items-center">
-                  <Ionicons name="body-outline" size={24} color="#FF7A00" />
+                  <ExpoImage
+                    source={require('@/../assets/images/logo.svg')}
+                    style={{ width: 24, height: 24 }}
+                    className="mr-1"
+                  />
                   <Text className="text-lg font-bold ml-1 text-black">
                     Reserva<Text className="text-primary">Fit</Text>
                   </Text>
