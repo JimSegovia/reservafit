@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export default function ClassesSelectorScreen() {
   const router = useRouter();
@@ -90,7 +91,10 @@ export default function ClassesSelectorScreen() {
         <Text className="text-[16px] font-bold text-black mb-3">Filtros de búsqueda</Text>
         <View className="flex-row flex-wrap gap-4 mb-4">
           <View className="flex-1 min-w-[200px]">
-            <Text className="text-xs text-gray-500 font-bold mb-2">Filtrar por Día</Text>
+            <View className="flex-row items-center mb-2">
+              <Text className="text-xs text-gray-500 font-bold">Filtrar por Día</Text>
+              <Tooltip content="Muestra únicamente las clases que se dictan el día seleccionado." className="ml-1" />
+            </View>
             <View className="flex-row flex-wrap gap-2">
               {daysFilterOptions.map(day => (
                 <TouchableOpacity
@@ -105,7 +109,10 @@ export default function ClassesSelectorScreen() {
           </View>
 
           <View className="flex-1 min-w-[200px]">
-            <Text className="text-xs text-gray-500 font-bold mb-2">Filtrar por Disciplina</Text>
+            <View className="flex-row items-center mb-2">
+              <Text className="text-xs text-gray-500 font-bold">Filtrar por Disciplina</Text>
+              <Tooltip content="Filtra las clases según la disciplina o tipo de actividad (ej. Salsa, Zumba)." className="ml-1" />
+            </View>
             <View className="flex-row flex-wrap gap-2">
               {themeFilterOptions.map(theme => (
                 <TouchableOpacity
@@ -214,7 +221,10 @@ export default function ClassesSelectorScreen() {
         {/* Filters Panel Mobile */}
         <View className="mb-6">
           {/* Day Filters Horizontal */}
-          <Text className="text-xs text-gray-500 font-bold mb-2 ml-1">Filtrar por Día</Text>
+          <View className="flex-row items-center mb-2 ml-1">
+            <Text className="text-xs text-gray-500 font-bold">Filtrar por Día</Text>
+            <Tooltip content="Muestra únicamente las clases que se dictan el día seleccionado." className="ml-1" />
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-x-2 pb-3 mb-2">
             {daysFilterOptions.map(day => (
               <TouchableOpacity
@@ -228,7 +238,10 @@ export default function ClassesSelectorScreen() {
           </ScrollView>
 
           {/* Theme Filters Horizontal */}
-          <Text className="text-xs text-gray-500 font-bold mb-2 ml-1">Filtrar por Disciplina</Text>
+          <View className="flex-row items-center mb-2 ml-1">
+            <Text className="text-xs text-gray-500 font-bold">Filtrar por Disciplina</Text>
+            <Tooltip content="Filtra las clases según la disciplina o tipo de actividad (ej. Salsa, Zumba)." className="ml-1" />
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-x-2 pb-1">
             {themeFilterOptions.map(theme => (
               <TouchableOpacity

@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/useStore';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export default function PositionSelectorScreen() {
   const router = useRouter();
@@ -102,8 +103,11 @@ export default function PositionSelectorScreen() {
       {/* Sala Unique Card */}
       <Animated.View entering={FadeInDown.duration(200).delay(50)} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm mb-6">
         <View className="mb-4">
-          <Text className="text-base font-extrabold text-black">Sala Única</Text>
-          <Text className="text-xs text-gray-400 font-bold">Cupos: 30 alumnos</Text>
+          <View className="flex-row items-center">
+            <Text className="text-base font-extrabold text-black mr-1">Sala Única</Text>
+            <Tooltip content="Presiona un número de asiento libre (blanco) para seleccionarlo. Los ocupados (gris) no se pueden elegir." />
+          </View>
+          <Text className="text-xs text-gray-400 font-bold mt-1">Cupos: 30 alumnos</Text>
         </View>
 
         {/* Seat Grid Map 6 columns */}
@@ -247,7 +251,10 @@ export default function PositionSelectorScreen() {
           </View>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5">
-          <Text className="text-[20px] mb-2 font-bold text-black">Asientos seleccionados:</Text>
+          <View className="flex-row items-center mb-2">
+            <Text className="text-[20px] font-bold text-black mr-1">Asientos seleccionados</Text>
+            <Tooltip content="Selecciona tus asientos haciendo clic en los casilleros disponibles del mapa." />
+          </View>
           <Text className="text-[22px] font-extrabold mb-6 text-primary">{currentBooking.selectedSeats.join(', ') || '-'}</Text>
           <Button
             label="Pagar reserva"

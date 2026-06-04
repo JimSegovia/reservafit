@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, Image, ScrollView, useWindowDimensions, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +22,10 @@ export default function LandingScreen() {
               Reserva<Text className="text-primary">Fit</Text>
             </Text>
           </View>
-          <View className="flex-row items-center gap-x-4">
+          <View className="flex-row items-center gap-x-6">
+            <TouchableOpacity onPress={() => router.push('/help' as any)}>
+              <Text className="text-gray-650 font-bold text-sm">Ayuda / FAQ</Text>
+            </TouchableOpacity>
             <Button
               label="Registrarse"
               onPress={() => router.push('/(auth)/register')}
@@ -86,6 +89,9 @@ export default function LandingScreen() {
                   onPress={() => router.push('/(auth)/register')}
                   variant="outline"
                 />
+                <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-2">
+                  <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
+                </TouchableOpacity>
               </Animated.View>
             )}
           </View>

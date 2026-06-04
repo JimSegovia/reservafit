@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Tooltip } from '@/components/ui/tooltip';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -116,7 +117,10 @@ export default function AdminClassesScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Clases</Text>
-              <Text className="text-2xl font-extrabold text-black mt-0.5">Clases</Text>
+              <View className="flex-row items-center mt-0.5">
+                <Text className="text-2xl font-extrabold text-black mr-1">Clases</Text>
+                <Tooltip content="Gestiona las clases del sistema. Puedes crear nuevas clases, modificar sus horarios/instructores, o eliminarlas." />
+              </View>
             </View>
           </View>
 
