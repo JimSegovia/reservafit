@@ -100,24 +100,19 @@ export default function LoginScreen() {
       {!isWeb && (
         <Image
           source={require('../../../assets/images/iniciar sesion mobile.jpg')}
-          style={StyleSheet.absoluteFill}
-          className="opacity-90"
+          style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
         />
       )}
 
-      {/* Web Header */}
       {isWeb && (
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-300/50 bg-cream z-10">
           <TouchableOpacity onPress={() => router.push('/help' as any)} className="flex-row items-center">
             <ExpoImage
               source={require('../../../assets/images/logo.svg')}
-              style={{ width: 32, height: 32 }}
-              className="mr-1.5"
+              style={{ width: 150, height: 50 }}
+              contentFit="contain"
             />
-            <Text className="text-[28px] font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -137,7 +132,6 @@ export default function LoginScreen() {
             }} 
             showsVerticalScrollIndicator={false}
           >
-            {/* Mobile Back Button (Float Top Left) */}
             {!isWeb && (
               <TouchableOpacity 
                 onPress={() => router.back()} 
@@ -147,27 +141,20 @@ export default function LoginScreen() {
               </TouchableOpacity>
             )}
 
-            <View className={`md:w-[500px] md:mx-auto md:bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-200 md:px-12 md:py-10 ${isWeb ? 'mt-0' : 'bg-white/95 p-6 rounded-3xl border border-white/25 shadow-md'}`}>
+            <View className={`md:w-[500px] md:mx-auto md:bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-200 md:px-12 md:py-10 ${isWeb ? 'mt-0' : ''}`}>
               
-              {/* Logo Centered & Larger (Web & Mobile) */}
-              <Animated.View entering={ZoomIn.duration(200)} className="items-center mb-6">
-                <View className="w-32 h-32 rounded-3xl bg-white items-center justify-center shadow-md overflow-hidden">
-                  <ExpoImage
-                    source={require('../../../assets/images/logo.svg')}
-                    style={{ width: 90, height: 90 }}
-                    contentFit="contain"
-                  />
-                </View>
-                <Text className="text-3xl font-extrabold text-black mt-3">
-                  Reserva<Text className="text-primary">Fit</Text>
-                </Text>
+              <Animated.View entering={ZoomIn.duration(200)} className="items-center mb-8">
+                <ExpoImage
+                  source={require('../../../assets/images/logo.svg')}
+                  style={{ width: 240, height: 80 }}
+                  contentFit="contain"
+                />
               </Animated.View>
 
-              {/* Headline */}
-              <Animated.View entering={FadeInDown.duration(200).delay(50)} className="items-center mb-6">
-                <Text className="text-xl font-bold text-gray-700 text-center">Iniciar sesión</Text>
-                <Text className="text-gray-500 text-center mt-1 text-xs px-4">
-                  {isWeb ? "Inicia sesión para ver las clases que tenemos preparadas para ti." : "Continúa reservando tu clase favorita."}
+              <Animated.View entering={FadeInDown.duration(200).delay(50)} className="items-center mb-8">
+                <Text className="text-2xl font-bold text-gray-800 text-center">Iniciar Sesión</Text>
+                <Text className="text-gray-600 text-center mt-2 text-base">
+                  Continúa reservando tu clase favorita.
                 </Text>
               </Animated.View>
 
@@ -177,23 +164,17 @@ export default function LoginScreen() {
                 </Animated.Text>
               ) : null}
 
-              {/* Inputs */}
               <Animated.View entering={FadeInDown.duration(200).delay(100)} className="gap-y-5 mb-6">
                 <View>
-                  <View className="flex-row items-center mb-1.5 ml-1">
-                    <Ionicons name="mail-outline" size={16} color="#FF7A00" className="mr-1" />
-                    <Text className="text-gray-600 font-bold text-sm">Correo electrónico</Text>
-                  </View>
-                  <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3.5 border-gray-300 ${emailError ? 'border-red-500 bg-red-50/10' : ''}`}>
-                    <Ionicons name="mail-outline" size={20} color="#9CA3AF" className="mr-2" />
+                  <View className={`flex-row items-center border rounded-xl bg-white px-4 py-4 border-gray-300 ${emailError ? 'border-red-500' : 'border-gray-200'}`}>
                     <TextInput
-                      placeholder="correo@ejemplo.com"
+                      placeholder="Usuario o correo electrónico"
                       value={email}
                       onChangeText={validateEmail}
                       autoCapitalize="none"
                       keyboardType="email-address"
                       placeholderTextColor="#9CA3AF"
-                      className="flex-1 text-black text-sm p-0 ml-1"
+                      className="flex-1 text-black text-base p-0"
                       editable={!loading}
                     />
                   </View>
@@ -203,23 +184,18 @@ export default function LoginScreen() {
                 </View>
 
                 <View>
-                  <View className="flex-row items-center mb-1.5 ml-1">
-                    <Ionicons name="lock-closed-outline" size={16} color="#FF7A00" className="mr-1" />
-                    <Text className="text-gray-600 font-bold text-sm">Contraseña</Text>
-                  </View>
-                  <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3.5 border-gray-300 ${passwordError ? 'border-red-500 bg-red-50/10' : ''}`}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" className="mr-2" />
+                  <View className={`flex-row items-center border rounded-xl bg-white px-4 py-4 border-gray-300 ${passwordError ? 'border-red-500' : 'border-gray-200'}`}>
                     <TextInput
-                      placeholder="Ingresa tu contraseña"
+                      placeholder="Contraseña"
                       value={password}
                       onChangeText={validatePassword}
                       secureTextEntry={!showPassword}
                       placeholderTextColor="#9CA3AF"
-                      className="flex-1 text-black text-sm p-0 ml-1"
+                      className="flex-1 text-black text-base p-0"
                       editable={!loading}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
-                      <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
+                      <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
                     </TouchableOpacity>
                   </View>
                   {passwordError ? (
@@ -228,7 +204,6 @@ export default function LoginScreen() {
                 </View>
               </Animated.View>
 
-              {/* Remember Me and Forgot Password (Mobile Only) */}
               {!isWeb && (
                 <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-between items-center mb-8">
                   <TouchableOpacity
@@ -238,19 +213,18 @@ export default function LoginScreen() {
                   >
                     <Ionicons
                       name={rememberMe ? "checkbox" : "square-outline"}
-                      size={20}
-                      color={rememberMe ? "#FF7A00" : "gray"}
+                      size={22}
+                      color={rememberMe ? "#FF7A00" : "#4B5563"}
                     />
-                    <Text className="text-gray-655 text-xs ml-1.5 font-bold">Recordarme</Text>
+                    <Text className="text-gray-700 text-sm ml-2 font-medium">Recordarme</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity disabled={loading}>
-                    <Text className="text-primary font-bold text-xs">¿Olvidaste tu contraseña?</Text>
+                    <Text className="text-primary font-bold text-sm">¿Olvidaste tu contraseña?</Text>
                   </TouchableOpacity>
                 </Animated.View>
               )}
 
-              {/* Register redirection (Web) */}
               {isWeb && (
                 <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mb-6 mt-2">
                   <Text className="text-gray-600 text-sm">¿No tienes cuenta? </Text>
@@ -260,24 +234,30 @@ export default function LoginScreen() {
                 </Animated.View>
               )}
 
-              {/* Submit Button */}
-              <Animated.View entering={FadeInDown.duration(200).delay(200)} className="mt-2">
+              <Animated.View entering={FadeInDown.duration(200).delay(200)}>
                 <Button
                   label="Ingresar"
                   onPress={handleLogin}
                   disabled={isSubmitDisabled}
                   loading={loading}
+                  className="py-4"
+                  textClassName="text-lg font-bold"
                 />
               </Animated.View>
 
-              {/* Register redirection (Mobile) */}
               {!isWeb && (
-                <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mt-6">
-                  <Text className="text-gray-650 text-sm font-semibold">¿No tienes cuenta? </Text>
-                  <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
-                    <Text className="text-primary font-extrabold text-sm">Regístrate</Text>
-                  </TouchableOpacity>
-                </Animated.View>
+                <>
+                  <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mt-8">
+                    <Text className="text-gray-700 text-base font-medium">¿No tienes cuenta? </Text>
+                    <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
+                      <Text className="text-primary font-bold text-base">Regístrate</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                  <Animated.View entering={FadeInDown.duration(200).delay(300)} className="flex-row justify-center items-center mt-4">
+                    <Ionicons name="time-outline" size={16} color="#4B5563" />
+                    <Text className="text-gray-600 text-sm ml-2">Reserva mínima: 10 minutos</Text>
+                  </Animated.View>
+                </>
               )}
 
             </View>

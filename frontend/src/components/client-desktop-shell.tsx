@@ -31,8 +31,10 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
   ];
 
   const isActive = (href: string) => {
-    const normalized = pathname.replace(/\/index$/, '');
-    if (href === '/(client)/(tabs)') return normalized === '/(client)/(tabs)';
+    const normalized = pathname.replace(/\/index$/, '').replace(/\/$/, '');
+    if (href === '/(client)/(tabs)') {
+      return normalized === '/(client)/(tabs)' || normalized === '/(client)' || normalized === '';
+    }
     if (href === '/(client)/(tabs)/classes') {
       return normalized === href || normalized.includes('/classes') || normalized.includes('/position') || normalized.includes('/checkout') || normalized.includes('/success');
     }
@@ -59,15 +61,12 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
     <View className="flex-1 flex-row bg-cream">
       <View className="w-[280px] bg-[#1f0f08] px-6 py-8 justify-between">
         <View>
-          <View className="flex-row items-center mb-10 mt-2">
+          <View className="flex-row justify-center items-center mb-10 mt-2">
             <ExpoImage
-              source={require('../../assets/images/logo.svg')}
-              style={{ width: 34, height: 34 }}
-              className="mr-2"
+              source={require('../../assets/images/logoblanco.svg')}
+              style={{ width: 200, height: 66 }}
+              contentFit="contain"
             />
-            <Text className="text-[26px] font-bold ml-1 text-white">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
           </View>
 
           {nav.map((item) => (

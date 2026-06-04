@@ -63,12 +63,9 @@ export default function AdminDashboardScreen() {
           <View className="flex-row items-center">
             <ExpoImage
               source={require('../../../assets/images/logo.svg')}
-              style={{ width: 28, height: 28 }}
-              className="mr-1.5"
+              style={{ width: 150, height: 50 }}
+              contentFit="contain"
             />
-            <Text className="text-2xl font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
           </View>
           <TouchableOpacity onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={28} color="black" />

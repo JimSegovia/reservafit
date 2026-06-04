@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { Image } from 'react-native';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -28,8 +29,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
   
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
-  const [phone, setPhone] = useState(user?.phone ?? '');
-  const [phoneError, setPhoneError] = useState('');
+
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -45,28 +45,9 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
 
   if (!currentBooking) return null;
 
-  const validatePhone = (text: string) => {
-    const clean = text.replace(/[^0-9]/g, '');
-    setPhone(clean);
-    if (!clean) {
-      setPhoneError('El celular de contacto es obligatorio.');
-    } else if (clean.length !== 9 || !clean.startsWith('9')) {
-      setPhoneError('Debe tener 9 dígitos y empezar con 9.');
-    } else {
-      setPhoneError('');
-    }
-  };
+  
 
   const handlePayPress = () => {
-    if (!phone) {
-      validatePhone(phone);
-      showToast('Por favor completa todos los campos requeridos.', 'warning');
-      return;
-    }
-    if (phoneError) {
-      showToast('Por favor corrige los errores de validación.', 'warning');
-      return;
-    }
     setShowConfirmModal(true);
   };
 
@@ -91,7 +72,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
             day: currentBooking.day,
             time: currentBooking.time,
             seats: currentBooking.selectedSeats.join(','),
-            clientPhone: phone,
+            clientPhone: '',
             clientName: user?.name ?? 'Cliente',
           },
         }),
@@ -103,7 +84,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
       const initResult = await initPaymentSheet({
         merchantDisplayName: 'ReservaFit',
         paymentIntentClientSecret: data.clientSecret,
-        defaultBillingDetails: { name: user?.name, phone, email: user?.email },
+        defaultBillingDetails: { name: user?.name, email: user?.email },
       });
 
       if (initResult.error) throw new Error(initResult.error.message);
@@ -126,7 +107,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
 
   const formatTime = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
-  const isSubmitDisabled = isProcessing || !phone || !!phoneError;
+  const isSubmitDisabled = isProcessing;
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
@@ -138,7 +119,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
               <Ionicons name="arrow-back" size={24} color="black" />
               <Text className="text-sm font-semibold ml-1">Volver</Text>
             </TouchableOpacity>
-            <Text className="text-lg font-extrabold text-black">Pagar con Stripe</Text>
+            <Text className="text-lg font-extrabold text-black">Pagar</Text>
             <View className="w-6" />
           </Animated.View>
 
@@ -156,13 +137,13 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
             <View className="w-4 h-[2px] bg-primary" />
             <View className="flex-row items-center">
               <View className="w-5 h-5 rounded-full bg-primary items-center justify-center"><Text className="text-[10px] font-bold text-white">3</Text></View>
-              <Text className="text-[10px] text-primary font-bold ml-1">Pago Stripe</Text>
+              <Text className="text-[10px] text-primary font-bold ml-1">Pago</Text>
             </View>
           </View>
 
           <Animated.View entering={ZoomIn.duration(200).delay(50)} className="items-center mb-6">
-            <View className="w-16 h-16 rounded-full bg-sky-600 items-center justify-center shadow-md"><Text className="text-white text-base font-extrabold">stripe</Text></View>
-            <Text className="text-gray-500 text-xs font-semibold text-center mt-2.5 px-6">Paga de forma segura con tarjeta y wallets compatibles.</Text>
+<Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 64, height: 64, borderRadius: 32 }} />
+<Text className="text-gray-500 text-xs font-semibold text-center mt-2.5 px-6">Paga de forma segura con Mercado Pago.</Text>
           </Animated.View>
 
           {error ? <Animated.Text entering={FadeIn.duration(150)} className="text-red-500 text-sm text-center mb-4 font-semibold">{error}</Animated.Text> : null}
@@ -179,23 +160,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
             <View className="flex-row justify-between items-center"><View><Text className="text-xs font-bold text-gray-400">Monto a pagar</Text><Text className="text-2xl font-extrabold text-primary mt-0.5">S/ {currentBooking.totalPrice.toFixed(2)}</Text></View></View>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.duration(200).delay(150)} className="mb-6">
-            <View className="flex-row items-center mb-1.5 ml-1">
-              <Ionicons name="call-outline" size={14} color="#FF7A00" className="mr-1" />
-              <Text className="text-gray-600 font-bold text-xs">Número de celular de contacto</Text>
-            </View>
-            <TextInput 
-              placeholder="9XX XXX XXX" 
-              value={phone} 
-              onChangeText={validatePhone} 
-              keyboardType="phone-pad" 
-              maxLength={9} 
-              placeholderTextColor="#9CA3AF" 
-              className={`w-full border rounded-xl bg-white px-4 py-4 text-black text-sm ${phoneError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`} 
-              editable={!isProcessing}
-            />
-            {phoneError ? <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{phoneError}</Text> : null}
-          </Animated.View>
+          
 
           <Animated.View entering={FadeInDown.duration(200).delay(200)}>
             <TouchableOpacity 
@@ -208,7 +173,7 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
               {isProcessing ? (
                 <Loader variant="button" label="Procesando pago..." />
               ) : (
-                <Text className="text-white text-base font-bold">Pagar con Stripe</Text>
+                <Text className="text-white text-base font-bold">Pagar</Text>
               )}
             </TouchableOpacity>
           </Animated.View>
@@ -224,13 +189,13 @@ function CheckoutContent({ useStripe }: { useStripe: typeof import('@stripe/stri
       <Modal transparent visible={showConfirmModal} animationType="fade">
         <View className="flex-1 bg-black/60 items-center justify-center px-6">
           <View className="w-full max-w-[340px] bg-white rounded-3xl p-5 items-center shadow-2xl border border-gray-100">
-            <View className="w-14 h-14 rounded-full bg-sky-100 items-center justify-center mb-4">
-              <Ionicons name="card" size={28} color="#0288D1" />
-            </View>
+<View className="w-14 h-14 rounded-full bg-white items-center justify-center mb-4">
+                <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 48, height: 48 }} />
+              </View>
             <Text className="text-lg font-bold text-center text-black">Confirmar pago</Text>
-            <Text className="text-gray-500 text-center mt-2 text-sm leading-relaxed">
-              ¿Deseas pagar <Text className="font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text> por tu reserva con Stripe?
-            </Text>
+<Text className="text-gray-500 text-center mt-2 text-sm leading-relaxed">
+                ¿Deseas pagar <Text className="font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text> por tu reserva?
+              </Text>
             <View className="flex-row gap-x-3 mt-6 w-full">
               <TouchableOpacity onPress={() => setShowConfirmModal(false)} className="flex-1 bg-gray-100 rounded-xl py-3 items-center">
                 <Text className="text-sm font-bold text-gray-600">Cancelar</Text>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,12 +13,8 @@ export default function CheckoutScreen() {
   const confirmBooking = useAppStore((state) => state.confirmBooking);
   const showToast = useAppStore((state) => state.showToast);
   
-  const [phone, setPhone] = useState('999888777');
-  const [code, setCode] = useState('123456');
   const [showPopup, setShowPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [phoneError, setPhoneError] = useState('');
-  const [codeError, setCodeError] = useState('');
 
   useEffect(() => {
     if (!currentBooking) {
@@ -28,41 +24,7 @@ export default function CheckoutScreen() {
 
   if (!currentBooking) return null;
 
-  const validatePhone = (text: string) => {
-    const clean = text.replace(/[^0-9]/g, '');
-    setPhone(clean);
-    if (!clean) {
-      setPhoneError('El celular es obligatorio.');
-    } else if (clean.length !== 9 || !clean.startsWith('9')) {
-      setPhoneError('Debe tener 9 dígitos y empezar con 9.');
-    } else {
-      setPhoneError('');
-    }
-  };
-
-  const validateCode = (text: string) => {
-    const clean = text.replace(/[^0-9]/g, '');
-    setCode(clean);
-    if (!clean) {
-      setCodeError('El código de aprobación es obligatorio.');
-    } else if (clean.length !== 6) {
-      setCodeError('Debe tener exactamente 6 dígitos.');
-    } else {
-      setCodeError('');
-    }
-  };
-
   const handlePay = () => {
-    if (!phone || !code) {
-      validatePhone(phone);
-      validateCode(code);
-      showToast('Por favor completa todos los campos requeridos.', 'warning');
-      return;
-    }
-    if (phoneError || codeError) {
-      showToast('Por favor corrige los errores de validación.', 'warning');
-      return;
-    }
     setShowPopup(true);
   };
 
@@ -70,14 +32,14 @@ export default function CheckoutScreen() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      confirmBooking(phone);
+      confirmBooking('');
       setShowPopup(false);
-      showToast('¡Pago con Yape exitoso y reserva confirmada!', 'success');
+      showToast('¡Pago exitoso y reserva confirmada!', 'success');
       router.replace('/(client)/success');
     }, 1500);
   };
 
-  const isSubmitDisabled = isProcessing || !phone || !code || !!phoneError || !!codeError;
+  const isSubmitDisabled = isProcessing;
 
   const content = (
     <View className="bg-[#faf5ef] rounded-[24px] p-5 w-full max-w-[480px] mx-auto border border-gray-100 shadow-sm">
@@ -86,7 +48,7 @@ export default function CheckoutScreen() {
           <Ionicons name="arrow-back" size={24} color="black" />
           <Text className="text-sm font-semibold ml-1">Volver</Text>
         </TouchableOpacity>
-        <Text className="text-[20px] font-extrabold text-black">Pagar con Yape</Text>
+        <Text className="text-[20px] font-extrabold text-black">Pagar</Text>
         <View className="w-10" />
       </View>
 
@@ -104,15 +66,13 @@ export default function CheckoutScreen() {
         <View className="w-6 h-[2px] bg-primary" />
         <View className="flex-row items-center">
           <View className="w-6 h-6 rounded-full bg-primary items-center justify-center"><Text className="text-xs font-bold text-white">3</Text></View>
-          <Text className="text-xs text-primary font-bold ml-1">Pago Yape</Text>
+          <Text className="text-xs text-primary font-bold ml-1">Pago</Text>
         </View>
       </View>
 
       <View className="items-center mt-2 mb-4">
-        <View className="w-16 h-16 rounded-full bg-[#7f1bb5] items-center justify-center">
-          <Text className="text-white text-2xl font-bold">Y</Text>
-        </View>
-        <Text className="text-[14px] text-center mt-3 text-gray-600">Yape es el único medio de pago móvil aceptado en web.</Text>
+        <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 64, height: 64, borderRadius: 32 }} />
+        <Text className="text-[14px] text-center mt-3 text-gray-600">Paga de forma segura con Mercado Pago.</Text>
       </View>
 
       <View className="bg-[#fdeedb] rounded-[24px] p-4 mx-auto w-full max-w-[460px]">
@@ -130,39 +90,7 @@ export default function CheckoutScreen() {
           <Text className="text-[26px] font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
         </View>
 
-        <View className="mt-4 gap-y-3">
-          <View>
-            <View className="flex-row items-center mb-1 ml-1">
-              <Ionicons name="phone-portrait-outline" size={14} color="#FF7A00" className="mr-1" />
-              <Text className="text-gray-600 font-bold text-xs">Celular Yape</Text>
-            </View>
-            <TextInput
-              value={phone}
-              onChangeText={validatePhone}
-              keyboardType="phone-pad"
-              maxLength={9}
-              className={`bg-white border rounded-xl px-4 py-3 text-[14px] text-black ${phoneError ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="999888777"
-            />
-            {phoneError ? <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{phoneError}</Text> : null}
-          </View>
-
-          <View>
-            <View className="flex-row items-center mb-1 ml-1">
-              <Ionicons name="key-outline" size={14} color="#FF7A00" className="mr-1" />
-              <Text className="text-gray-600 font-bold text-xs">Código de Aprobación</Text>
-            </View>
-            <TextInput
-              value={code}
-              onChangeText={validateCode}
-              keyboardType="number-pad"
-              maxLength={6}
-              className={`bg-white border rounded-xl px-4 py-3 text-[14px] text-black ${codeError ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="Código de 6 dígitos"
-            />
-            {codeError ? <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{codeError}</Text> : null}
-          </View>
-        </View>
+        
 
         <TouchableOpacity
           onPress={handlePay}
@@ -170,7 +98,7 @@ export default function CheckoutScreen() {
           className={`bg-primary rounded-2xl py-4 items-center justify-center mt-5 ${isSubmitDisabled ? 'opacity-50' : ''}`}
           style={{ minHeight: 52 }}
         >
-          <Text className="text-white text-[16px] font-bold">Pagar con Yape</Text>
+          <Text className="text-white text-[16px] font-bold">Pagar</Text>
         </TouchableOpacity>
 
         <View className="flex-row items-center justify-center mt-4 gap-x-2">

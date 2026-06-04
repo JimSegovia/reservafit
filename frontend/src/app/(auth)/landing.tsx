@@ -16,18 +16,15 @@ export default function LandingScreen() {
     <SafeAreaView className="flex-1 bg-cream p-0 m-0">
       {/* Web Navigation */}
       {isWeb ? (
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-6 px-12 border-b border-gray-155 bg-white shadow-sm z-10">
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-10 border-b border-gray-155 bg-white shadow-sm z-10">
           <View className="flex-row items-center">
             <ExpoImage
               source={require('../../../assets/images/logo.svg')}
-              style={{ width: 32, height: 32 }}
-              className="mr-1.5"
+              style={{ width: 190, height: 62 }}
+              contentFit="contain"
             />
-            <Text className="text-[28px] font-extrabold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
           </View>
-          <View className="flex-row items-center gap-x-6">
+          <View className="flex-row items-center gap-x-4">
             <TouchableOpacity onPress={() => router.push('/help' as any)}>
               <Text className="text-gray-650 font-bold text-sm">Ayuda / FAQ</Text>
             </TouchableOpacity>
@@ -48,61 +45,61 @@ export default function LandingScreen() {
       ) : null}
 
       <ScrollView 
-        contentContainerStyle={{ 
-          flexGrow: 1, 
-          paddingHorizontal: isWeb ? 48 : 24, 
-          paddingVertical: isWeb ? 48 : 32,
-          justifyContent: 'center'
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Mobile Logo (Centered) */}
-        {!isWeb && (
-          <Animated.View entering={FadeIn.duration(200)} className="items-center mb-10">
-            <View className="flex-row items-center">
-              <ExpoImage
-                source={require('../../../assets/images/logo.svg')}
-                style={{ width: 36, height: 36 }}
-                className="mr-1.5"
-              />
-              <Text className="text-3xl font-extrabold ml-1.5 text-black">
-                Reserva<Text className="text-primary">Fit</Text>
-              </Text>
-            </View>
-          </Animated.View>
-        )}
+          contentContainerStyle={{ 
+           flexGrow: 1, 
+           paddingHorizontal: isWeb ? 48 : 24, 
+           paddingTop: isWeb ? 44 : 28,
+           paddingBottom: isWeb ? 44 : 40,
+           justifyContent: isWeb ? 'center' : 'flex-start'
+         }}
+         showsVerticalScrollIndicator={false}
+       >
+         {/* Mobile Logo (Centered) */}
+         {!isWeb && (
+           <Animated.View entering={FadeIn.duration(200)} className="items-center mb-8">
+             <View className="flex-row items-center">
+               <ExpoImage
+                 source={require('../../../assets/images/logo.svg')}
+                 style={{ width: 220, height: 72 }}
+                 contentFit="contain"
+               />
+             </View>
+           </Animated.View>
+         )}
 
-        <View className={`${isWeb ? 'flex-row items-center justify-between gap-x-12' : 'flex-col'}`}>
-          {/* Left/Main text content */}
-          <View className={`${isWeb ? 'flex-1 pr-6' : 'mb-8'}`}>
-            <Animated.View entering={FadeInDown.duration(250).delay(50)}>
-              <Text className={`font-extrabold text-black leading-tight ${isWeb ? 'text-5xl lg:text-6xl text-left' : 'text-[36px] text-center'}`}>
-                Entrena a tu ritmo,{"\n"}
-                asegura tu <Text className="text-primary">espacio</Text>
-              </Text>
-              <Text className={`text-gray-500 mt-6 text-base lg:text-lg leading-relaxed ${isWeb ? 'text-left' : 'text-center'} max-w-xl mx-auto`}>
-                La forma más simple y rápida de reservar tu cupo en sala. Elige tu clase favorita, selecciona tu ubicación y prepárate para entrenar.
-              </Text>
-            </Animated.View>
+         <View className={`${isWeb ? 'flex-row items-center justify-between gap-x-10' : 'flex-col'}`}>
+           {/* Left/Main text content */}
+           <View className={`${isWeb ? 'flex-1 pr-6' : 'mb-8'}`}>
+             <Animated.View entering={FadeInDown.duration(250).delay(50)}>
+               <Text className={`font-extrabold text-black leading-tight ${isWeb ? 'text-5xl lg:text-6xl text-left' : 'text-[34px] text-center'}`}>
+                 Entrena a tu ritmo,{"\n"}
+                 asegura tu <Text className="text-primary">espacio</Text>
+               </Text>
+               <Text className={`text-gray-500 mt-5 text-base lg:text-lg leading-relaxed ${isWeb ? 'text-left' : 'text-center'} max-w-xl mx-auto`}>
+                 La forma más simple y rápida de reservar tu cupo en sala. Elige tu clase favorita, selecciona tu ubicación y prepárate para entrenar.
+               </Text>
+             </Animated.View>
 
             {/* Mobile Action Buttons */}
             {!isWeb && (
-              <Animated.View entering={FadeInDown.duration(250).delay(150)} className="mt-8 gap-y-4 w-full">
-                <Button
-                  label="Iniciar sesión"
-                  onPress={() => router.push('/(auth)/login')}
-                  variant="primary"
-                />
-                <Button
-                  label="Crear una cuenta"
-                  onPress={() => router.push('/(auth)/register')}
-                  variant="outline"
-                />
-                <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-2">
-                  <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
+               <Animated.View entering={FadeInDown.duration(250).delay(150)} className="mt-8 gap-y-3 w-full pb-2">
+                 <Button
+                   label="Iniciar sesión"
+                   onPress={() => router.push('/(auth)/login')}
+                   variant="primary"
+                   className="min-h-0 h-12"
+                 />
+                 <Button
+                   label="Crear una cuenta"
+                   onPress={() => router.push('/(auth)/register')}
+                   variant="outline"
+                   className="min-h-0 h-12"
+                 />
+                 <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-1">
+                   <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
+                 </TouchableOpacity>
+               </Animated.View>
+             )}
           </View>
 
           {/* Right/Hero Image Column */}
