@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Button } from '@/components/ui/button';
+import { Image as ExpoImage } from 'expo-image';
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -15,9 +16,13 @@ export default function LandingScreen() {
     <SafeAreaView className="flex-1 bg-cream p-0 m-0">
       {/* Web Navigation */}
       {isWeb ? (
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-6 px-12 border-b border-gray-150 bg-white shadow-sm z-10">
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-6 px-12 border-b border-gray-155 bg-white shadow-sm z-10">
           <View className="flex-row items-center">
-            <Ionicons name="body-outline" size={32} color="#FF7A00" />
+            <ExpoImage
+              source={require('../../../../assets/images/logo.svg')}
+              style={{ width: 32, height: 32 }}
+              className="mr-1.5"
+            />
             <Text className="text-[28px] font-extrabold ml-1 text-black">
               Reserva<Text className="text-primary">Fit</Text>
             </Text>
@@ -55,7 +60,11 @@ export default function LandingScreen() {
         {!isWeb && (
           <Animated.View entering={FadeIn.duration(200)} className="items-center mb-10">
             <View className="flex-row items-center">
-              <Ionicons name="body-outline" size={36} color="#FF7A00" />
+              <ExpoImage
+                source={require('../../../../assets/images/logo.svg')}
+                style={{ width: 36, height: 36 }}
+                className="mr-1.5"
+              />
               <Text className="text-3xl font-extrabold ml-1.5 text-black">
                 Reserva<Text className="text-primary">Fit</Text>
               </Text>
@@ -100,7 +109,7 @@ export default function LandingScreen() {
           <Animated.View entering={ZoomIn.duration(250).delay(100)} className={`items-center justify-center ${isWeb ? 'flex-1' : 'mt-4'}`}>
             <View className={`w-full overflow-hidden bg-gray-200 shadow-xl ${isWeb ? 'aspect-[4/3] rounded-[40px] max-w-[600px]' : 'h-64 rounded-[30px]'}`}>
               <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200&auto=format&fit=crop' }}
+                source={require('../../../../assets/images/zumba.jpg')}
                 className="w-full h-full object-cover"
               />
             </View>
