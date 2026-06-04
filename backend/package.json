@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "dev": "tsnd --respawn --clear src/app.ts",
+    "build": "npx prisma generate && rimraf ./dist && tsc && npm run prisma:migrate:prod",
+    "start": "node dist/app.js",
+    "prisma:migrate:prod": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
