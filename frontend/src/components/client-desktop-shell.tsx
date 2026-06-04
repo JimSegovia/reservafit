@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 type Props = {
   children: React.ReactNode;
@@ -17,6 +18,8 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
   const isWeb = width >= 768;
   const user = useAppStore((state) => state.user);
   const logout = useAppStore((state) => state.logout);
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   if (!isWeb) return <>{children}</>;
 
@@ -36,6 +39,16 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
       return normalized === href || normalized.includes('/payment');
     }
     return normalized === href || normalized.startsWith(`${href}/`);
+  };
+
+  const handleLogoutPress = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    router.replace('/(auth)/landing');
   };
 
   const headerTitle = typeof title === 'string' ? title.trim() : '';
@@ -64,7 +77,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
           ))}
         </View>
 
-          <TouchableOpacity onPress={() => { logout(); router.replace('/(auth)/landing'); }} className="flex-row items-center px-4 py-4 mb-2">
+        <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center px-4 py-4 mb-2">
           <Ionicons name="log-out-outline" size={22} color="white" />
           <Text className="text-white font-semibold ml-3 text-[15px]">Cerrar sesión</Text>
         </TouchableOpacity>
@@ -88,6 +101,17 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
           {children}
         </View>
       </View>
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas cerrar sesión en ReservaFit?"
+        confirmLabel="Cerrar sesión"
+        cancelLabel="Volver"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="default"
+      />
     </View>
   );
 }

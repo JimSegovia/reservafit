@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Moda
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -12,8 +13,10 @@ export default function AdminClassesScreen() {
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
   const deleteClass = useAppStore((state) => state.deleteClass);
+  const showToast = useAppStore((state) => state.showToast);
 
   const [search, setSearch] = useState('');
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
   
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,12 +52,16 @@ export default function AdminClassesScreen() {
   };
 
   const handleSave = () => {
-    if (!title || !schedule || !instructorName) return;
+    if (!title || !schedule || !instructorName) {
+      showToast('Por favor completa todos los campos obligatorios.', 'warning');
+      return;
+    }
     
     const parsedPrice = parseFloat(price) || 0;
 
     if (editingId) {
       updateClass(editingId, { title, schedule, instructorName, price: parsedPrice, status });
+      showToast('Clase actualizada con éxito.', 'success');
     } else {
       addClass({
         title,
@@ -65,9 +72,22 @@ export default function AdminClassesScreen() {
         capacity: 30,
         enrolled: 0
       });
+      showToast('Clase creada con éxito.', 'success');
     }
     
     setModalVisible(false);
+  };
+
+  const promptDeleteClass = (id: string) => {
+    setClassToDelete(id);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (classToDelete) {
+      deleteClass(classToDelete);
+      setClassToDelete(null);
+      showToast('La clase ha sido eliminada.', 'success');
+    }
   };
 
   return (
@@ -99,7 +119,7 @@ export default function AdminClassesScreen() {
         <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 mb-6">
           <Ionicons name="search-outline" size={20} color="gray" />
           <TextInput
-            placeholder="Buscar clase"
+            placeholder="Buscar clase por nombre..."
             value={search}
             onChangeText={setSearch}
             placeholderTextColor="#9CA3AF"
@@ -155,7 +175,7 @@ export default function AdminClassesScreen() {
                     </TouchableOpacity>
 
                     {/* Delete button */}
-                    <TouchableOpacity onPress={() => deleteClass(cls.id)} className="p-1">
+                    <TouchableOpacity onPress={() => promptDeleteClass(cls.id)} className="p-1">
                       <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
@@ -213,7 +233,7 @@ export default function AdminClassesScreen() {
             </View>
 
             <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Precio (S/.)</Text>
+              <Text className="text-gray-500 font-bold text-xs mb-1">Precio (S/)</Text>
               <TextInput
                 value={price}
                 onChangeText={setPrice}
@@ -260,6 +280,17 @@ export default function AdminClassesScreen() {
           </View>
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={!!classToDelete}
+        title="Eliminar clase"
+        message="¿Estás seguro de que deseas eliminar esta clase del sistema? Esta acción es irreversible."
+        confirmLabel="Eliminar clase"
+        cancelLabel="Conservar"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setClassToDelete(null)}
+        variant="danger"
+      />
     </SafeAreaView>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { Loader } from '@/components/ui/loader';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ReservationQuickDetail } from '@/components/reservation-quick-detail';
@@ -20,10 +21,15 @@ export default function ClientHomeScreen() {
   const logout = useAppStore((state) => state.logout);
   const reservations = useAppStore((state) => state.reservations);
   const classes = useAppStore((state) => state.classes);
+  const cancelReservation = useAppStore((state) => state.cancelReservation);
+  const showToast = useAppStore((state) => state.showToast);
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [reservationToCancel, setReservationToCancel] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,10 +46,26 @@ export default function ClientHomeScreen() {
     );
   }
 
-
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
     logout();
     router.replace('/(auth)/landing');
+  };
+
+  const promptCancelReservation = (id: string) => {
+    setReservationToCancel(id);
+  };
+
+  const handleCancelReservationConfirm = () => {
+    if (reservationToCancel) {
+      cancelReservation(reservationToCancel);
+      setReservationToCancel(null);
+      showToast('Tu reserva ha sido cancelada y reembolsada.', 'success');
+    }
   };
 
   const clientReservations = reservations.filter((res) => res.status === 'Pagado');
@@ -122,11 +144,19 @@ export default function ClientHomeScreen() {
                       <Text className="text-lg font-bold text-black ml-1.5">{res.className}</Text>
                     </View>
                     <Text className="text-base font-extrabold text-black mb-1.5">{res.time}</Text>
-                    <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 mt-1 px-2">
-                      <Text className="text-sm font-semibold text-gray-500">Cupos: {res.seats.join(', ')}</Text>
-                      <Text className="text-sm font-semibold text-gray-500">
-                        Profesor: {res.className.toLowerCase().includes('salsa') ? 'Profesor B' : 'Profesor A'}
-                      </Text>
+                    <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 mt-1 px-2 items-center">
+                      <View className="flex-1 mr-2">
+                        <Text className="text-xs font-semibold text-gray-500">Cupos: {res.seats.join(', ')}</Text>
+                        <Text className="text-xs font-semibold text-gray-500 mt-0.5 text-ellipsis overflow-hidden">
+                          Profesor: {res.className.toLowerCase().includes('salsa') ? 'Profesor B' : 'Profesor A'}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => promptCancelReservation(res.id)}
+                        className="bg-red-50 px-3 py-1.5 rounded-xl border border-red-100"
+                      >
+                        <Text className="text-red-600 text-xs font-bold">Cancelar</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </Animated.View>
@@ -367,6 +397,28 @@ export default function ClientHomeScreen() {
         seat={quickReservation?.seat}
         status={quickReservation?.status}
         onOpenFull={() => quickReservation && router.push('/(client)/(tabs)/classes/detail')}
+      />
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas salir de tu cuenta?"
+        confirmLabel="Salir"
+        cancelLabel="Volver"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="default"
+      />
+
+      <ConfirmDialog
+        visible={!!reservationToCancel}
+        title="Cancelar Reserva"
+        message="¿Estás seguro de que deseas cancelar esta reserva? Se realizará un reembolso automático."
+        confirmLabel="Cancelar Reserva"
+        cancelLabel="Mantener"
+        onConfirm={handleCancelReservationConfirm}
+        onCancel={() => setReservationToCancel(null)}
+        variant="danger"
       />
     </SafeAreaView>
   );
