@@ -1,22 +1,23 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import routerApi from './routes/index.js';
-import paymentRoutes from './routes/payment.routes.js';
-import { PaymentsController } from './controllers/payments.controller.js';
+import { errorHandler } from './middlewares/error.middleware.js';
 
 const app: Application = express();
 
+// 1. Middlewares Globales
 app.use(cors());
-app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), PaymentsController.handleWebhook);
-app.use(express.json()); // Permite capturar los req.body en formato JSON
+app.use(express.json()); 
 
-// Toda la API pasa por index.ts
+// 2. Enrutador Principal
 app.use('/api', routerApi);
-app.use('/api/payments', paymentRoutes);
 
-// Capturador de 404 (siempre al final)
+// 3. Capturador de rutas inexistentes (404)
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada en el servidor' });
 });
+
+// 4. Manejador Global de Errores (Red de Seguridad)
+app.use(errorHandler);
 
 export default app;
