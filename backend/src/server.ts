@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { logger } from './config/logger.js';
 import app from './app.js';
 import prisma from './config/prisma.js';
 import { iniciarCronJobs } from './utils/cron.js';
