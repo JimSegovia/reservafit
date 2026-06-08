@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import authRoutes from './auth.routes.js';
+import usuarioRoutes from './usuario.routes.js';
 import paymentsRoutes from './payments.routes.js';
 import cuentaRoutes from './cuenta.routes.js';
 import instructorRoutes from './instructor.routes.js';
@@ -15,6 +16,7 @@ router.use(webhookRoutes);
 router.use(express.json());
 
 router.use('/auth', authRoutes);
+router.use('/usuarios', usuarioRoutes);
 router.use('/payments', paymentsRoutes);
 router.use('/cuentas', cuentaRoutes); 
 router.use('/instructores', instructorRoutes);
