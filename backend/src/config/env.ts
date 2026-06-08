@@ -13,4 +13,6 @@ export const envs = {
   
   // Pasarela de Pagos (Mercado Pago)
   MERCADO_PAGO_ACCESS_TOKEN: env.get('MERCADO_PAGO_ACCESS_TOKEN').required().asString(),
+
+  JWT_SECRET: env.get('JWT_SECRET').required().asString()
 };

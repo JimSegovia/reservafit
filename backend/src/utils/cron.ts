@@ -1,11 +1,13 @@
 import cron from 'node-cron';
-import { EstadoReserva } from '@prisma/client';
-import prisma from '../config/prisma';
+import { EstadoReserva, Prisma } from '@prisma/client'; 
+import prisma from '../config/prisma.js';
+import { logger } from '../config/logger.js'; 
 
 export function iniciarCronJobs() {
-  // Ejecuta cada minuto
+  // Se ejecuta cada minuto
   cron.schedule('* * * * *', async () => {
     const ahora = new Date();
+    
     try {
       // 1. Buscar reservas vencidas no pagadas
       const reservasVencidas = await prisma.reserva.findMany({
@@ -15,28 +17,30 @@ export function iniciarCronJobs() {
         },
         select: { id_reserva: true },
       });
+
       for (const { id_reserva } of reservasVencidas) {
         try {
-          await prisma.$transaction(async (tx) => {
+          // Tipamos (tx) explícitamente para que el build en Railway no falle
+          await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 2a. Actualizar reserva a Cancelada_Timeout
             await tx.reserva.update({
               where: { id_reserva },
               data: { estado: EstadoReserva.Cancelada_Timeout },
             });
+            
             // 2b. Eliminar detalles vinculados para liberar cupo físico
             await tx.detalleReserva.deleteMany({
               where: { id_reserva },
             });
           });
-          console.log(`[CRON] Reserva ${id_reserva} cancelada y cupos liberados.`);
+          
+          logger.info(`[CRON] Reserva ${id_reserva} cancelada por timeout. Cupos liberados.`);
         } catch (err) {
-          // Maneja errores individuales para no detener el bucle
-          console.error(`[CRON] Error al cancelar reserva ${id_reserva}:`, err);
+          logger.error(`[CRON] Error al cancelar reserva ${id_reserva}:`, err);
         }
       }
     } catch (err) {
-      // Error global en la consulta (no cancela el proceso completo)
-      console.error('[CRON] Error general al procesar reservas vencidas:', err);
+      logger.error('[CRON] Error crítico al procesar reservas vencidas:', err);
     }
   });
 }

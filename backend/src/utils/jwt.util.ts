@@ -1,13 +1,12 @@
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_in_production';
+import { envs } from '../config/env.js'; // Usamos nuestra configuración blindada
 
 export const generateToken = (payload: object): string => {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: '1d' // Token expira en 1 día
+  return jwt.sign(payload, envs.JWT_SECRET, {
+    expiresIn: '1d' // El token expira en 1 día
   });
 };
 
 export const verifyToken = (token: string): any => {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, envs.JWT_SECRET);
 };
