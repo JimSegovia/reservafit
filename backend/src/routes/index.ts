@@ -9,6 +9,7 @@ import detalleClaseRoutes from './detalleClase.routes.js';
 import webhookRoutes from './webhook.routes.js';
 import reservaRoutes from './reserva.routes.js';
 import pagoRoutes from './pago.routes.js';
+import detalleReservaRoutes from './detalleReserva.routes.js';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/clases', claseRoutes);
 router.use('/agenda', detalleClaseRoutes);
 router.use('/reservas', reservaRoutes);
 router.use('/pagos', pagoRoutes);
+router.use('/detalles-reserva', detalleReservaRoutes);
 
 export default router;
