@@ -155,17 +155,17 @@ model DetalleReserva {
 }
 
 model Pago {
-  id_pago                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_reserva             String     @db.Uuid
-  id_stripe_sesion       String?    @unique @db.VarChar(255)
-  id_intento_pago_stripe String?    @unique @db.VarChar(255)
-  metodo_pago            MetodoPago
-  estado_pago            EstadoPago @default(Pendiente)
-  monto                  Decimal    @db.Decimal(10, 2)
-  moneda                 String     @default("PEN") @db.VarChar(3)
+  id_pago           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_reserva        String     @db.Uuid
+  id_preferencia_mp String?    @unique @db.VarChar(255) // Cambiado: Guarda la preferencia (init_point)
+  id_pago_mp        String?    @unique @db.VarChar(255) // Cambiado: Guarda el ID de pago real cuando MP apruebe la transacción
+  metodo_pago       MetodoPago
+  estado_pago       EstadoPago @default(Pendiente)
+  monto             Decimal    @db.Decimal(10, 2)
+  moneda            String     @default("PEN") @db.VarChar(3)
 
   // Relaciones
-  reserva    Reserva             @relation(fields: [id_reserva], references: [id_reserva])
+  reserva    Reserva            @relation(fields: [id_reserva], references: [id_reserva])
   reembolsos Reembolso[]
   webhooks   WebHookProcesado[]
 
@@ -173,14 +173,14 @@ model Pago {
 }
 
 model Reembolso {
-  id_reembolso        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_pago             String          @db.Uuid
-  id_stripe_reembolso String?         @unique @db.VarChar(255)
-  monto_reembolsado   Decimal         @db.Decimal(10, 2)
-  motivo              String          @db.VarChar(255)
-  estado              EstadoReembolso
-  fecha_creacion      DateTime        @default(now()) @db.Timestamp(6)
-  fecha_procesado     DateTime?       @db.Timestamp(6)
+  id_reembolso    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_pago         String          @db.Uuid
+  id_reembolso_mp String?         @unique @db.VarChar(255) // Cambiado: Guarda el ID de reembolso de Mercado Pago
+  monto_reembolsado Decimal       @db.Decimal(10, 2)
+  motivo          String          @db.VarChar(255)
+  estado          EstadoReembolso
+  fecha_creacion  DateTime        @default(now()) @db.Timestamp(6)
+  fecha_procesado DateTime?       @db.Timestamp(6)
 
   // Relaciones
   pago Pago @relation(fields: [id_pago], references: [id_pago])
