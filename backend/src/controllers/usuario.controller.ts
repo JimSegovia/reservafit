@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { UsuarioService } from '../services/usuario.service.js';
-import { UpdateUsuarioDTO } from '../types/usuario.dto.js';
 
 export class UsuarioController {
   
@@ -8,7 +7,6 @@ export class UsuarioController {
     try {
       const id = req.params.id as string;
       const perfil = await UsuarioService.obtenerPerfil(id);
-      
       res.status(200).json({ data: perfil });
     } catch (error: any) {
       res.status(404).json({ error: error.message });
@@ -18,14 +16,10 @@ export class UsuarioController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const data: UpdateUsuarioDTO = req.body;
+      const data = req.body;
       
       const perfilActualizado = await UsuarioService.modificarPerfil(id, data);
-      
-      res.status(200).json({
-        mensaje: 'Perfil actualizado con éxito',
-        data: perfilActualizado
-      });
+      res.status(200).json({ mensaje: 'Perfil actualizado con éxito', data: perfilActualizado });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -35,10 +29,7 @@ export class UsuarioController {
     try {
       const id = req.params.id as string;
       await UsuarioService.eliminarPerfil(id);
-      
-      res.status(200).json({ 
-        mensaje: 'Usuario y cuenta asociados eliminados permanentemente' 
-      });
+      res.status(200).json({ mensaje: 'Usuario y cuenta eliminados permanentemente' });
     } catch (error: any) {
       res.status(404).json({ error: error.message });
     }
