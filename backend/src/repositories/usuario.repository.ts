@@ -1,5 +1,5 @@
 import prisma from '../config/prisma.js';
-import { RegisterDTO } from '../types/auth.types.js';
+import { RegisterDTO } from '../types/auth.dto.js';
 import { UpdateUsuarioDTO } from '../types/usuario.dto.js';
 import { Prisma } from '@prisma/client';
 export class UsuarioRepository {
@@ -19,7 +19,7 @@ export class UsuarioRepository {
   static async crearUsuarioConCuenta(data: RegisterDTO, contrasenaHasheada: string) {
     // Agregamos 'Prisma.TransactionClient' al parámetro 'tx' para que TypeScript y Railway no arrojen error
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      
+
       const nuevoUsuario = await tx.usuario.create({
         data: {
           nombres: data.nombres,

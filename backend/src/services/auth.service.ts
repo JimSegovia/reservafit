@@ -1,10 +1,10 @@
 import { UsuarioRepository } from '../repositories/usuario.repository.js';
 import { hashPassword, comparePassword } from '../utils/bcrypt.util.js';
 import { generateToken } from '../utils/jwt.util.js';
-import { RegisterDTO, LoginDTO } from '../types/auth.types.js';
+import { RegisterDTO, LoginDTO } from '../types/auth.dto.js';
 
 export class AuthService {
-  
+
   static async registrarUsuario(data: RegisterDTO) {
     // 1. Verificamos que el correo no exista
     const cuentaExistente = await UsuarioRepository.buscarPorCorreo(data.correo_electronico);
@@ -17,7 +17,7 @@ export class AuthService {
 
     // 3. Mandamos a guardar a la base de datos
     const resultado = await UsuarioRepository.crearUsuarioConCuenta(data, contrasenaHasheada);
-    
+
     return resultado;
   }
 
