@@ -2,11 +2,18 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import routerApi from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { envs } from './config/env.js'; // 1. Importamos tus variables validadas
 
 const app: Application = express();
 
 // 1. Middlewares Globales
-app.use(cors());
+
+// 2. Configuramos CORS para apuntar a tu Frontend en Vercel
+app.use(cors({
+  origin: envs.CLIENT_BASE_URL, 
+  credentials: true // Permite que se envíen headers de autorización (como tu JWT) sin problemas
+}));
+
 app.use(express.json()); 
 
 // 2. Enrutador Principal
