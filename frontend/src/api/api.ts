@@ -1,10 +1,11 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 // 1. Creamos la instancia central de Axios
 const api = axios.create({
-  // Llamamos a la variable de entorno con el estándar de Expo
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
+  // Llamamos a la variable de entorno con el estándar de Expo, o un default para desarrollo local
+  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
   
   // Opcional: Un timeout de 10 segundos. Si el server no responde, cancela la petición
   // en lugar de dejar al usuario con una pantalla de carga infinita.
@@ -22,16 +23,20 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // Buscamos el token en el almacenamiento seguro del celular
-      // Nota: Asegúrate de que al hacer el Login guardes el token con esta misma llave 'token_jwt'
-      const token = await SecureStore.getItemAsync('token_jwt');
+      // Buscamos el token
+      let token = null;
+      if (Platform.OS === 'web') {
+        token = localStorage.getItem('token_jwt');
+      } else {
+        token = await SecureStore.getItemAsync('token_jwt');
+      }
       
       // Si existe el token, lo inyectamos en las cabeceras de autorización
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error al recuperar el token de SecureStore:', error);
+      console.error('Error al recuperar el token:', error);
     }
     
     return config;
@@ -53,7 +58,11 @@ api.interceptors.response.use(
     // Aquí podrías agregar lógica para desloguear al usuario automáticamente y mandarlo al Login.
     if (error.response && error.response.status === 401) {
       console.warn('Token expirado o inválido. Sesión terminada.');
-      await SecureStore.deleteItemAsync('token_jwt');
+      if (Platform.OS === 'web') {
+        localStorage.removeItem('token_jwt');
+      } else {
+        await SecureStore.deleteItemAsync('token_jwt');
+      }
       // Lógica de redirección al login (dependerá de cómo uses Expo Router)
     }
     

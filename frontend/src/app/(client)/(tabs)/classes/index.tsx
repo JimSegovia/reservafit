@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,6 +13,7 @@ export default function ClassesSelectorScreen() {
   const router = useRouter();
   const classes = useAppStore((state) => state.classes);
   const showToast = useAppStore((state) => state.showToast);
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
@@ -23,7 +24,16 @@ export default function ClassesSelectorScreen() {
   const [selectedDay, setSelectedDay] = useState<string>('Todos');
   const [selectedTheme, setSelectedTheme] = useState<string>('Todos');
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Default to true to show skeleton on load
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      await fetchClasses();
+      setLoading(false);
+    };
+    loadClasses();
+  }, [fetchClasses]);
 
   // Calendario Tab states
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 4, 12));
@@ -173,12 +183,11 @@ export default function ClassesSelectorScreen() {
     return true;
   });
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      showToast('Clases actualizadas.', 'success');
-    }, 1200);
+    await fetchClasses();
+    setRefreshing(false);
+    showToast('Clases actualizadas.', 'success');
   };
 
   const handleFilterDay = (day: string) => {

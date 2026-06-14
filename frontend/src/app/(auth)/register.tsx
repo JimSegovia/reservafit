@@ -102,7 +102,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!name || !lastName || !email || !phone || !password || !confirmPassword) {
       validateName(name);
       validateLastName(lastName);
@@ -121,25 +121,25 @@ export default function RegisterScreen() {
     
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-
-      if (email.toLowerCase() === 'registered@reservafit.com') {
-        setEmailError('Este correo electrónico ya se encuentra registrado.');
-        showToast('El correo ya está registrado.', 'error');
-        return;
-      }
-
-      registerUser({
-        name: `${name} ${lastName}`,
-        email,
-        phone,
-        role: 'client'
+    try {
+      const success = await registerUser({
+        nombres: name,
+        apellidos: lastName,
+        correo_electronico: email,
+        celular: phone,
+        contrasena: password,
       });
 
-      showToast('¡Código de verificación enviado a tu correo!', 'success');
-      router.replace('/(auth)/verify');
-    }, 1500);
+      if (success) {
+        showToast('¡Código de verificación enviado a tu correo!', 'success');
+        router.replace('/(auth)/verify');
+      } else {
+        setEmailError('Error al registrar. Verifica tus datos o intenta más tarde.');
+        showToast('Error en el registro', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isSubmitDisabled = loading || !name || !lastName || !email || !phone || !password || !confirmPassword ||

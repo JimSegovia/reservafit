@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,12 +15,23 @@ export default function AdminClassesScreen() {
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
   const deleteClass = useAppStore((state) => state.deleteClass);
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
   const showToast = useAppStore((state) => state.showToast);
 
   const [search, setSearch] = useState('');
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      await fetchClasses();
+      setLoading(false);
+    };
+    loadClasses();
+  }, [fetchClasses]);
+
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,12 +45,11 @@ export default function AdminClassesScreen() {
     cls.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      showToast('Lista de clases actualizada.', 'success');
-    }, 1200);
+    await fetchClasses();
+    setRefreshing(false);
+    showToast('Lista de clases actualizada.', 'success');
   };
 
   const openAddModal = () => {

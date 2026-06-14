@@ -48,7 +48,7 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       validateEmail(email);
       validatePassword(password);
@@ -64,32 +64,27 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      setLoading(false);
-
-      if (email.toLowerCase() === 'error@reservafit.com') {
-        setError('El servidor no responde. Intenta de nuevo más tarde.');
-        showToast('Error de conexión con el servidor.', 'error');
-        return;
-      }
-
-      if (password !== '123456') {
-        setPasswordError('La contraseña es incorrecta.');
-        setError('Contraseña incorrecta. Inténtalo de nuevo.');
-        showToast('Contraseña incorrecta.', 'error');
-        return;
-      }
-
-      const role = email.toLowerCase().includes('admin') ? 'admin' : 'client';
-      login(email, role);
-      showToast('¡Inicio de sesión exitoso!', 'success');
-
-      if (role === 'admin') {
-        router.replace('/(admin)');
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        showToast('¡Inicio de sesión exitoso!', 'success');
+        
+        // Use user state from store after login or decode token, but here we assume logic
+        const role = email.toLowerCase().includes('admin') ? 'admin' : 'client';
+        if (role === 'admin') {
+          router.replace('/(admin)');
+        } else {
+          router.replace('/(client)/(tabs)');
+        }
       } else {
-        router.replace('/(client)/(tabs)');
+        setPasswordError('Credenciales incorrectas.');
+        setError('Error al iniciar sesión. Verifica tus datos.');
+        showToast('Error al iniciar sesión.', 'error');
       }
-    }, 1200);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isSubmitDisabled = loading || !email || !password || !!emailError || !!passwordError;

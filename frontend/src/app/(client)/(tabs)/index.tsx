@@ -70,6 +70,8 @@ export default function ClientHomeScreen() {
   const classes = useAppStore((state) => state.classes);
   const cancelReservation = useAppStore((state) => state.cancelReservation);
   const showToast = useAppStore((state) => state.showToast);
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
@@ -92,11 +94,16 @@ export default function ClientHomeScreen() {
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => earliestReservationWeekStart ?? getMonday(new Date()));
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchClasses(),
+        fetchInstructors()
+      ]);
       setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+    };
+    loadData();
+  }, [fetchClasses, fetchInstructors]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);

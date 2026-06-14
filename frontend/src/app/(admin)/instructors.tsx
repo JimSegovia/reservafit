@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,19 @@ export default function AdminInstructorsScreen() {
   const updateInstructor = useAppStore((state) => state.updateInstructor);
   const deleteInstructor = useAppStore((state) => state.deleteInstructor);
 
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
+
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchInstructors();
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchInstructors]);
   
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
