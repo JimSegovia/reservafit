@@ -10,7 +10,7 @@ const app: Application = express();
 
 // 2. Configuramos CORS para apuntar a tu Frontend en Vercel
 app.use(cors({
-  origin: envs.CLIENT_BASE_URL, 
+  origin: [envs.CLIENT_BASE_URL, 'http://localhost:8081'], 
   credentials: true // Permite que se envíen headers de autorización (como tu JWT) sin problemas
 }));
 
