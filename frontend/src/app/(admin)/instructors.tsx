@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,19 @@ export default function AdminInstructorsScreen() {
   const updateInstructor = useAppStore((state) => state.updateInstructor);
   const deleteInstructor = useAppStore((state) => state.deleteInstructor);
 
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
+
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchInstructors();
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchInstructors]);
   
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
@@ -63,11 +75,14 @@ export default function AdminInstructorsScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center flex-1 mr-2">
             <TouchableOpacity onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
-            <Text className="text-2xl font-extrabold text-black">Instructores</Text>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
+              <Text className="text-2xl font-extrabold text-black mt-0.5">Instructores</Text>
+            </View>
           </View>
 
           {/* Add Button */}

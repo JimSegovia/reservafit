@@ -1,10 +1,19 @@
 import 'dotenv/config'; 
 import * as env from 'env-var';
 
-// archivo para las variables de entorno
 export const envs = {
+  // Puerto del servidor
   PORT: env.get('PORT').default(3000).asPortNumber(),
   
-  STRIPE_SECRET_KEY: env.get('STRIPE_SECRET_KEY').required().asString(),
+  // Base de datos
+  DATABASE_URL: env.get('DATABASE_URL').required().asString(),
+  
+  // URLs del proyecto
   CLIENT_BASE_URL: env.get('CLIENT_BASE_URL').required().asString(),
+  
+  // Pasarela de Pagos (Mercado Pago)
+  MERCADO_PAGO_ACCESS_TOKEN: env.get('MERCADO_PAGO_ACCESS_TOKEN').required().asString(),
+
+  JWT_SECRET: env.get('JWT_SECRET').required().asString()
+};
 };

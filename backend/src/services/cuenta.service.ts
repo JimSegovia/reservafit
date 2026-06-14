@@ -4,8 +4,8 @@ import { hashPassword } from '../utils/bcrypt.util.js';
 
 export class CuentaService {
   
-  static async obtenerCuenta(id: string) {
-    const cuenta = await CuentaRepository.buscarPorId(id);
+  static async obtenerDetalleCuenta(id_cuenta: string) {
+    const cuenta = await CuentaRepository.buscarPorId(id_cuenta);
     if (!cuenta) {
       throw new Error('La cuenta no existe.');
     }
@@ -15,29 +15,31 @@ export class CuentaService {
     return cuentaSegura;
   }
 
-  static async modificarCuenta(id: string, data: UpdateCuentaDTO) {
-    const cuentaExistente = await CuentaRepository.buscarPorId(id);
+  static async modificarSeguridadCuenta(id_cuenta: string, data: UpdateCuentaDTO) {
+    const cuentaExistente = await CuentaRepository.buscarPorId(id_cuenta);
     if (!cuentaExistente) {
       throw new Error('La cuenta que intentas modificar no existe.');
     }
 
-    // Si el frontend envía una nueva contraseña, debemos encriptarla antes de guardarla
+    // VITAL: Si el frontend o el administrador envía una nueva contraseña, la encriptamos
     if (data.contrasena) {
       data.contrasena = await hashPassword(data.contrasena);
     }
 
-    const cuentaActualizada = await CuentaRepository.actualizar(id, data);
+    const cuentaActualizada = await CuentaRepository.actualizar(id_cuenta, data);
     
-    // Retornamos los datos sin la contraseña
+    // Retornamos los datos limpios sin el hash de la contraseña
     const { contrasena, ...cuentaSegura } = cuentaActualizada;
     return cuentaSegura;
   }
 
-  static async eliminarCuenta(id: string) {
-    const cuentaExistente = await CuentaRepository.buscarPorId(id);
+  static async eliminarCuenta(id_cuenta: string) {
+    const cuentaExistente = await CuentaRepository.buscarPorId(id_cuenta);
     if (!cuentaExistente) {
       throw new Error('La cuenta que intentas eliminar no existe.');
     }
-    return await CuentaRepository.eliminar(id);
+    
+    await CuentaRepository.eliminar(id_cuenta);
+    return true;
   }
 }

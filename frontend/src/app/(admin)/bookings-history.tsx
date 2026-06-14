@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-na
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -24,7 +25,10 @@ export default function AdminBookingsHistoryScreen() {
           <TouchableOpacity onPress={() => router.replace('/(admin)')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
-          <Text className="text-2xl font-extrabold text-black">Historial</Text>
+          <View>
+            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
+            <Text className="text-2xl font-extrabold text-black mt-0.5">Historial</Text>
+          </View>
         </Animated.View>
 
         {/* Tab Selection (Reservas / Pagos) */}
@@ -59,7 +63,11 @@ export default function AdminBookingsHistoryScreen() {
         {/* History List */}
         <View className="gap-y-4 mb-6">
           {reservations.length === 0 ? (
-            <Text className="text-center text-gray-500 py-8">No hay registros de reservas.</Text>
+            <EmptyState
+              variant="no-bookings"
+              title="Sin historial de reservas"
+              message="No hay registros de reservas en el sistema."
+            />
           ) : (
             reservations.map((res, idx) => {
               const isPaid = res.status === 'Pagado';
@@ -89,7 +97,7 @@ export default function AdminBookingsHistoryScreen() {
                   </View>
 
                   <View className="items-end">
-                    <Text className="text-base font-bold text-black mb-1.5">S/. {res.price.toFixed(2)}</Text>
+                    <Text className="text-base font-bold text-black mb-1.5">S/ {res.price.toFixed(2)}</Text>
                     
                     <View
                       className={`px-3 py-1 rounded-full border ${

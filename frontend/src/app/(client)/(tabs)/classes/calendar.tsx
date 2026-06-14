@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
   
   // Selected Date (defaults to May 12, 2026)
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 4, 12));
@@ -134,13 +138,11 @@ export default function CalendarScreen() {
     });
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
-      >
+  const content = (
+<ScrollView 
+         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
+         showsVerticalScrollIndicator={false}
+       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
           <TouchableOpacity onPress={() => router.replace('/(client)/(tabs)/classes')}>
@@ -267,10 +269,10 @@ export default function CalendarScreen() {
             timeBlocks.map((block, idx) => (
               <View
                 key={idx}
-                className={`flex-row min-h-[70px] border-b border-gray-155 last:border-b-0`}
+                className={`flex-row min-h-[70px] border-b border-gray-200 last:border-b-0`}
               >
                 {/* Hour Label */}
-                <View className="w-24 border-r border-gray-155 items-center justify-center p-2 bg-gray-50/50">
+                <View className="w-24 border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
                   <Text className="text-xs font-bold text-black">{block.start} - {block.end}</Text>
                 </View>
 
@@ -309,6 +311,11 @@ export default function CalendarScreen() {
           </Text>
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
   );
+
+  if (isWeb) {
+    return <ClientDesktopShell title="Calendario" subtitle="Mi semana">{content}</ClientDesktopShell>;
+  }
+
+  return <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>;
 }

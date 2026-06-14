@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Tooltip } from '@/components/ui/tooltip';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -12,9 +15,23 @@ export default function AdminClassesScreen() {
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
   const deleteClass = useAppStore((state) => state.deleteClass);
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
+  const showToast = useAppStore((state) => state.showToast);
 
   const [search, setSearch] = useState('');
-  
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      await fetchClasses();
+      setLoading(false);
+    };
+    loadClasses();
+  }, [fetchClasses]);
+
   // Modal states for Add/Edit
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -27,6 +44,13 @@ export default function AdminClassesScreen() {
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchClasses();
+    setRefreshing(false);
+    showToast('Lista de clases actualizada.', 'success');
+  };
 
   const openAddModal = () => {
     setEditingId(null);
@@ -49,12 +73,16 @@ export default function AdminClassesScreen() {
   };
 
   const handleSave = () => {
-    if (!title || !schedule || !instructorName) return;
+    if (!title || !schedule || !instructorName) {
+      showToast('Por favor completa todos los campos obligatorios.', 'warning');
+      return;
+    }
     
     const parsedPrice = parseFloat(price) || 0;
 
     if (editingId) {
       updateClass(editingId, { title, schedule, instructorName, price: parsedPrice, status });
+      showToast('Clase actualizada con éxito.', 'success');
     } else {
       addClass({
         title,
@@ -65,9 +93,22 @@ export default function AdminClassesScreen() {
         capacity: 30,
         enrolled: 0
       });
+      showToast('Clase creada con éxito.', 'success');
     }
     
     setModalVisible(false);
+  };
+
+  const promptDeleteClass = (id: string) => {
+    setClassToDelete(id);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (classToDelete) {
+      deleteClass(classToDelete);
+      setClassToDelete(null);
+      showToast('La clase ha sido eliminada.', 'success');
+    }
   };
 
   return (
@@ -76,6 +117,7 @@ export default function AdminClassesScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
         className="flex-1 px-6 py-4"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
@@ -83,7 +125,13 @@ export default function AdminClassesScreen() {
             <TouchableOpacity onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
-            <Text className="text-2xl font-extrabold text-black">Clases</Text>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Clases</Text>
+              <View className="flex-row items-center mt-0.5">
+                <Text className="text-2xl font-extrabold text-black mr-1">Clases</Text>
+                <Tooltip content="Gestiona las clases del sistema. Puedes crear nuevas clases, modificar sus horarios/instructores, o eliminarlas." />
+              </View>
+            </View>
           </View>
 
           {/* Add Button */}
@@ -99,7 +147,7 @@ export default function AdminClassesScreen() {
         <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 mb-6">
           <Ionicons name="search-outline" size={20} color="gray" />
           <TextInput
-            placeholder="Buscar clase"
+            placeholder="Buscar clase por nombre..."
             value={search}
             onChangeText={setSearch}
             placeholderTextColor="#9CA3AF"
@@ -110,7 +158,13 @@ export default function AdminClassesScreen() {
         {/* Classes List */}
         <View className="gap-y-4 mb-6">
           {filteredClasses.length === 0 ? (
-            <Text className="text-center text-gray-500 py-8">No se encontraron clases.</Text>
+            <EmptyState
+              variant="no-results"
+              title="No se encontraron clases"
+              message={search ? `No hay clases que coincidan con la búsqueda "${search}".` : "No hay clases registradas en el sistema."}
+              actionLabel={search ? "Limpiar búsqueda" : "Agregar clase"}
+              onAction={search ? () => setSearch('') : openAddModal}
+            />
           ) : (
             filteredClasses.map((cls) => {
               const isActive = cls.status === 'Activo';
@@ -155,7 +209,7 @@ export default function AdminClassesScreen() {
                     </TouchableOpacity>
 
                     {/* Delete button */}
-                    <TouchableOpacity onPress={() => deleteClass(cls.id)} className="p-1">
+                    <TouchableOpacity onPress={() => promptDeleteClass(cls.id)} className="p-1">
                       <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
@@ -213,7 +267,7 @@ export default function AdminClassesScreen() {
             </View>
 
             <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Precio (S/.)</Text>
+              <Text className="text-gray-500 font-bold text-xs mb-1">Precio (S/)</Text>
               <TextInput
                 value={price}
                 onChangeText={setPrice}
@@ -260,6 +314,17 @@ export default function AdminClassesScreen() {
           </View>
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={!!classToDelete}
+        title="Eliminar clase"
+        message="¿Estás seguro de que deseas eliminar esta clase del sistema? Esta acción es irreversible."
+        confirmLabel="Eliminar clase"
+        cancelLabel="Conservar"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setClassToDelete(null)}
+        variant="danger"
+      />
     </SafeAreaView>
   );
 }

@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useEffect } from 'react';
@@ -12,6 +14,8 @@ export default function ClassDetailScreen() {
   const { id } = useLocalSearchParams();
   const classes = useAppStore((state) => state.classes);
   const startBooking = useAppStore((state) => state.startBooking);
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
 
   // If no ID is passed, default to 'c10' (Baile funcional) to match V7 mockup exactly!
   const classId = (id as string) || 'c10';
@@ -46,18 +50,22 @@ export default function ClassDetailScreen() {
     };
   });
 
-  return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
-        showsVerticalScrollIndicator={false}
-        className="flex-1"
-      >
+  const content = (
+<ScrollView 
+         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingBottom: 30 }}
+         showsVerticalScrollIndicator={false}
+       >
         {/* Header Hero Image with Back Button */}
         <Animated.View entering={FadeIn.duration(200)} className="relative w-full h-64 bg-gray-200">
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop' }}
-            className="w-full h-full object-cover"
+            source={
+              classItem.title.toLowerCase().includes('zumba')
+                ? require('../../../../../assets/images/zumba.jpg')
+                : classItem.title.toLowerCase().includes('salsa')
+                ? require('../../../../../assets/images/Salsa.jpeg')
+                : require('../../../../../assets/images/bachata.jpg')
+            }
+            style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
           />
           <TouchableOpacity
             onPress={() => router.back()}
@@ -89,10 +97,11 @@ export default function ClassDetailScreen() {
               <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
                 <Ionicons name="person-outline" size={20} color="#FF7A00" />
               </View>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop' }}
-                className="w-9 h-9 rounded-full mr-2 object-cover"
-              />
+              <View className="w-9 h-9 rounded-full bg-amber-700 items-center justify-center mr-2">
+                <Text className="text-white font-bold text-xs">
+                  {classItem.instructorName.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
               <View>
                 <Text className="text-[10px] text-gray-400 font-bold uppercase">Instructor</Text>
                 <Text className="text-sm font-extrabold text-black">{classItem.instructorName}</Text>
@@ -158,7 +167,7 @@ export default function ClassDetailScreen() {
                 </View>
                 <View>
                   <Text className="text-[10px] text-gray-400 font-bold uppercase">Temática</Text>
-                  <View className="bg-magenta-100 px-3 py-0.5 rounded-full border border-magenta-200 mt-0.5 bg-pink-100">
+                  <View className="bg-pink-100 px-3 py-0.5 rounded-full border border-pink-200 mt-0.5">
                     <Text className="text-pink-700 text-xs font-bold">{classItem.theme}</Text>
                   </View>
                 </View>
@@ -182,6 +191,11 @@ export default function ClassDetailScreen() {
           </Text>
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
   );
+
+  if (isWeb) {
+    return <ClientDesktopShell title={classItem.title} subtitle="Detalle de clase">{content}</ClientDesktopShell>;
+  }
+
+  return <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>;
 }

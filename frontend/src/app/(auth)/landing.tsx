@@ -1,92 +1,116 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { Button } from '@/components/ui/button';
+import { Image as ExpoImage } from 'expo-image';
 
 export default function LandingScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1 px-6 py-4">
-        {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
+    <SafeAreaView className="flex-1 bg-cream p-0 m-0">
+      {/* Web Navigation */}
+      {isWeb ? (
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center py-5 px-12 border-b border-gray-155 bg-white shadow-sm z-10 w-full overflow-hidden">
           <View className="flex-row items-center">
-            <Ionicons name="body-outline" size={28} color="#FF7A00" />
-            <Text className="text-2xl font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
+            <ExpoImage
+              source={require('../../../assets/images/logo.svg')}
+              style={{ width: 160, height: 50 }}
+              contentFit="contain"
+            />
           </View>
-          <TouchableOpacity>
-            <Ionicons name="menu-outline" size={28} color="black" />
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Hero Headline */}
-        <Animated.View entering={FadeInDown.duration(250).delay(50)} className="mb-4">
-          <Text className="text-[34px] font-extrabold text-black leading-tight text-center">
-            Reserva tu lugar,{"\n"}
-            vive la <Text className="text-primary">experiencia</Text>
-          </Text>
-          <Text className="text-gray-600 text-center mt-3 text-base leading-relaxed px-4">
-            Reserva tus clases favoritas en nuestra única sala. Entrena, aprende y disfruta al máximo.
-          </Text>
-        </Animated.View>
-
-        {/* Hero Image Block */}
-        <Animated.View entering={ZoomIn.duration(250).delay(100)} className="items-center my-4">
-          <View className="w-full h-64 rounded-[40px] overflow-hidden bg-gray-200">
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop' }}
-              className="w-full h-full object-cover"
+          <View className="flex-row items-center gap-x-4">
+            <TouchableOpacity onPress={() => router.push('/help' as any)}>
+              <Text className="text-gray-650 font-bold text-sm">Ayuda / FAQ</Text>
+            </TouchableOpacity>
+            <Button
+              label="Iniciar sesión"
+              onPress={() => router.push('/(auth)/login')}
+              variant="outline"
+              className="py-2.5 px-8 min-h-0 h-11 !w-auto"
+            />
+            <Button
+              label="Registrarse"
+              onPress={() => router.push('/(auth)/register')}
+              variant="primary"
+              className="py-2.5 px-8 min-h-0 h-11 !w-auto"
             />
           </View>
         </Animated.View>
+      ) : null}
 
-        {/* Info Cards Row */}
-        <Animated.View entering={FadeInDown.duration(250).delay(150)} className="flex-row justify-between bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mb-6">
-          <View className="flex-1 flex-row items-center border-r border-gray-155 pr-2">
-            <Ionicons name="people-outline" size={24} color="black" />
-            <View className="ml-2">
-              <Text className="text-sm font-bold text-black">Una sala</Text>
-              <Text className="text-xs text-gray-500">Cupo 30</Text>
-            </View>
+      <ScrollView 
+          contentContainerStyle={{ 
+           flexGrow: 1, 
+           paddingHorizontal: isWeb ? 48 : 24, 
+           paddingTop: isWeb ? 44 : 28,
+           paddingBottom: isWeb ? 44 : 40,
+           justifyContent: isWeb ? 'center' : 'flex-start'
+         }}
+         showsVerticalScrollIndicator={false}
+       >
+         {/* Mobile Logo (Centered) */}
+         {!isWeb && (
+           <Animated.View entering={FadeIn.duration(200)} className="items-center mb-8">
+             <View className="flex-row items-center">
+               <ExpoImage
+                 source={require('../../../assets/images/logo.svg')}
+                 style={{ width: 220, height: 72 }}
+                 contentFit="contain"
+               />
+             </View>
+           </Animated.View>
+         )}
+
+         <View className={`${isWeb ? 'flex-row items-center justify-between gap-x-10' : 'flex-col'}`}>
+           {/* Left/Main text content */}
+           <View className={`${isWeb ? 'flex-1 pr-6' : 'mb-8'}`}>
+             <Animated.View entering={FadeInDown.duration(250).delay(50)}>
+               <Text className={`font-extrabold text-black leading-tight ${isWeb ? 'text-6xl lg:text-[64px] text-left max-w-xl' : 'text-[38px] text-center max-w-sm mx-auto'}`}>
+                 Entrena a tu ritmo, asegura tu <Text className="text-primary">espacio</Text>
+               </Text>
+               <Text className={`text-gray-500 mt-5 text-base lg:text-lg leading-relaxed max-w-xl ${isWeb ? 'text-left' : 'text-center mx-auto'}`}>
+                 La forma más simple y rápida de reservar tu cupo en sala. Elige tu clase favorita, selecciona tu ubicación y prepárate para entrenar.
+               </Text>
+             </Animated.View>
+
+            {/* Mobile Action Buttons */}
+            {!isWeb && (
+               <Animated.View entering={FadeInDown.duration(250).delay(150)} className="mt-8 gap-y-3 w-full pb-2">
+                 <Button
+                   label="Iniciar sesión"
+                   onPress={() => router.push('/(auth)/login')}
+                   variant="outline"
+                   className="min-h-0 h-12"
+                 />
+                 <Button
+                   label="Registrarse"
+                   onPress={() => router.push('/(auth)/register')}
+                   variant="primary"
+                   className="min-h-0 h-12"
+                 />
+                 <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-1">
+                   <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
+                 </TouchableOpacity>
+               </Animated.View>
+             )}
           </View>
-          <View className="flex-1 flex-row items-center pl-4">
-            <Ionicons name="calendar-outline" size={24} color="black" />
-            <View className="ml-2">
-              <Text className="text-sm font-bold text-black">Clases</Text>
-              <Text className="text-xs text-gray-500">Lun a Sab</Text>
-              <Text className="text-[10px] text-gray-400">6 AM - 10 PM</Text>
-            </View>
-          </View>
-        </Animated.View>
 
-        {/* Action Button */}
-        <Animated.View entering={FadeInDown.duration(250).delay(200)}>
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
-            activeOpacity={0.8}
-            className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mb-6"
-          >
-            <Text className="text-white text-lg font-bold">Iniciar Sesión</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Bottom Link and Info */}
-        <Animated.View entering={FadeInDown.duration(250).delay(250)} className="items-center mb-4">
-          <TouchableOpacity className="mb-4">
-            <Text className="text-black font-bold text-sm">¿Cómo funciona?</Text>
-          </TouchableOpacity>
-
-          <View className="flex-row items-center border border-gray-300 rounded-full px-4 py-2 bg-gray-50">
-            <Ionicons name="time-outline" size={16} color="black" />
-            <Text className="text-xs text-black font-medium ml-1">
-              Reserva mínima: 10 minutos
-            </Text>
-          </View>
-        </Animated.View>
+          {/* Right/Hero Image Column */}
+          <Animated.View entering={ZoomIn.duration(250).delay(100)} className={`items-center justify-center ${isWeb ? 'flex-1' : 'mt-4'}`}>
+              <View className={`w-full overflow-hidden bg-gray-200 shadow-xl ${isWeb ? 'aspect-[4/3] rounded-[40px] max-w-[600px]' : 'h-64 rounded-[30px]'}`}>
+                <Image
+                  source={require('../../../assets/images/zumba.jpg')}
+                  style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                />
+              </View>
+          </Animated.View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,6 +1,5 @@
-import { PrismaClient, Prisma, EstadoReserva, Reserva, DetalleReserva } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Prisma, EstadoReserva, Reserva, DetalleReserva } from '@prisma/client';
+import prisma from '../config/prisma';
 
 export class ReservaRepository {
   /**

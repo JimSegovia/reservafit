@@ -56,11 +56,19 @@ interface CurrentBooking {
   timeLeft: number; // in seconds (e.g., 600 for 10 minutes)
 }
 
+export interface ToastInfo {
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
 interface AppState {
   // Auth state
   user: User | null;
   otpCode: string | null;
   tempRegisterData: Partial<User> | null;
+  
+  // Toast state
+  toast: ToastInfo | null;
   
   // Data lists
   instructors: Instructor[];
@@ -75,8 +83,10 @@ interface AppState {
   timerIntervalId: any | null;
 
   // Actions
-  login: (email: string, role: 'client' | 'admin') => boolean;
-  registerUser: (data: Partial<User>) => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  registerUser: (data: any) => Promise<boolean>;
+  fetchClasses: () => Promise<void>;
+  fetchInstructors: () => Promise<void>;
   verifyOtp: (code: string) => boolean;
   logout: () => void;
   
@@ -107,6 +117,10 @@ interface AppState {
     paymentType: 'Efectivo' | 'Tarjeta';
     price: number;
   }) => boolean;
+
+  showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+  hideToast: () => void;
+  cancelReservation: (id: string) => void;
 }
 
 // Initial Data representing mockup values
@@ -162,26 +176,93 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   currentBooking: null,
   timerIntervalId: null,
+  toast: null,
 
-  login: (email, role) => {
-    // Basic mock authentication: any email works!
-    // Set user profile
-    const name = role === 'admin' ? 'Admin' : 'Ana Pérez';
-    const userObj: User = {
-      id: role === 'admin' ? 'admin_1' : 'client_1',
-      name,
-      email,
-      phone: '999888777',
-      role
-    };
-    
-    set({ user: userObj });
-    return true;
+  login: async (email, password) => {
+    try {
+      // Import the service dynamically or at the top of the file
+      // Actually we will edit the top of the file to include imports in a later step
+      const { authService } = require('../services/auth.service');
+      const response = await authService.login(email, password);
+      
+      const { token, usuario } = response.data; // adjust based on actual backend response
+      
+      const role = usuario.id_rol === 1 ? 'admin' : 'client'; // adjust based on backend logic
+      
+      const userObj: User = {
+        id: usuario.id_usuario.toString(),
+        name: usuario.nombre,
+        email: usuario.email,
+        phone: usuario.telefono || '',
+        role: role
+      };
+      
+      const { Platform } = require('react-native');
+      if (Platform.OS === 'web') {
+        localStorage.setItem('token_jwt', token);
+      } else {
+        const SecureStore = require('expo-secure-store');
+        await SecureStore.setItemAsync('token_jwt', token);
+      }
+      
+      set({ user: userObj });
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
   },
 
-  registerUser: (data) => {
-    // Store temporarily until OTP is verified
-    set({ tempRegisterData: data, otpCode: '247196' }); // mockup OTP
+  registerUser: async (data) => {
+    try {
+      const { authService } = require('../services/auth.service');
+      await authService.register(data);
+      // Wait to verify OTP. We'll store data locally for OTP matching if we keep the OTP view.
+      set({ tempRegisterData: data, otpCode: '247196' }); // mockup OTP, you might want real email OTP soon
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    }
+  },
+
+  fetchClasses: async () => {
+    try {
+      const { classesService } = require('../services/classes.service');
+      const backendClasses = await classesService.getAll();
+      // Adjust this mapping based on exactly what your backend returns.
+      // Example assumes backend returns { id_clase, nombre, instructor, ... }
+      const mappedClasses: ClassItem[] = backendClasses.data.map((c: any) => ({
+        id: c.id_clase.toString(),
+        title: c.nombre,
+        instructorName: c.instructor?.nombre || 'Sin asignar', // adapt based on DB schema
+        schedule: 'Horario por definir', // adapt
+        status: 'Activo', // adapt
+        capacity: c.capacidad || 30,
+        enrolled: 0,
+        price: c.precio || 40,
+        // map other necessary fields
+      }));
+      set({ classes: mappedClasses });
+    } catch (error) {
+      console.error('Fetch classes error:', error);
+    }
+  },
+
+  fetchInstructors: async () => {
+    try {
+      const { instructorsService } = require('../services/instructors.service');
+      const backendInstructors = await instructorsService.getAll();
+      const mappedInstructors: Instructor[] = backendInstructors.data.map((i: any) => ({
+        id: i.id_instructor.toString(),
+        name: `${i.usuario.nombre} ${i.usuario.apellido}`, // assuming relation
+        specialty: i.especialidad || 'General',
+        status: i.estado ? 'Activo' : 'Inactivo',
+      }));
+      set({ instructors: mappedInstructors });
+    } catch (error) {
+      console.error('Fetch instructors error:', error);
+    }
   },
 
   verifyOtp: (code) => {
@@ -396,5 +477,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return true;
+  },
+
+  showToast: (message, type = 'info') => {
+    set({ toast: { message, type } });
+  },
+
+  hideToast: () => {
+    set({ toast: null });
+  },
+
+  cancelReservation: (id) => {
+    set((state) => ({
+      reservations: state.reservations.map((res) =>
+        res.id === id ? { ...res, status: 'Reembolsado' as const } : res
+      )
+    }));
   }
 }));

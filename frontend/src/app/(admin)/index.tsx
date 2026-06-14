@@ -1,8 +1,12 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+
+import { Image as ExpoImage } from 'expo-image';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -14,7 +18,14 @@ export default function AdminDashboardScreen() {
   const instructors = useAppStore((state) => state.instructors);
   const reservations = useAppStore((state) => state.reservations);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
     logout();
     router.replace('/(auth)/landing');
   };
@@ -44,17 +55,17 @@ export default function AdminDashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center">
-            <Ionicons name="body-outline" size={28} color="#FF7A00" />
-            <Text className="text-2xl font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
+            <ExpoImage
+              source={require('../../../assets/images/logo.svg')}
+              style={{ width: 150, height: 50 }}
+              contentFit="contain"
+            />
           </View>
           <TouchableOpacity onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={28} color="black" />
@@ -103,6 +114,17 @@ export default function AdminDashboardScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas salir del panel de administración?"
+        confirmLabel="Salir"
+        cancelLabel="Volver"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="default"
+      />
     </SafeAreaView>
   );
 }

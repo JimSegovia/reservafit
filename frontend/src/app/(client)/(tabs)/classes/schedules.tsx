@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -10,6 +12,8 @@ export default function HorariosDisponiblesScreen() {
   const router = useRouter();
   const classes = useAppStore((state) => state.classes);
   const scrollRef = useRef<ScrollView>(null);
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
 
   // Dynamically generate all Mondays, Wednesdays, and Fridays for a whole year starting from May 1, 2026 (156 dates)
   const days = useMemo(() => {
@@ -86,13 +90,11 @@ export default function HorariosDisponiblesScreen() {
     });
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
-      >
+  const content = (
+    <ScrollView 
+      contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: isWeb ? 0 : 24, paddingVertical: isWeb ? 0 : 16, paddingBottom: 30 }} 
+      showsVerticalScrollIndicator={false}
+    >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
           <TouchableOpacity onPress={() => router.back()}>
@@ -124,7 +126,7 @@ export default function HorariosDisponiblesScreen() {
                   key={day.id}
                   onPress={() => setSelectedDay(day.fullLabel)}
                   className={`w-16 h-20 rounded-2xl border items-center justify-between py-2.5 px-1 shadow-sm ${
-                    isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-250'
+                    isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-200'
                   }`}
                   style={isSelected ? { transform: [{ scale: 1.04 }] } : {}}
                 >
@@ -209,7 +211,12 @@ export default function HorariosDisponiblesScreen() {
             Las reservas deben ser 3 horas antes
           </Text>
         </Animated.View>
-      </ScrollView>
-    </SafeAreaView>
+    </ScrollView>
   );
+
+  if (isWeb) {
+    return <ClientDesktopShell title="Horarios Disponibles" subtitle="Clase: Zumba">{content}</ClientDesktopShell>;
+  }
+
+  return <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>;
 }

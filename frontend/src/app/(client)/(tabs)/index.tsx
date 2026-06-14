@@ -1,110 +1,497 @@
-import React from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { Loader } from '@/components/ui/loader';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Image as ExpoImage } from 'expo-image';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { ReservationQuickDetail } from '@/components/reservation-quick-detail';
+import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+type DesktopTab = 'mis-clases' | 'clases-hoy' | 'calendario';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const getMonday = (date: Date) => {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  const day = copy.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  copy.setDate(copy.getDate() + diffToMonday);
+  return copy;
+};
+
+const getSlotLabel = (timeRange: string) => {
+  const start = timeRange.split('-')[0]?.trim();
+  if (!start) return null;
+  const normalized = start.toUpperCase();
+  if (normalized.includes('AM') || normalized.includes('PM')) return normalized;
+  return null;
+};
+
+const getEventColor = (title: string) => {
+  const lower = title.toLowerCase();
+  if (lower.includes('zumba')) return '#fed7aa';
+  if (lower.includes('salsa')) return '#ddd6fe';
+  if (lower.includes('bachata')) return '#bfdbfe';
+  return '#d1fae5';
+};
+
+const formatDashboardRange = (weekStart: Date) => {
+  const weekEnd = new Date(weekStart.getTime() + DAY_MS * 6);
+  const sameMonth = weekStart.getMonth() === weekEnd.getMonth() && weekStart.getFullYear() === weekEnd.getFullYear();
+  if (sameMonth) {
+    return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekStart.toLocaleDateString('es-ES', { month: 'short' })}, ${weekStart.getFullYear()}`;
+  }
+  const startText = weekStart.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  const endText = weekEnd.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  return `${startText} - ${endText}, ${weekEnd.getFullYear()}`;
+};
 
 export default function ClientHomeScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768;
+  const isCompactDesktop = width < 1180;
+  const horizontalPadding = width < 900 ? 52 : 120;
+  const calendarViewportWidth = Math.max(width - horizontalPadding, 540);
+  const timeColumnWidth = width < 900 ? 54 : 60;
+  const dayColumnWidth = width < 900 ? 66 : 80;
+  const calendarTableMinWidth = timeColumnWidth + dayColumnWidth * 7;
+
+
   const user = useAppStore((state) => state.user);
   const logout = useAppStore((state) => state.logout);
   const reservations = useAppStore((state) => state.reservations);
+  const classes = useAppStore((state) => state.classes);
+  const cancelReservation = useAppStore((state) => state.cancelReservation);
+  const showToast = useAppStore((state) => state.showToast);
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
 
-  const handleLogout = () => {
+  const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
+  const [quickReservation, setQuickReservation] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [reservationToCancel, setReservationToCancel] = useState<string | null>(null);
+
+  const earliestReservationWeekStart = useMemo(() => {
+    const paidReservations = reservations.filter((res) => res.status === 'Pagado');
+    if (paidReservations.length === 0) return null;
+    const parsedDates = paidReservations
+      .map((res) => new Date(res.date))
+      .filter((date) => !Number.isNaN(date.getTime()));
+    if (parsedDates.length === 0) return null;
+    const earliestDate = parsedDates.reduce((min, date) => (date < min ? date : min), parsedDates[0]);
+    return getMonday(earliestDate);
+  }, [reservations]);
+
+  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => earliestReservationWeekStart ?? getMonday(new Date()));
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchClasses(),
+        fetchInstructors()
+      ]);
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchClasses, fetchInstructors]);
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
     logout();
     router.replace('/(auth)/landing');
   };
 
-  // Filter reservations for this client (excluding refunds)
-  const clientReservations = reservations.filter(
-    (res) => res.status === 'Pagado'
+  const promptCancelReservation = (id: string) => {
+    setReservationToCancel(id);
+  };
+
+  const handleCancelReservationConfirm = () => {
+    if (reservationToCancel) {
+      cancelReservation(reservationToCancel);
+      setReservationToCancel(null);
+      showToast('Tu reserva ha sido cancelada y reembolsada.', 'success');
+    }
+  };
+
+  const clientReservations = reservations.filter((res) => res.status === 'Pagado');
+  const dashboardClasses = useMemo(
+    () => classes.filter((cls) => ['c7', 'c8', 'c9'].includes(cls.id)),
+    [classes]
   );
 
-  return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
-      >
-        {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
-          <View className="flex-row items-center">
-            <Ionicons name="body-outline" size={28} color="#FF7A00" />
-            <Text className="text-2xl font-bold ml-1 text-black">
-              Reserva<Text className="text-primary">Fit</Text>
-            </Text>
-          </View>
-          <TouchableOpacity onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={28} color="black" />
-          </TouchableOpacity>
-        </Animated.View>
+  const weeklyCalendarData = useMemo(() => {
+    const paidReservations = reservations.filter((res) => res.status === 'Pagado');
+    const parsed = paidReservations
+      .map((res) => ({
+        ...res,
+        parsedDate: new Date(res.date),
+        slotLabel: getSlotLabel(res.time),
+      }))
+      .filter((res) => !Number.isNaN(res.parsedDate.getTime()) && !!res.slotLabel);
 
-        {/* Salutation */}
-        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="mb-6">
-          <Text className="text-2xl font-extrabold text-black">
-            ¡Hola, {user?.name || 'Ana Pérez'}! 👋
-          </Text>
-        </Animated.View>
+    const weekStart = selectedWeekStart;
+    const weekDays = Array.from({ length: 7 }).map((_, dayOffset) => {
+      const date = new Date(weekStart.getTime() + DAY_MS * dayOffset);
+      const weekday = date.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
+      return {
+        key: date.toISOString(),
+        label: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+        dayNumber: date.getDate(),
+        date,
+      };
+    });
 
-        {/* List of Reserved Classes */}
-        <Animated.Text entering={FadeInDown.duration(200).delay(100)} className="text-gray-500 font-bold text-center text-sm tracking-wide mb-4">
-          Estas son tus Clases Reservadas
-        </Animated.Text>
+    const events = parsed.map((res) => {
+      const normalizedDate = new Date(res.parsedDate);
+      normalizedDate.setHours(0, 0, 0, 0);
+      const dayIdx = Math.round((normalizedDate.getTime() - weekStart.getTime()) / DAY_MS);
+      return {
+        id: res.id,
+        dayIdx,
+        slot: res.slotLabel as string,
+        title: res.className,
+        time: res.time,
+      };
+    }).filter((event) => event.dayIdx >= 0 && event.dayIdx <= 6);
 
-        <View className="gap-y-4 mb-6">
-          {clientReservations.length === 0 ? (
-            <Animated.View entering={FadeInDown.duration(200).delay(150)} className="bg-white border border-gray-100 rounded-3xl p-8 items-center justify-center">
-              <Ionicons name="calendar-outline" size={48} color="#FF7A00" className="opacity-50" />
-              <Text className="text-gray-500 text-sm mt-3 text-center">
-                No tienes reservas activas para esta semana.
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(client)/(tabs)/classes')}
-                className="bg-primary px-6 py-3 rounded-full mt-4"
-              >
-                <Text className="text-white font-bold text-sm">Explorar clases</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          ) : (
-            clientReservations.map((res, idx) => (
-              <Animated.View
-                key={res.id}
-                entering={FadeInDown.duration(200).delay(150 + idx * 50)}
-                className="bg-white border border-gray-150 rounded-3xl overflow-hidden shadow-sm"
-              >
-                {/* Visual Image Header */}
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1524594152303-9fd13543dd6e?q=80&w=400&auto=format&fit=crop' }}
-                  className="w-full h-24 object-cover"
-                />
-                
-                <View className="p-4 items-center">
-                  <View className="flex-row items-center mb-1">
-                    <Ionicons name="people-outline" size={16} color="#FF7A00" />
-                    <Text className="text-lg font-bold text-black ml-1.5">{res.className}</Text>
-                  </View>
-                  
-                  <Text className="text-base font-extrabold text-black mb-1.5">
-                    {res.time}
-                  </Text>
-                  
-                  <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 mt-1 px-2">
-                    <Text className="text-sm font-semibold text-gray-500">
-                      Cupos: {res.seats.join(', ')}
-                    </Text>
-                    <Text className="text-sm font-semibold text-gray-500">
+    return {
+      weekDays,
+      weekRangeLabel: formatDashboardRange(weekStart),
+      events,
+    };
+  }, [reservations, selectedWeekStart]);
+
+  const weekSlots = ['6:00 AM', '12:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+
+  if (loading && !isWeb) { // Show full screen loader only on mobile
+    return (
+      <SafeAreaView className="flex-1 bg-cream justify-center items-center">
+        <Loader variant="inline" label="Cargando tu panel de control..." />
+      </SafeAreaView>
+    );
+  }
+
+  const mobileContent = (
+    <ScrollView
+      contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
+        <View className="flex-row items-center">
+          <ExpoImage
+            source={require('../../../../assets/images/logo.svg')}
+            style={{ width: 150, height: 50 }}
+            contentFit="contain"
+          />
+        </View>
+        <TouchableOpacity onPress={() => setShowLogoutConfirm(true)}>
+          <Ionicons name="log-out-outline" size={28} color="black" />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.duration(200).delay(50)} className="mb-6">
+        <Text className="text-2xl font-extrabold text-black">
+          ¡Hola, {user?.name || 'Ana Pérez'}! 👋
+        </Text>
+      </Animated.View>
+
+      <Animated.Text entering={FadeInDown.duration(200).delay(100)} className="text-gray-500 font-bold text-center text-sm tracking-wide mb-4">
+        Estas son tus Clases Reservadas
+      </Animated.Text>
+
+      <View className="gap-y-4 mb-6">
+        {clientReservations.length === 0 ? (
+          <EmptyState
+            variant="no-bookings"
+            title="No tienes reservas activas"
+            message="No tienes reservas activas para esta semana."
+            actionLabel="Explorar clases"
+            onAction={() => router.push('/(client)/(tabs)/classes')}
+          />
+        ) : (
+          clientReservations.map((res, idx) => (
+            <Animated.View
+              key={res.id}
+              entering={FadeInDown.duration(200).delay(150 + idx * 50)}
+              className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm"
+            >
+              <Image
+                source={
+                  res.className.toLowerCase().includes('zumba')
+                    ? require('../../../../assets/images/zumba.jpg')
+                    : res.className.toLowerCase().includes('salsa')
+                    ? require('../../../../assets/images/Salsa.jpeg')
+                    : require('../../../../assets/images/bachata.jpg')
+                }
+                style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 200 }}
+                resizeMode="cover"
+              />
+              <View className="p-4 items-center">
+                <View className="flex-row items-center mb-1">
+                  <Ionicons name="people-outline" size={16} color="#FF7A00" />
+                  <Text className="text-lg font-bold text-black ml-1.5">{res.className}</Text>
+                </View>
+                <Text className="text-base font-extrabold text-black mb-1.5">{res.time}</Text>
+                <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 mt-1 px-2 items-center">
+                  <View className="flex-1 mr-2">
+                    <Text className="text-xs font-semibold text-gray-500">Cupos: {res.seats.join(', ')}</Text>
+                    <Text className="text-xs font-semibold text-gray-500 mt-0.5 text-ellipsis overflow-hidden">
                       Profesor: {res.className.toLowerCase().includes('salsa') ? 'Profesor B' : 'Profesor A'}
                     </Text>
                   </View>
+                  <TouchableOpacity
+                    onPress={() => promptCancelReservation(res.id)}
+                    className="bg-red-50 px-3 py-1.5 rounded-xl border border-red-100"
+                  >
+                    <Text className="text-red-600 text-xs font-bold">Cancelar</Text>
+                  </TouchableOpacity>
                 </View>
-              </Animated.View>
-            ))
-          )}
-        </View>
-      </ScrollView>
+              </View>
+            </Animated.View>
+          ))
+        )}
+      </View>
+    </ScrollView>
+  );
+
+  const desktopContent = (
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
+        {loading ? (
+             <View className="flex-1 justify-center items-center">
+                <Loader variant="inline" label="Cargando tu panel de control..." />
+             </View>
+        ) : (
+            <>
+                <View className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden">
+                <View className="flex-row border-b border-gray-200">
+                    {[
+                    { key: 'mis-clases', label: 'Mis clases' },
+                    { key: 'clases-hoy', label: 'Clases de hoy' },
+                    { key: 'calendario', label: 'Calendario' },
+                    ].map((tab, idx) => {
+                    const active = activeTab === tab.key;
+                    return (
+                        <TouchableOpacity
+                        key={tab.key}
+                        onPress={() => setActiveTab(tab.key as DesktopTab)}
+                        className={`flex-1 py-5 items-center ${idx !== 2 ? 'border-r border-gray-300' : ''}`}
+                        >
+                        <Text className={`text-[16px] font-semibold ${active ? 'text-primary' : 'text-black'}`}>{tab.label}</Text>
+                        </TouchableOpacity>
+                    );
+                    })}
+                </View>
+
+                {activeTab === 'mis-clases' && (
+                    <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
+                    <View className="flex-row items-center mb-4">
+                        <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
+                        <Text className="text-[15px] font-bold text-black ml-3">Estas son tus Clases Reservadas</Text>
+                    </View>
+                    <View className="gap-y-3">
+                        {dashboardClasses.map((cls, idx) => (
+                        <View key={cls.id} className="flex-row items-stretch border border-gray-200 rounded-xl overflow-hidden bg-white min-h-[88px]">
+                            <View className="w-[72px] items-center justify-center border-r border-gray-200 bg-white">
+                            <Text className="text-primary text-[13px] font-bold">{idx === 0 ? 'LUN' : idx === 1 ? 'MAR' : 'MIÉ'}</Text>
+                            <Text className="text-[20px] font-bold text-gray-700 leading-none mt-1">{20 + idx}</Text>
+                            </View>
+                            <Image
+                              source={
+                                cls.id === 'c7'
+                                  ? require('../../../../assets/images/zumba.jpg')
+                                  : cls.id === 'c8'
+                                  ? require('../../../../assets/images/Salsa.jpeg')
+                                  : require('../../../../assets/images/bachata.jpg')
+                              }
+                              style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
+                              resizeMode="cover"
+                            />
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: cls.title, time: '7:00 PM - 8:00 PM', date: '12 May 2025', seat: '13', status: 'Pagado' })}>
+                            <View>
+                                <Text className="text-[14px] font-bold text-black">
+                                {cls.title}
+                                </Text>
+                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">7:00 PM - 8:00 PM</Text>
+                                <Text className="text-[12px] font-medium text-gray-500 mt-0.5">Instructor: {cls.instructorName}</Text>
+                            </View>
+                            </TouchableOpacity>
+                            <View className="w-[290px] px-4 py-3 justify-between">
+                            <View>
+                                <Text className="text-[13px] font-semibold text-gray-600">{cls.days?.[0] || 'Lunes - Miércoles - Viernes'}</Text>
+                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">{cls.schedule}</Text>
+                            </View>
+                            </View>
+                            <View className="w-[124px] items-center justify-center pr-4">
+                            {idx === 2 ? (
+                                <View className="bg-green-100 rounded-lg px-4 py-2">
+                                <Text className="text-green-700 font-bold text-sm">Disponible</Text>
+                                </View>
+                            ) : null}
+                            <Ionicons name="chevron-forward" size={22} color="#555" className="mt-2" />
+                            </View>
+                        </View>
+                        ))}
+                    </View>
+                    </Animated.View>
+                )}
+
+                {activeTab === 'clases-hoy' && (
+                    <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
+                    <View className="flex-row items-center mb-6">
+                        <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
+                        <Text className="text-[15px] font-bold text-black ml-3">Clases de hoy</Text>
+                    </View>
+
+                    <View className="gap-y-3">
+                        {dashboardClasses.slice(0, 2).map((cls, idx) => (
+                        <View key={cls.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white flex-row min-h-[132px]">
+                            <Image
+                              source={
+                                idx === 0
+                                  ? require('../../../../assets/images/zumba.jpg')
+                                  : require('../../../../assets/images/Salsa.jpeg')
+                              }
+                              style={{ width: 240, height: '100%', aspectRatio: 16 / 9 }}
+                              resizeMode="cover"
+                            />
+                            <View className="flex-1 px-5 py-4 justify-between">
+                            <View>
+                                <Text className="text-[15px] font-bold text-black">{cls.title}</Text>
+                                <Text className="text-[18px] font-bold text-black mt-2">
+                                {idx === 0 ? '6:00 PM - 7:00 PM' : '7:00 PM - 8:00 PM'}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center justify-between">
+                                <View>
+                                <Text className="text-[11px] font-semibold text-gray-500 uppercase">Instructor</Text>
+                                <Text className="text-[12px] font-semibold text-black">{cls.instructorName}</Text>
+                                </View>
+                                <View className="w-8 h-8 rounded-full bg-amber-700 items-center justify-center">
+                                <Text className="text-white font-bold">{cls.instructorName.charAt(0)}</Text>
+                                </View>
+                            </View>
+                            </View>
+                        </View>
+                        ))}
+                    </View>
+                    </Animated.View>
+                )}
+
+                {activeTab === 'calendario' && (
+                    <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
+                    <View className={`mb-5 px-2 ${isCompactDesktop ? 'flex-col items-start gap-y-3' : 'flex-row justify-between items-center'}`}>
+                        <View className="flex-row items-center">
+                        <Ionicons name="calendar-outline" size={26} color="#666" />
+                        <Text className="text-[15px] font-bold text-black ml-3">Mi semana</Text>
+                        </View>
+                        <View className={`flex-row items-center ${isCompactDesktop ? 'gap-x-3' : 'gap-x-4'}`}>
+                        <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[20px]'} font-semibold text-gray-500`}>{weeklyCalendarData.weekRangeLabel}</Text>
+                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
+                          <Ionicons name="chevron-back" size={18} color="#555" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
+                          <Ionicons name="chevron-forward" size={18} color="#555" />
+                        </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View
+                      className="border border-gray-200 rounded-2xl overflow-hidden bg-white"
+                      style={{
+                        minWidth: Math.max(calendarTableMinWidth, calendarViewportWidth),
+                        width: Math.max(calendarTableMinWidth, calendarViewportWidth),
+                      }}
+                    >
+                        <View className="flex-row border-b border-gray-200">
+                        <View style={{ width: timeColumnWidth }} />
+                        {weeklyCalendarData.weekDays.map((day, dayIdx) => (
+                            <View key={day.key} className={`flex-1 items-center py-4 border-l border-gray-200 ${dayIdx === 0 ? 'border-l-0' : ''}`}>
+                            <Text className={`${isCompactDesktop ? 'text-[13px]' : 'text-[15px]'} font-bold text-gray-700 text-center`}>{day.label}</Text>
+                            <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[18px]'} font-bold text-gray-700`}>{day.dayNumber}</Text>
+                            </View>
+                        ))}
+                        </View>
+
+                        {weekSlots.map((slot) => (
+                        <View key={slot} className="flex-row border-b border-gray-200 last:border-b-0 min-h-[88px]">
+                            <View className="items-center justify-center border-r border-gray-200 bg-gray-50" style={{ width: timeColumnWidth }}>
+                            <Text className={`${isCompactDesktop ? 'text-[13px]' : 'text-[15px]'} font-bold text-gray-600`}>{slot.replace(':00', '')}</Text>
+                            </View>
+                            {Array.from({ length: 7 }).map((_, dayIdx) => {
+                            const event = weeklyCalendarData.events.find((ev) => ev.dayIdx === dayIdx && ev.slot === slot);
+                            return (
+                                <View key={`${slot}-${dayIdx}`} className="flex-1 border-l border-gray-200 p-2 justify-center">
+                                {event ? (
+                                    <View className="rounded-lg px-3 py-3 items-center" style={{ backgroundColor: getEventColor(event.title) }}>
+                                    <Text className={`${isCompactDesktop ? 'text-xs' : 'text-sm'} text-black font-bold`}>{event.title}</Text>
+                                    <Text className="text-black font-bold text-xs mt-0.5">{event.time}</Text>
+                                    </View>
+                                ) : null}
+                                </View>
+                            );
+                            })}
+                        </View>
+                        ))}
+                    </View>
+                    </ScrollView>
+                    </Animated.View>
+                )}
+                </View>
+            </>
+        )}
+    </ScrollView>
+  );
+  
+  return (
+    <SafeAreaView className="flex-1 bg-cream">
+        <ClientDesktopShell title={`¡Hola, ${user?.name || 'Ana Pérez'}! 👋`} subtitle="Resumen general">
+            {isWeb ? desktopContent : mobileContent}
+        </ClientDesktopShell>
+
+        {/* Global Dialogs Rendered at the bottom for both Web & Mobile */}
+        <ReservationQuickDetail
+            visible={!!quickReservation}
+            onClose={() => setQuickReservation(null)}
+            title={quickReservation?.title || ''}
+            time={quickReservation?.time}
+            date={quickReservation?.date}
+            seat={quickReservation?.seat}
+            status={quickReservation?.status}
+            onOpenFull={() => quickReservation && router.push('/(client)/(tabs)/classes/detail')}
+        />
+
+        <ConfirmDialog
+            visible={showLogoutConfirm}
+            title="Cerrar sesión"
+            message="¿Estás seguro de que deseas salir de tu cuenta?"
+            confirmLabel="Salir"
+            cancelLabel="Volver"
+            onConfirm={handleLogoutConfirm}
+            onCancel={() => setShowLogoutConfirm(false)}
+            variant="default"
+        />
+
+        <ConfirmDialog
+            visible={!!reservationToCancel}
+            title="Cancelar Reserva"
+            message="¿Estás seguro de que deseas cancelar esta reserva? Se realizará un reembolso automático."
+            confirmLabel="Cancelar Reserva"
+            cancelLabel="Mantener"
+            onConfirm={handleCancelReservationConfirm}
+            onCancel={() => setReservationToCancel(null)}
+            variant="danger"
+        />
     </SafeAreaView>
   );
 }
