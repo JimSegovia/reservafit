@@ -185,15 +185,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { authService } = require('../services/auth.service');
       const response = await authService.login(email, password);
       
-      const { token, usuario } = response.data; // adjust based on actual backend response
+      const { token, cuenta } = response.data; 
       
-      const role = usuario.id_rol === 1 ? 'admin' : 'client'; // adjust based on backend logic
+      const role = cuenta.rol === 'Administrador' ? 'admin' : 'client'; 
       
       const userObj: User = {
-        id: usuario.id_usuario.toString(),
-        name: usuario.nombre,
-        email: usuario.email,
-        phone: usuario.telefono || '',
+        id: cuenta.id_usuario.toString(),
+        name: cuenta.usuario ? `${cuenta.usuario.nombres} ${cuenta.usuario.apellidos}` : cuenta.correo_electronico.split('@')[0],
+        email: cuenta.correo_electronico,
+        phone: cuenta.usuario?.celular || '',
         role: role
       };
       
