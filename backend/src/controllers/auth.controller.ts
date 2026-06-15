@@ -29,4 +29,18 @@ export class AuthController {
       res.status(401).json({ error: error.message }); // 401: No Autorizado
     }
   }
+
+  static async verifyOtp(req: Request, res: Response): Promise<void> {
+    try {
+      const { correo_electronico, codigo_otp } = req.body;
+      const result = await AuthService.verificarCuenta(correo_electronico, codigo_otp);
+      
+      res.status(200).json({ 
+        mensaje: 'Cuenta verificada exitosamente', 
+        data: result 
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }
