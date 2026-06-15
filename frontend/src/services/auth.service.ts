@@ -12,6 +12,11 @@ export const authService = {
     const response = await api.post('/auth/register', data);
     return response.data;
   },
+
+  verifyOtp: async (email: string, otp: string) => {
+    const response = await api.post('/auth/verify-otp', { correo_electronico: email, codigo_otp: otp });
+    return response.data;
+  },
   
   logout: async () => {
     if (Platform.OS === 'web') {

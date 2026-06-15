@@ -17,7 +17,7 @@ export default function VerifyScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
-  const [code, setCode] = useState<string[]>(['2', '4', '7', '1', '9', '6']); // prefilled with mockup numbers for easy demo
+  const [code, setCode] = useState<string[]>(['', '', '', '', '', '']); 
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(45);
   const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ export default function VerifyScreen() {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const fullCode = code.join('');
     if (fullCode.length < 6) {
       showToast('Por favor ingresa el código completo de 6 dígitos.', 'warning');
@@ -68,17 +68,21 @@ export default function VerifyScreen() {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      setLoading(false);
-      const success = verifyOtp(fullCode);
+    try {
+      const success = await verifyOtp(fullCode);
       if (success) {
         showToast('¡Cuenta verificada y sesión iniciada!', 'success');
         router.replace('/(client)/(tabs)');
       } else {
-        setError('Código OTP inválido o expirado. Usa "247196".');
+        setError('Código OTP inválido o expirado. Vuelve a intentarlo.');
         showToast('Código de verificación incorrecto.', 'error');
       }
-    }, 1200);
+    } catch (err) {
+      setError('Ocurrió un error. Revisa tu conexión.');
+      showToast('Error al verificar.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = () => {
