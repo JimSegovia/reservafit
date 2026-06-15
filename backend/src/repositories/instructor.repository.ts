@@ -16,7 +16,26 @@ export class InstructorRepository {
 
   static async obtenerTodos() {
     return prisma.instructor.findMany({
-      orderBy: { nombre: 'asc' } // Ordenamos alfabéticamente por el campo correcto
+      orderBy: { nombre: 'asc' }
+    });
+  }
+
+  static async buscarPorId(id: string) {
+    return prisma.instructor.findUnique({
+      where: { id_instructor: id }
+    });
+  }
+
+  static async actualizar(id: string, data: any) {
+    return prisma.instructor.update({
+      where: { id_instructor: id },
+      data
+    });
+  }
+
+  static async eliminar(id: string) {
+    return prisma.instructor.delete({
+      where: { id_instructor: id }
     });
   }
 }

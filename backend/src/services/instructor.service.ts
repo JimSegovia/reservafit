@@ -14,4 +14,20 @@ export class InstructorService {
     }
     return instructores;
   }
+
+  static async modificarInstructor(id: string, data: any) {
+    const instructorExistente = await InstructorRepository.buscarPorId(id);
+    if (!instructorExistente) {
+      throw new Error('El instructor que intentas modificar no existe.');
+    }
+    return await InstructorRepository.actualizar(id, data);
+  }
+
+  static async eliminarInstructor(id: string) {
+    const instructorExistente = await InstructorRepository.buscarPorId(id);
+    if (!instructorExistente) {
+      throw new Error('El instructor que intentas eliminar no existe.');
+    }
+    return await InstructorRepository.eliminar(id);
+  }
 }
