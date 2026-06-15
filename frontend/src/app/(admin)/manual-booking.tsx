@@ -44,7 +44,7 @@ export default function AdminManualBookingScreen() {
     }
   }, [selectedClassId]);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!clientName || !clientLastName || !clientEmail || !clientPhone || !selectedClassId || !selectedSchedule) {
       showToast('Por favor llena todos los campos de cliente y reserva.', 'warning');
       return;
@@ -52,9 +52,8 @@ export default function AdminManualBookingScreen() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      const success = addManualBooking({
+    try {
+      const success = await addManualBooking({
         clientName,
         clientLastName,
         clientEmail,
@@ -64,6 +63,8 @@ export default function AdminManualBookingScreen() {
         paymentType,
         price: parseFloat(price) || 40.00
       });
+
+      setLoading(false);
 
       if (success) {
         showToast('La reserva manual fue registrada exitosamente.', 'success');
@@ -76,7 +77,10 @@ export default function AdminManualBookingScreen() {
       } else {
         showToast('No se pudo registrar la reserva. Intenta de nuevo.', 'error');
       }
-    }, 1200);
+    } catch (e) {
+      setLoading(false);
+      showToast('Ocurrió un error al registrar la reserva manual.', 'error');
+    }
   };
 
   const activeClass = classes.find(c => c.id === selectedClassId);

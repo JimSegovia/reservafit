@@ -17,7 +17,7 @@ export default function VerifyScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
-  const [code, setCode] = useState<string[]>(['', '', '', '', '', '']); 
+  const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(45);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,6 @@ export default function VerifyScreen() {
     useRef<TextInput>(null),
   ];
 
-  // Countdown timer for resend
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -45,14 +44,12 @@ export default function VerifyScreen() {
     newCode[index] = cleanText;
     setCode(newCode);
 
-    // Auto focus next input
     if (cleanText.length > 0 && index < 5) {
       inputsRef[index + 1].current?.focus();
     }
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    // Backspace handling to go to previous input
     if (e.nativeEvent.key === 'Backspace' && code[index] === '' && index > 0) {
       inputsRef[index - 1].current?.focus();
     }
@@ -70,20 +67,20 @@ export default function VerifyScreen() {
 
     try {
       const success = await verifyOtp(fullCode);
+      setLoading(false);
       if (success) {
         showToast('¡Cuenta verificada y sesión iniciada!', 'success');
         router.replace('/(client)/(tabs)');
       } else {
-        setError('Código OTP inválido o expirado. Vuelve a intentarlo.');
+        setError('Código OTP inválido o expirado.');
         showToast('Código de verificación incorrecto.', 'error');
       }
-    } catch (err) {
-      setError('Ocurrió un error. Revisa tu conexión.');
-      showToast('Error al verificar.', 'error');
-    } finally {
+    } catch (e) {
       setLoading(false);
+      setError('Ocurrió un error al verificar.');
     }
   };
+
 
   const handleResend = () => {
     if (countdown > 0) return;

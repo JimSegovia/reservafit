@@ -36,4 +36,27 @@ export class ReservaController {
       res.status(500).json({ error: 'Error interno al registrar la reserva.' });
     }
   }
+
+  async obtenerTodasReservas(req: Request, res: Response): Promise<void> {
+    try {
+      const lista = await reservaService.listarTodas();
+      res.status(200).json({ data: lista });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async actualizarEstadoReserva(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id as string;
+      const { estado } = req.body;
+      const reservaActualizada = await reservaService.modificarEstado(id, estado);
+      res.status(200).json({
+        mensaje: 'Estado de reserva actualizado con éxito',
+        data: reservaActualizada
+      });
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
+import api from '@/api/api';
 
 export default function PositionSelectorScreen() {
   const router = useRouter();
@@ -20,11 +21,27 @@ export default function PositionSelectorScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
+  const [occupiedList, setOccupiedList] = useState<number[]>([]);
+
   // If no booking is active, go back
   useEffect(() => {
     if (!currentBooking) {
       router.replace('/(client)/(tabs)/classes');
     }
+  }, [currentBooking]);
+
+  // Fetch occupied seats from the backend
+  useEffect(() => {
+    const fetchOccupied = async () => {
+      if (!currentBooking?.id_detalle_clase) return;
+      try {
+        const response = await api.get(`/detalles-reserva/ocupados/${currentBooking.id_detalle_clase}`);
+        setOccupiedList(response.data.data || []);
+      } catch (err) {
+        console.error('Error fetching occupied seats:', err);
+      }
+    };
+    fetchOccupied();
   }, [currentBooking]);
 
   // Countdown timer interval
@@ -36,9 +53,6 @@ export default function PositionSelectorScreen() {
   }, []);
 
   if (!currentBooking) return null;
-
-  const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
-  const occupiedList = occupiedSeats[lockKey] || [];
 
   const handleSeatPress = (seatNum: number) => {
     if (occupiedList.includes(seatNum)) return;

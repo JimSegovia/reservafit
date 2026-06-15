@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 
 export default function ClassDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, day, time, id_detalle_clase } = useLocalSearchParams();
   const classes = useAppStore((state) => state.classes);
   const startBooking = useAppStore((state) => state.startBooking);
   const { width } = useWindowDimensions();
@@ -25,9 +25,10 @@ export default function ClassDetailScreen() {
     // Start checkout booking process
     startBooking({
       classId: classItem.id,
+      id_detalle_clase: (id_detalle_clase as string) || undefined,
       className: classItem.title,
-      day: classItem.days?.[0] || 'LUNES 12/05',
-      time: classItem.slots?.[0] || classItem.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM',
+      day: (day as string) || classItem.days?.[0] || 'LUNES 12/05',
+      time: (time as string) || classItem.slots?.[0] || classItem.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM',
       instructorName: classItem.instructorName,
       pricePerSeat: classItem.price
     });
@@ -116,7 +117,7 @@ export default function ClassDetailScreen() {
               <View>
                 <Text className="text-[10px] text-gray-400 font-bold uppercase">Día</Text>
                 <Text className="text-sm font-extrabold text-black">
-                  {classItem.days?.[0] || 'Lunes 09/05'}
+                  {(day as string) || classItem.days?.[0] || 'Lunes 09/05'}
                 </Text>
               </View>
             </Animated.View>
@@ -129,7 +130,7 @@ export default function ClassDetailScreen() {
               <View>
                 <Text className="text-[10px] text-gray-400 font-bold uppercase">Horario</Text>
                 <Text className="text-sm font-extrabold text-black">
-                  {classItem.slots?.[0] || '6:00 PM - 7:00 PM'}
+                  {(time as string) || classItem.slots?.[0] || '6:00 PM - 7:00 PM'}
                 </Text>
               </View>
             </Animated.View>

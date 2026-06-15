@@ -1,4 +1,5 @@
-import { ReservaRepository } from '../repositories/reserva.repository';
+import { EstadoReserva } from '@prisma/client';
+import { ReservaRepository } from '../repositories/reserva.repository.js';
 
 export class ReservaService {
   private reservaRepository = new ReservaRepository();
@@ -20,5 +21,13 @@ export class ReservaService {
       id_detalle_clase,
       numero_cupo
     );
+  }
+
+  async listarTodas() {
+    return await this.reservaRepository.obtenerTodas();
+  }
+
+  async modificarEstado(id: string, estado: EstadoReserva) {
+    return await this.reservaRepository.actualizarEstado(id, estado);
   }
 }

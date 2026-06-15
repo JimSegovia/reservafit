@@ -43,4 +43,29 @@ export class ReservaRepository {
       }
     });
   }
+
+  async obtenerTodas(): Promise<Reserva[]> {
+    return await prisma.reserva.findMany({
+      include: {
+        usuario: true,
+        detalle_clase: {
+          include: {
+            clase: true,
+            instructor: true
+          }
+        },
+        detalles_reserva: true
+      },
+      orderBy: {
+        fecha_reserva: 'desc'
+      }
+    });
+  }
+
+  async actualizarEstado(id_reserva: string, estado: EstadoReserva): Promise<Reserva> {
+    return await prisma.reserva.update({
+      where: { id_reserva },
+      data: { estado }
+    });
+  }
 }

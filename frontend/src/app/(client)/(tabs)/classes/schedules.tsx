@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
@@ -10,10 +10,20 @@ import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function HorariosDisponiblesScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
   const classes = useAppStore((state) => state.classes);
+  const agenda = useAppStore((state) => state.agenda);
+  const occupiedSeats = useAppStore((state) => state.occupiedSeats);
   const scrollRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+
+  const classId = (id as string) || classes[0]?.id || 'c7';
+  const classItem = classes.find((c) => c.id === classId) || classes[0];
+
+  const classSessions = useMemo(() => {
+    return agenda.filter((a: any) => a.id_clase === classItem?.id);
+  }, [agenda, classItem]);
 
   // Dynamically generate all Mondays, Wednesdays, and Fridays for a whole year starting from May 1, 2026 (156 dates)
   const days = useMemo(() => {
@@ -52,13 +62,10 @@ export default function HorariosDisponiblesScreen() {
   useEffect(() => {
     const selectedIdx = days.findIndex(d => d.fullLabel === selectedDay);
     if (selectedIdx !== -1 && scrollRef.current) {
-      // Card width is 64px + gap 10px = 74px
-      // Center calculation: (idx * 74) - (screenWidth / 2) + (cardWidth / 2) + padding
       const cardWidth = 74;
       const screenWidth = Dimensions.get('window').width || 375;
       const offset = selectedIdx * cardWidth - screenWidth / 2 + 32;
       
-      // Delay slightly for scrollview layout to be ready
       const timer = setTimeout(() => {
         scrollRef.current?.scrollTo({ x: Math.max(0, offset), y: 0, animated: true });
       }, 150);
@@ -66,27 +73,69 @@ export default function HorariosDisponiblesScreen() {
     }
   }, [selectedDay, days]);
 
-  // Generate dynamic slots based on selected date to simulate loading active session data
-  const getSlotsForDay = (day: string) => {
-    const seed = day.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return [
-      { time: '5:00 PM - 6:00 PM', teacher: 'Profesor A', enrolled: `${(seed % 8)}/30`, status: 'Disponible' as const },
-      { time: '6:00 PM - 7:00 PM', teacher: 'Profesor B', enrolled: `${10 + (seed % 10)}/30`, status: 'Disponible' as const },
-      { time: '7:00 PM - 8:00 PM', teacher: 'Profesor C', enrolled: `${15 + (seed % 12)}/30`, status: 'Disponible' as const },
-      { time: '8:00 PM - 9:00 PM', teacher: 'Profesor D', enrolled: `${(seed % 2 === 0 ? 30 : 22)}/30`, status: (seed % 2 === 0 ? 'Lleno' : 'Disponible') as 'Disponible' | 'Lleno' | 'Cancelada' },
-      { time: '9:00 PM - 10:00 PM', teacher: 'Profesor E', enrolled: `${(seed % 15)}/30`, status: (seed % 7 === 0 ? 'Cancelada' : 'Disponible') as 'Disponible' | 'Lleno' | 'Cancelada' },
-    ];
-  };
+  const slots = useMemo(() => {
+    const selectedDayObj = days.find(d => d.fullLabel === selectedDay);
+    if (!selectedDayObj) return [];
+    
+    const targetDate = selectedDayObj.date;
+    
+    const matchingSessions = classSessions.filter((s: any) => {
+      const sDate = new Date(s.fecha_hora_inicio);
+      return sDate.getDate() === targetDate.getDate() &&
+             sDate.getMonth() === targetDate.getMonth() &&
+             sDate.getFullYear() === targetDate.getFullYear();
+    });
 
-  const slots = getSlotsForDay(selectedDay);
+    if (matchingSessions.length > 0) {
+      return matchingSessions.map((s: any) => {
+        const startTime = new Date(s.fecha_hora_inicio);
+        const endTime = new Date(s.fecha_hora_fin);
+        
+        const formatTime = (d: Date) => {
+          let hours = d.getHours();
+          const minutes = d.getMinutes().toString().padStart(2, '0');
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12;
+          hours = hours ? hours : 12;
+          return `${hours}:${minutes} ${ampm}`;
+        };
+
+        const timeStr = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+        const teacher = s.instructor ? `Con ${s.instructor.nombre} ${s.instructor.apellidos}` : 'Con Instructor';
+        const occupiedList = occupiedSeats[s.id_detalle_clase] || [];
+        
+        return {
+          id_detalle_clase: s.id_detalle_clase,
+          time: timeStr,
+          teacher: teacher,
+          enrolled: `${occupiedList.length}/30`,
+          status: s.estado as 'Disponible' | 'Lleno' | 'Cancelada'
+        };
+      });
+    }
+
+    return [
+      { 
+        id_detalle_clase: undefined as string | undefined, 
+        time: '6:00 PM - 7:00 PM', 
+        teacher: `Con ${classItem?.instructorName || 'Profesor'}`, 
+        enrolled: '0/30', 
+        status: 'Disponible' as const 
+      }
+    ];
+  }, [selectedDay, classSessions, classItem, occupiedSeats, days]);
 
   const handleSlotSelect = (slot: typeof slots[0]) => {
     if (slot.status === 'Lleno' || slot.status === 'Cancelada') return;
     
-    // Zumba class id is c7. Go to detail page
     router.push({
       pathname: '/(client)/(tabs)/classes/detail',
-      params: { id: 'c7', day: selectedDay, time: slot.time }
+      params: { 
+        id: classItem.id, 
+        day: selectedDay, 
+        time: slot.time,
+        id_detalle_clase: slot.id_detalle_clase || ''
+      }
     });
   };
 
@@ -102,7 +151,7 @@ export default function HorariosDisponiblesScreen() {
           </TouchableOpacity>
           <View className="items-center">
             <Text className="text-xl font-extrabold text-black">Horarios Disponibles</Text>
-            <Text className="text-xs text-gray-500 font-bold">Clase: Zumba</Text>
+            <Text className="text-xs text-gray-500 font-bold">Clase: {classItem?.title || 'Clase'}</Text>
           </View>
           <TouchableOpacity className="relative">
             <Ionicons name="notifications-outline" size={24} color="black" />
@@ -215,7 +264,7 @@ export default function HorariosDisponiblesScreen() {
   );
 
   if (isWeb) {
-    return <ClientDesktopShell title="Horarios Disponibles" subtitle="Clase: Zumba">{content}</ClientDesktopShell>;
+    return <ClientDesktopShell title="Horarios Disponibles" subtitle={`Clase: ${classItem?.title || 'Clase'}`}>{content}</ClientDesktopShell>;
   }
 
   return <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>;

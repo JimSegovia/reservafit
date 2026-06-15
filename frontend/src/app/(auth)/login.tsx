@@ -232,7 +232,6 @@ export default function LoginScreen() {
                     disabled={isSubmitDisabled}
                     loading={loading}
                     className="py-4"
-                    textClassName="text-lg font-bold"
                   />
                 </Animated.View>
 

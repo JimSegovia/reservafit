@@ -162,8 +162,6 @@ export default function ClassesSelectorScreen() {
 
   // Filter logic
   const categoryClasses = classes.filter((cls) => {
-    if (cls.id !== 'c7' && cls.id !== 'c8' && cls.id !== 'c9') return false;
-    
     // Filter by day
     if (selectedDay !== 'Todos') {
       const scheduleLower = cls.schedule.toLowerCase();
@@ -314,9 +312,9 @@ export default function ClassesSelectorScreen() {
                   <View key={cls.id} className="w-[31%] border border-gray-200 rounded-2xl overflow-hidden bg-white">
                     <Image
                       source={
-                        cls.id === 'c7'
+                        cls.title.toLowerCase().includes('zumba')
                           ? require('../../../../../assets/images/zumba.jpg')
-                          : cls.id === 'c8'
+                          : cls.title.toLowerCase().includes('salsa')
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
@@ -325,7 +323,13 @@ export default function ClassesSelectorScreen() {
                     />
                     <View className="p-4">
                       <Text className="text-[16px] font-extrabold text-black">{cls.title}</Text>
-                      <Text className="text-gray-500 mt-2 leading-5 text-[13px] min-h-[60px]">{cls.id === 'c7' ? 'Ritmo, sabor y diversión. Aprende los pasos básicos y avanza a tu ritmo' : cls.id === 'c8' ? 'Conecta y disfruta. Desde lo básico hasta combinaciones avanzadas' : 'Energía y movimiento. Quema calorías mientras te diviertes.'}</Text>
+                      <Text className="text-gray-500 mt-2 leading-5 text-[13px] min-h-[60px]">
+                        {cls.title.toLowerCase().includes('zumba') 
+                          ? 'Ritmo, sabor y diversión. Aprende los pasos básicos y avanza a tu ritmo' 
+                          : cls.title.toLowerCase().includes('salsa') 
+                          ? 'Conecta y disfruta. Desde lo básico hasta combinaciones avanzadas' 
+                          : 'Energía y movimiento. Quema calorías mientras te diviertes.'}
+                      </Text>
                       
                       {/* Visual relevant details on card (H6) */}
                       <View className="mt-3 gap-y-1.5 border-t border-b border-gray-100 py-3 my-2">
@@ -343,7 +347,7 @@ export default function ClassesSelectorScreen() {
                         </View>
                       </View>
 
-                      <TouchableOpacity onPress={() => router.push('/(client)/(tabs)/classes/schedules')} className="bg-primary rounded-xl py-3 items-center mt-3">
+                      <TouchableOpacity onPress={() => router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`)} className="bg-primary rounded-xl py-3 items-center mt-3">
                         <Text className="text-white font-bold text-sm">Ver horarios</Text>
                       </TouchableOpacity>
                     </View>
@@ -571,9 +575,9 @@ export default function ClassesSelectorScreen() {
                   >
                     <Image
                       source={
-                        cls.id === 'c7'
+                        cls.title.toLowerCase().includes('zumba')
                           ? require('../../../../../assets/images/zumba.jpg')
-                          : cls.id === 'c8'
+                          : cls.title.toLowerCase().includes('salsa')
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
@@ -587,11 +591,7 @@ export default function ClassesSelectorScreen() {
                       <View className="flex-row items-center mb-3">
                         <Ionicons name="calendar-outline" size={14} color="#FF7A00" className="mr-1" />
                         <Text className="text-gray-400 text-xs font-semibold">
-                          {cls.id === 'c7'
-                            ? 'Lunes - Miércoles - Viernes'
-                            : cls.id === 'c8'
-                            ? 'Martes - Jueves - Sábado'
-                            : 'Lunes - Jueves - Viernes'}
+                          {cls.schedule}
                         </Text>
                       </View>
 
@@ -603,11 +603,7 @@ export default function ClassesSelectorScreen() {
 
                       <TouchableOpacity
                         onPress={() => {
-                          if (cls.id === 'c7') {
-                            router.push(`/(client)/(tabs)/classes/schedules`);
-                          } else {
-                            router.push(`/(client)/(tabs)/classes/detail?id=${cls.id}`);
-                          }
+                          router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`);
                         }}
                         className="py-2.5 w-full items-center border-t border-gray-50 mt-2"
                       >

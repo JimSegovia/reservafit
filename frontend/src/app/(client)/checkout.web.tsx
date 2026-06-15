@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 import { Loader } from '@/components/ui/loader';
+import api from '@/api/api';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -32,35 +33,35 @@ export default function CheckoutScreen() {
     setIsProcessing(true);
     
     try {
-      // Endpoint de tu backend para generar la preferencia (Checkout Pro)
-      const API_URL = 'http://localhost:4000/api/payments/checkout'; 
+      // 1. Create the reservation in the backend database
+      const res = await confirmBooking('');
+      if (!res) {
+        showToast('No se pudo registrar la reserva. Inténtalo de nuevo.', 'error');
+        setIsProcessing(false);
+        return;
+      }
 
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: currentBooking.totalPrice,
-          description: `Clase: ${currentBooking.className} - Asientos: ${currentBooking.selectedSeats.join(', ')}`
-        }),
+      // 2. Call the payment checkout preference generator
+      const checkoutResponse = await api.post('/pagos/checkout', {
+        id_reserva: res.id_reserva,
+        amount: currentBooking.totalPrice,
+        description: `Clase: ${currentBooking.className} - Asientos: ${currentBooking.selectedSeats.join(', ')}`
       });
 
-      const result = await response.json();
+      const result = checkoutResponse.data;
 
-      if (response.ok && result.success && result.initPoint) {
+      if (checkoutResponse.status === 200 && result.success && result.data?.initPoint) {
         setShowPopup(false);
-        confirmBooking(''); // Registra la intención localmente
         
-        // Redirección directa al Checkout Pro oficial de Mercado Pago
-        window.location.href = result.initPoint; 
+        // Direct redirect to Mercado Pago Checkout Pro
+        window.location.href = result.data.initPoint; 
       } else {
         showToast(result.error || 'No se pudo generar el enlace de Mercado Pago.', 'error');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al conectar con el servidor de pagos:", error);
-      showToast('Error de conexión con el servidor. Inténtalo de nuevo.', 'error');
+      showToast(error.response?.data?.error || 'Error de conexión con el servidor. Inténtalo de nuevo.', 'error');
     } finally {
       setIsProcessing(false);
     }

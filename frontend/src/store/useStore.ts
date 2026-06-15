@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import { authService } from '../services/auth.service';
+import { classesService } from '../services/classes.service';
+import { instructorsService } from '../services/instructors.service';
+import { reservationsService } from '../services/reservations.service';
+import api from '../api/api';
+import { Platform } from 'react-native';
 
 // Types
 export interface User {
@@ -46,6 +52,7 @@ export interface Reservation {
 
 interface CurrentBooking {
   classId: string;
+  id_detalle_clase?: string;
   className: string;
   day: string;
   time: string;
@@ -53,7 +60,7 @@ interface CurrentBooking {
   selectedSeats: number[];
   pricePerSeat: number;
   totalPrice: number;
-  timeLeft: number; // in seconds (e.g., 600 for 10 minutes)
+  timeLeft: number; // in seconds
 }
 
 export interface ToastInfo {
@@ -65,7 +72,7 @@ interface AppState {
   // Auth state
   user: User | null;
   otpCode: string | null;
-  tempRegisterData: any | null;
+  tempRegisterData: Partial<User> | null;
   
   // Toast state
   toast: ToastInfo | null;
@@ -74,9 +81,10 @@ interface AppState {
   instructors: Instructor[];
   classes: ClassItem[];
   reservations: Reservation[];
+  agenda: any[];
   
   // Active Seat lock state (by classId_scheduleId)
-  occupiedSeats: Record<string, number[]>; // e.g. { "Zumba_12_05_18:00": [9, 17, 18, 19, 21, 28, 30] }
+  occupiedSeats: Record<string, number[]>;
 
   // Checkout process
   currentBooking: CurrentBooking | null;
@@ -91,14 +99,14 @@ interface AppState {
   logout: () => void;
   
   // Instructor actions (CRUD)
-  addInstructor: (instructor: Omit<Instructor, 'id'>) => void;
-  updateInstructor: (id: string, instructor: Partial<Instructor>) => void;
-  deleteInstructor: (id: string) => void;
+  addInstructor: (instructor: Omit<Instructor, 'id'>) => Promise<void>;
+  updateInstructor: (id: string, instructor: Partial<Instructor>) => Promise<void>;
+  deleteInstructor: (id: string) => Promise<void>;
   
   // Class actions (CRUD)
-  addClass: (classItem: Omit<ClassItem, 'id'>) => void;
-  updateClass: (id: string, classItem: Partial<ClassItem>) => void;
-  deleteClass: (id: string) => void;
+  addClass: (classItem: Omit<ClassItem, 'id'>) => Promise<void>;
+  updateClass: (id: string, classItem: Partial<ClassItem>) => Promise<void>;
+  deleteClass: (id: string) => Promise<void>;
   
   // Booking actions
   startBooking: (booking: Omit<CurrentBooking, 'timeLeft' | 'totalPrice' | 'selectedSeats'>) => void;
@@ -106,7 +114,7 @@ interface AppState {
   deselectSeat: (seatNumber: number) => void;
   decrementTimer: () => void;
   clearBooking: () => void;
-  confirmBooking: (phoneYape: string) => Reservation | null;
+  confirmBooking: (phoneYape: string) => Promise<any | null>;
   addManualBooking: (bookingData: {
     clientName: string;
     clientLastName: string;
@@ -116,51 +124,32 @@ interface AppState {
     schedule: string;
     paymentType: 'Efectivo' | 'Tarjeta';
     price: number;
-  }) => boolean;
+  }) => Promise<boolean>;
 
   showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
   hideToast: () => void;
-  cancelReservation: (id: string) => void;
+  cancelReservation: (id: string) => Promise<void>;
 }
 
-// Initial Data representing mockup values
-const initialInstructors: Instructor[] = [
-  { id: '1', name: 'Juan Pérez', specialty: 'Salsa', status: 'Activo' },
-  { id: '2', name: 'Maria López', specialty: 'Bachata', status: 'Activo' },
-  { id: '3', name: 'Carlos Gómez', specialty: 'Salsa', status: 'Activo' },
-  { id: '4', name: 'Sofia Ramirez', specialty: 'Salsa', status: 'Inactivo' },
-  { id: '5', name: 'Luis Fernández', specialty: 'Salsa', status: 'Activo' },
-  { id: '6', name: 'Diego Torres', specialty: 'Urbano', status: 'Inactivo' },
-  { id: '7', name: 'Raul', specialty: 'Baile funcional', status: 'Activo' },
-];
+// Helpers to format date/time slots
+const formatTimeSlot = (startStr: string, endStr: string) => {
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  const formatTime = (d: Date) => {
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+  };
+  return `${formatTime(start)} - ${formatTime(end)}`;
+};
 
-const initialClasses: ClassItem[] = [
-  { id: 'c1', title: 'Salsa Básica', instructorName: 'Juan Pérez', schedule: 'Lun / Mié 6-7 PM', status: 'Activo', capacity: 30, enrolled: 15, price: 40, days: ['LUNES 10/05', 'MIÉRCOLES 12/05', 'VIERNES 14/05'], slots: ['6:00 PM - 7:00 PM'], theme: 'Luces Clásicas' },
-  { id: 'c2', title: 'Bachata Intermedio', instructorName: 'Maria López', schedule: 'Mar / Jue 7-8 PM', status: 'Activo', capacity: 30, enrolled: 20, price: 40, days: ['MARTES 11/05', 'JUEVES 13/05'], slots: ['7:00 PM - 8:00 PM'] },
-  { id: 'c3', title: 'Regguetón Fit', instructorName: 'Carlos Gómez', schedule: 'Vie 8-9 PM', status: 'Activo', capacity: 30, enrolled: 6, price: 40, days: ['VIERNES 14/05'], slots: ['8:00 PM - 9:00 PM'] },
-  { id: 'c4', title: 'Salsa Avanzada', instructorName: 'Sofia Ramirez', schedule: 'Lun / Mié 8-9 PM', status: 'Inactivo', capacity: 30, enrolled: 0, price: 45 },
-  { id: 'c5', title: 'Bachata Sensual', instructorName: 'Luis Fernández', schedule: 'Mar / Jue 8-9 PM', status: 'Activo', capacity: 30, enrolled: 12, price: 40 },
-  { id: 'c6', title: 'Urbano Dance', instructorName: 'Diego Torres', schedule: 'Sab 5-6 PM', status: 'Activo', capacity: 30, enrolled: 10, price: 35 },
-  { id: 'c7', title: 'Zumba', instructorName: 'Profesor A', schedule: 'Lunes - Miercoles - Viernes', status: 'Activo', capacity: 30, enrolled: 7, price: 40, days: ['LUNES 10/05', 'MIÉRCOLES 12/05', 'VIERNES 14/05'], slots: ['5:00 PM - 6:00 PM', '6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM', '9:00 PM - 10:00 PM'], theme: 'Tropical neon' },
-  { id: 'c8', title: 'Salsa', instructorName: 'Profesor B', schedule: 'Martes - Jueves - Sábado', status: 'Activo', capacity: 30, enrolled: 18, price: 40, days: ['MARTES 11/05', 'JUEVES 13/05', 'SÁBADO 15/05'], slots: ['4:00 PM - 5:00 PM'] },
-  { id: 'c9', title: 'Reageton', instructorName: 'Profesor C', schedule: 'Lunes - Jueves - Viernes', status: 'Activo', capacity: 30, enrolled: 22, price: 40, days: ['LUNES 10/05', 'JUEVES 13/05', 'VIERNES 14/05'], slots: ['9:00 PM - 10:00 PM'] },
-  { id: 'c10', title: 'Baile funcional', instructorName: 'Raul', schedule: 'Lunes 09/05 6:00 PM', status: 'Activo', capacity: 30, enrolled: 15, price: 40, days: ['LUNES 09/05'], slots: ['6:00 PM - 7:00 PM'], theme: 'Neon Fucsia' }
-];
-
-const initialReservations: Reservation[] = [
-  { id: 'r1', classId: 'c1', className: 'Salsa Básica', time: '6:00 PM - 7:00 PM', date: '12 May 2025', clientName: 'Andrea Garcia', clientPhone: '987654321', seats: [12], price: 40, status: 'Pagado' },
-  { id: 'r2', classId: 'c2', className: 'Bachata Intermedio', time: '7:00 PM - 8:00 PM', date: '12 May 2025', clientName: 'Maria Lopez', clientPhone: '923456789', seats: [14], price: 40, status: 'Pagado' },
-  { id: 'r3', classId: 'c3', className: 'Reggaetón Fit', time: '8:00 PM - 9:00 PM', date: '11 May 2025', clientName: 'Carlos Gómez', clientPhone: '956789123', seats: [4], price: 40, status: 'Pagado' },
-  { id: 'r4', classId: 'c1', className: 'Salsa Básica', time: '6:00 PM - 7:00 PM', date: '11 May 2025', clientName: 'Juan Pérez', clientPhone: '981234567', seats: [2], price: 40, status: 'Pagado' },
-  { id: 'r5', classId: 'c2', className: 'Bachata Intermedio', time: '7:00 PM - 8:00 PM', date: '10 May 2025', clientName: 'Luis Fernández', clientPhone: '911223344', seats: [22], price: 40, status: 'Reembolsado' },
-];
-
-const initialOccupiedSeats: Record<string, number[]> = {
-  // Zumba Wednesday 6-7 PM: has seats 9, 17, 18, 19, 21, 28, 30 occupied
-  "c7_MIÉRCOLES 12/05_6:00 PM - 7:00 PM": [9, 17, 18, 19, 21, 28, 30],
-  // Salsa Básica Wednesday 6-7 PM: seat 13 occupied
-  "c1_MIÉRCOLES 12/05_6:00 PM - 7:00 PM": [13],
-  "c10_LUNES 09/05_6:00 PM - 7:00 PM": [15, 23, 27]
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 
 // Create Zustand store
@@ -169,10 +158,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   otpCode: null,
   tempRegisterData: null,
   
-  instructors: initialInstructors,
-  classes: initialClasses,
-  reservations: initialReservations,
-  occupiedSeats: initialOccupiedSeats,
+  instructors: [],
+  classes: [],
+  reservations: [],
+  agenda: [],
+  occupiedSeats: {},
   
   currentBooking: null,
   timerIntervalId: null,
@@ -180,24 +170,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   login: async (email, password) => {
     try {
-      // Import the service dynamically or at the top of the file
-      // Actually we will edit the top of the file to include imports in a later step
-      const { authService } = require('../services/auth.service');
       const response = await authService.login(email, password);
+      const { token, cuenta } = response.data;
       
-      const { token, cuenta } = response.data; 
+      const role = cuenta.rol === 'Administrador' ? 'admin' : 'client';
       
-      const role = cuenta.rol === 'Administrador' ? 'admin' : 'client'; 
-      
-      const userObj: User = {
-        id: cuenta.id_usuario.toString(),
-        name: cuenta.usuario ? `${cuenta.usuario.nombres} ${cuenta.usuario.apellidos}` : cuenta.correo_electronico.split('@')[0],
-        email: cuenta.correo_electronico,
-        phone: cuenta.usuario?.celular || '',
-        role: role
-      };
-      
-      const { Platform } = require('react-native');
       if (Platform.OS === 'web') {
         localStorage.setItem('token_jwt', token);
       } else {
@@ -205,7 +182,56 @@ export const useAppStore = create<AppState>((set, get) => ({
         await SecureStore.setItemAsync('token_jwt', token);
       }
       
+      // Fetch user profile details
+      const profileResponse = await api.get(`/usuarios/${cuenta.id_usuario}`);
+      const usuario = profileResponse.data.data;
+      
+      const userObj: User = {
+        id: usuario.id_usuario,
+        name: `${usuario.nombres} ${usuario.apellidos}`,
+        email: cuenta.correo_electronico,
+        phone: usuario.celular || '',
+        role: role
+      };
+      
       set({ user: userObj });
+
+      // Map user's reservations or all reservations
+      let mappedReservations: Reservation[] = [];
+      if (role === 'admin') {
+        try {
+          const resData = await reservationsService.getAll();
+          mappedReservations = (resData.data || []).map((r: any) => ({
+            id: r.id_reserva,
+            classId: r.detalle_clase?.id_clase || '',
+            className: r.detalle_clase?.clase?.nombre || 'Clase',
+            time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+            date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+            clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+            clientPhone: r.usuario?.celular || '',
+            seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+            price: r.cantidad_cupos * 40,
+            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          }));
+        } catch (err) {
+          console.error('Fetch all reservations error:', err);
+        }
+      } else {
+        mappedReservations = (usuario.reservas || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: userObj.name,
+          clientPhone: userObj.phone,
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * 40,
+          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+        }));
+      }
+
+      set({ reservations: mappedReservations });
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -215,10 +241,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   registerUser: async (data) => {
     try {
-      const { authService } = require('../services/auth.service');
-      await authService.register(data);
-      // Guardamos la información temporal para la auto-verificación y login automático
-      set({ tempRegisterData: data });
+      await authService.register({
+        nombres: data.name?.split(' ')[0] || 'Usuario',
+        apellidos: data.name?.split(' ').slice(1).join(' ') || 'ReservaFit',
+        correo_electronico: data.email,
+        contrasena: data.password,
+        celular: data.phone || ''
+      });
+      set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client', id: data.password } });
       return true;
     } catch (error) {
       console.error('Registration error:', error);
@@ -228,57 +258,117 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   fetchClasses: async () => {
     try {
-      const { classesService } = require('../services/classes.service');
-      const backendClasses = await classesService.getAll();
-      // Adjust this mapping based on exactly what your backend returns.
-      // Example assumes backend returns { id_clase, nombre, instructor, ... }
-      const mappedClasses: ClassItem[] = backendClasses.data.map((c: any) => ({
-        id: c.id_clase.toString(),
-        title: c.nombre,
-        instructorName: c.instructor?.nombre || 'Sin asignar', // adapt based on DB schema
-        schedule: 'Horario por definir', // adapt
-        status: 'Activo', // adapt
-        capacity: c.capacidad || 30,
-        enrolled: 0,
-        price: c.precio || 40,
-        // map other necessary fields
-      }));
-      set({ classes: mappedClasses });
+      const backendClassesResponse = await classesService.getAll();
+      const backendClasses = backendClassesResponse.data || [];
+      
+      let agenda: any[] = [];
+      try {
+        const agendaResponse = await api.get('/agenda');
+        agenda = agendaResponse.data.data || [];
+      } catch (err) {
+        console.error('Fetch agenda error:', err);
+      }
+
+      const mappedClasses: ClassItem[] = backendClasses.map((c: any) => {
+        const classSchedules = agenda.filter((a: any) => a.id_clase === c.id_clase);
+        
+        let instructorName = 'Sin asignar';
+        let status: 'Activo' | 'Inactivo' = 'Activo';
+        let price = 40;
+        let descText = c.descripcion || '';
+
+        try {
+          if (descText.startsWith('{')) {
+            const parsed = JSON.parse(descText);
+            instructorName = parsed.instructorName || instructorName;
+            price = parsed.price || price;
+            status = parsed.status || status;
+            descText = parsed.description || descText;
+          }
+        } catch (e) {}
+
+        const days = classSchedules.map((a: any) => {
+          const d = new Date(a.fecha_hora_inicio);
+          const labels = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+          const dayNum = d.getDate().toString().padStart(2, '0');
+          const monthNum = (d.getMonth() + 1).toString().padStart(2, '0');
+          return `${labels[d.getDay()]} ${dayNum}/${monthNum}`;
+        });
+        
+        const slots = classSchedules.map((a: any) => formatTimeSlot(a.fecha_hora_inicio, a.fecha_hora_fin));
+
+        return {
+          id: c.id_clase,
+          title: c.nombre,
+          instructorName: classSchedules[0]?.instructor ? `${classSchedules[0].instructor.nombre} ${classSchedules[0].instructor.apellidos}` : instructorName,
+          schedule: c.dia || 'Lunes - Miércoles - Viernes',
+          status,
+          capacity: classSchedules[0]?.cupos || 30,
+          enrolled: 0,
+          price,
+          theme: c.tematica || undefined,
+          days: days.length > 0 ? Array.from(new Set(days)) : ['LUNES 10/05'],
+          slots: slots.length > 0 ? Array.from(new Set(slots)) : ['6:00 PM - 7:00 PM'],
+          image: c.imagen_url || undefined
+        };
+      });
+      
+      set({ classes: mappedClasses, agenda });
     } catch (error) {
       console.error('Fetch classes error:', error);
+      set({ classes: [], agenda: [] });
     }
   },
 
   fetchInstructors: async () => {
     try {
-      const { instructorsService } = require('../services/instructors.service');
-      const backendInstructors = await instructorsService.getAll();
-      const mappedInstructors: Instructor[] = backendInstructors.data.map((i: any) => ({
-        id: i.id_instructor.toString(),
-        name: `${i.usuario.nombre} ${i.usuario.apellido}`, // assuming relation
-        specialty: i.especialidad || 'General',
-        status: i.estado ? 'Activo' : 'Inactivo',
-      }));
+      const response = await instructorsService.getAll();
+      const backendInstructors = response.data || [];
+      const mappedInstructors: Instructor[] = backendInstructors.map((i: any) => {
+        let specialty = 'General';
+        let status: 'Activo' | 'Inactivo' = 'Activo';
+        
+        try {
+          if (i.foto_url && i.foto_url.startsWith('{')) {
+            const parsed = JSON.parse(i.foto_url);
+            specialty = parsed.specialty || specialty;
+            status = parsed.status || status;
+          }
+        } catch (e) {}
+
+        return {
+          id: i.id_instructor,
+          name: `${i.nombre} ${i.apellidos}`,
+          specialty,
+          status
+        };
+      });
       set({ instructors: mappedInstructors });
     } catch (error) {
       console.error('Fetch instructors error:', error);
+      set({ instructors: [] });
     }
   },
 
   verifyOtp: async (code) => {
-    const { tempRegisterData } = get();
-    if (!tempRegisterData || !tempRegisterData.correo_electronico) return false;
     try {
-      const { authService } = require('../services/auth.service');
-      await authService.verifyOtp(tempRegisterData.correo_electronico, code);
+      const { tempRegisterData } = get();
+      if (!tempRegisterData || !tempRegisterData.email) return false;
       
-      // Auto login tras verificación exitosa
-      const success = await get().login(tempRegisterData.correo_electronico, tempRegisterData.contrasena || '');
-      if (success) {
-        set({ tempRegisterData: null, otpCode: null });
-        return true;
+      await api.post('/auth/verify-otp', {
+        correo_electronico: tempRegisterData.email,
+        codigo_otp: code
+      });
+      
+      // Auto login
+      if (tempRegisterData.email && tempRegisterData.id) {
+        const success = await get().login(tempRegisterData.email, tempRegisterData.id);
+        if (success) {
+          set({ tempRegisterData: null, otpCode: null });
+          return true;
+        }
       }
-      return false;
+      return true;
     } catch (error) {
       console.error('Verify OTP error:', error);
       return false;
@@ -286,59 +376,131 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   logout: () => {
-    set({ user: null });
+    authService.logout();
+    set({ user: null, reservations: [] });
     get().clearBooking();
   },
 
   // Instructor CRUD
-  addInstructor: (instructor) => {
-    const newInstructor: Instructor = {
-      ...instructor,
-      id: 'inst_' + Date.now()
-    };
-    set((state) => ({ instructors: [newInstructor, ...state.instructors] }));
+  addInstructor: async (instructor) => {
+    try {
+      const names = instructor.name.split(' ');
+      const firstName = names[0] || 'Instructor';
+      const lastName = names.slice(1).join(' ') || 'General';
+      const serializedFields = JSON.stringify({
+        specialty: instructor.specialty,
+        status: instructor.status
+      });
+
+      await instructorsService.create({
+        nombre: firstName,
+        apellidos: lastName,
+        foto_url: serializedFields
+      });
+
+      await get().fetchInstructors();
+    } catch (error) {
+      console.error('Add instructor error:', error);
+    }
   },
 
-  updateInstructor: (id, updatedFields) => {
-    set((state) => ({
-      instructors: state.instructors.map((inst) =>
-        inst.id === id ? { ...inst, ...updatedFields } : inst
-      )
-    }));
+  updateInstructor: async (id, updatedFields) => {
+    try {
+      const existing = get().instructors.find(i => i.id === id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updatedFields };
+      const names = merged.name.split(' ');
+      const firstName = names[0];
+      const lastName = names.slice(1).join(' ');
+      const serializedFields = JSON.stringify({
+        specialty: merged.specialty,
+        status: merged.status
+      });
+
+      await instructorsService.update(id, {
+        nombre: firstName,
+        apellidos: lastName,
+        foto_url: serializedFields
+      });
+
+      await get().fetchInstructors();
+    } catch (error) {
+      console.error('Update instructor error:', error);
+    }
   },
 
-  deleteInstructor: (id) => {
-    set((state) => ({
-      instructors: state.instructors.filter((inst) => inst.id !== id)
-    }));
+  deleteInstructor: async (id) => {
+    try {
+      await instructorsService.delete(id);
+      await get().fetchInstructors();
+    } catch (error) {
+      console.error('Delete instructor error:', error);
+    }
   },
 
   // Class CRUD
-  addClass: (classItem) => {
-    const newClass: ClassItem = {
-      ...classItem,
-      id: 'class_' + Date.now()
-    };
-    set((state) => ({ classes: [newClass, ...state.classes] }));
+  addClass: async (classItem) => {
+    try {
+      const descObj = JSON.stringify({
+        description: 'Clase de baile',
+        instructorName: classItem.instructorName,
+        price: classItem.price,
+        status: classItem.status
+      });
+
+      await classesService.create({
+        nombre: classItem.title,
+        descripcion: descObj,
+        dia: classItem.schedule,
+        tematica: classItem.theme || 'General',
+        imagen_url: classItem.image || ''
+      });
+
+      await get().fetchClasses();
+    } catch (error) {
+      console.error('Add class error:', error);
+    }
   },
 
-  updateClass: (id, updatedFields) => {
-    set((state) => ({
-      classes: state.classes.map((cls) =>
-        cls.id === id ? { ...cls, ...updatedFields } : cls
-      )
-    }));
+  updateClass: async (id, updatedFields) => {
+    try {
+      const existing = get().classes.find(c => c.id === id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updatedFields };
+      const descObj = JSON.stringify({
+        description: 'Clase de baile',
+        instructorName: merged.instructorName,
+        price: merged.price,
+        status: merged.status
+      });
+
+      await classesService.update(id, {
+        nombre: merged.title,
+        descripcion: descObj,
+        dia: merged.schedule,
+        tematica: merged.theme || 'General',
+        imagen_url: merged.image || ''
+      });
+
+      await get().fetchClasses();
+    } catch (error) {
+      console.error('Update class error:', error);
+    }
   },
 
-  deleteClass: (id) => {
-    set((state) => ({
-      classes: state.classes.filter((cls) => cls.id !== id)
-    }));
+  deleteClass: async (id) => {
+    try {
+      await classesService.delete(id);
+      await get().fetchClasses();
+    } catch (error) {
+      console.error('Delete class error:', error);
+    }
   },
 
   // Client booking actions
   startBooking: (booking) => {
-    // Clear any previous booking
     get().clearBooking();
 
     const newBooking: CurrentBooking = {
@@ -354,12 +516,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { currentBooking } = get();
     if (!currentBooking) return;
     
-    // Check if seat is occupied
     const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
     const occupied = get().occupiedSeats[lockKey] || [];
     if (occupied.includes(seatNumber)) return;
 
-    // Add seat
     const selected = [...currentBooking.selectedSeats, seatNumber];
     set({
       currentBooking: {
@@ -404,82 +564,170 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ currentBooking: null });
   },
 
-  confirmBooking: (phoneYape) => {
+  confirmBooking: async (phoneYape) => {
     const { currentBooking, user } = get();
     if (!currentBooking || currentBooking.selectedSeats.length === 0 || !user) return null;
 
-    const lockKey = `${currentBooking.classId}_${currentBooking.day}_${currentBooking.time}`;
-    
-    // Add selected seats to occupied
-    const occupied = get().occupiedSeats[lockKey] || [];
-    const newOccupied = [...occupied, ...currentBooking.selectedSeats];
-    
-    // Create reservation
-    const newReservation: Reservation = {
-      id: 'res_' + Date.now(),
-      classId: currentBooking.classId,
-      className: currentBooking.className,
-      time: currentBooking.time,
-      date: currentBooking.day.split(' ')[1] + ' May 2025', // Mock formatted date
-      clientName: user.name,
-      clientPhone: phoneYape,
-      seats: currentBooking.selectedSeats,
-      price: currentBooking.totalPrice,
-      status: 'Pagado'
-    };
+    let id_detalle_clase = currentBooking.id_detalle_clase;
 
-    set((state) => ({
-      occupiedSeats: {
-        ...state.occupiedSeats,
-        [lockKey]: newOccupied
-      },
-      reservations: [newReservation, ...state.reservations],
-      currentBooking: null
-    }));
-
-    return newReservation;
-  },
-
-  addManualBooking: (bookingData) => {
-    const classItem = get().classes.find(c => c.id === bookingData.classId);
-    if (!classItem) return false;
-
-    // Pick an empty seat automatically
-    const lockKey = `${bookingData.classId}_MIÉRCOLES 12/05_${bookingData.schedule}`;
-    const occupied = get().occupiedSeats[lockKey] || [];
-    
-    let chosenSeat = 1;
-    for (let i = 1; i <= 30; i++) {
-      if (!occupied.includes(i)) {
-        chosenSeat = i;
-        break;
+    if (!id_detalle_clase) {
+      try {
+        const agendaResponse = await api.get('/agenda');
+        const agenda = agendaResponse.data.data || [];
+        const match = agenda.find((a: any) => a.id_clase === currentBooking.classId);
+        if (match) {
+          id_detalle_clase = match.id_detalle_clase;
+        } else {
+          const instructorResponse = await api.get('/instructores');
+          const instructors = instructorResponse.data.data || [];
+          const instructorId = instructors[0]?.id_instructor;
+          if (instructorId) {
+            const newDetail = await api.post('/agenda', {
+              id_clase: currentBooking.classId,
+              id_instructor: instructorId,
+              fecha_hora_inicio: new Date().toISOString(),
+              fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
+            });
+            id_detalle_clase = newDetail.data.data.id_detalle_clase;
+          }
+        }
+      } catch (err) {
+        console.error('Error finding/creating agenda detail:', err);
       }
     }
 
-    const newReservation: Reservation = {
-      id: 'res_' + Date.now(),
-      classId: bookingData.classId,
-      className: classItem.title,
-      time: bookingData.schedule,
-      date: '12 May 2025',
-      clientName: `${bookingData.clientName} ${bookingData.clientLastName}`,
-      clientPhone: bookingData.clientPhone,
-      seats: [chosenSeat],
-      price: bookingData.price,
-      status: 'Pagado'
-    };
+    if (!id_detalle_clase) {
+      get().showToast('Error: No se pudo agendar la sesión para esta clase.', 'error');
+      return null;
+    }
 
-    const newOccupied = [...occupied, chosenSeat];
+    let lastReservation: any = null;
+    try {
+      for (const seat of currentBooking.selectedSeats) {
+        const response = await api.post('/reservas/reservas', {
+          id_usuario: user.id,
+          id_detalle_clase,
+          numero_cupo: seat
+        });
+        
+        const reservationId = response.data.reserva.id_reserva;
+        lastReservation = response.data.reserva;
+        
+        if (Platform.OS !== 'web') {
+          await api.patch(`/reservas/${reservationId}`, {
+            estado: 'Confirmada'
+          });
+        }
+      }
+      
+      // Refresh user profile reservations
+      const profileResponse = await api.get(`/usuarios/${user.id}`);
+      const updatedUser = profileResponse.data.data;
+      const mappedReservations = (updatedUser.reservas || []).map((r: any) => ({
+        id: r.id_reserva,
+        classId: r.detalle_clase?.id_clase || '',
+        className: r.detalle_clase?.clase?.nombre || 'Clase',
+        time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+        date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+        clientName: user.name,
+        clientPhone: phoneYape || user.phone,
+        seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+        price: r.cantidad_cupos * 40,
+        status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+      }));
+      
+      set({ reservations: mappedReservations, currentBooking: null });
+      return lastReservation;
+    } catch (err: any) {
+      console.error('Confirm booking error:', err);
+      get().showToast(err.response?.data?.error || 'Error al confirmar la reserva', 'error');
+      return null;
+    }
+  },
 
-    set((state) => ({
-      occupiedSeats: {
-        ...state.occupiedSeats,
-        [lockKey]: newOccupied
-      },
-      reservations: [newReservation, ...state.reservations]
-    }));
+  addManualBooking: async (bookingData) => {
+    try {
+      const usersResponse = await api.get('/usuarios');
+      const users = usersResponse.data.data || [];
+      let targetUser = users.find((u: any) => u.cuenta?.correo_electronico === bookingData.clientEmail || u.cuentas?.[0]?.correo_electronico === bookingData.clientEmail);
+      
+      if (!targetUser) {
+        const registerResponse = await api.post('/auth/register', {
+          nombres: bookingData.clientName,
+          apellidos: bookingData.clientLastName,
+          correo_electronico: bookingData.clientEmail,
+          celular: bookingData.clientPhone,
+          contrasena: 'ReservaFit123!',
+          rol: 'Cliente'
+        });
+        const newUserId = registerResponse.data.data.usuario.id_usuario;
+        targetUser = { id_usuario: newUserId };
+      }
+      
+      const userId = targetUser.id_usuario;
 
-    return true;
+      const agendaResponse = await api.get('/agenda');
+      const agenda = agendaResponse.data.data || [];
+      let match = agenda.find((a: any) => a.id_clase === bookingData.classId);
+      
+      if (!match) {
+        const instructorsResponse = await api.get('/instructores');
+        const instructors = instructorsResponse.data.data || [];
+        const instructorId = instructors[0]?.id_instructor;
+        if (!instructorId) return false;
+        
+        const newDetail = await api.post('/agenda', {
+          id_clase: bookingData.classId,
+          id_instructor: instructorId,
+          fecha_hora_inicio: new Date().toISOString(),
+          fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
+        });
+        match = newDetail.data.data;
+      }
+      
+      const occupiedResponse = await api.get(`/detalles-reserva/ocupados/${match.id_detalle_clase}`);
+      const occupied = occupiedResponse.data.data || [];
+      let chosenSeat = 1;
+      for (let i = 1; i <= 30; i++) {
+        if (!occupied.includes(i)) {
+          chosenSeat = i;
+          break;
+        }
+      }
+
+      const resResponse = await api.post('/reservas/reservas', {
+        id_usuario: userId,
+        id_detalle_clase: match.id_detalle_clase,
+        numero_cupo: chosenSeat
+      });
+
+      const reservationId = resResponse.data.reserva.id_reserva;
+      await api.patch(`/reservas/${reservationId}`, {
+        estado: 'Confirmada'
+      });
+
+      if (get().user?.role === 'admin') {
+        const resData = await reservationsService.getAll();
+        const mappedReservations = (resData.data || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+          clientPhone: r.usuario?.celular || '',
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * 40,
+          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+        }));
+        set({ reservations: mappedReservations });
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Add manual booking error:', err);
+      return false;
+    }
   },
 
   showToast: (message, type = 'info') => {
@@ -490,11 +738,49 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ toast: null });
   },
 
-  cancelReservation: (id) => {
-    set((state) => ({
-      reservations: state.reservations.map((res) =>
-        res.id === id ? { ...res, status: 'Reembolsado' as const } : res
-      )
-    }));
+  cancelReservation: async (id) => {
+    try {
+      await api.patch(`/reservas/${id}`, {
+        estado: 'Cancelada_Por_Gimnasio'
+      });
+      
+      const { user } = get();
+      if (user) {
+        if (user.role === 'admin') {
+          const resData = await reservationsService.getAll();
+          const mappedReservations = (resData.data || []).map((r: any) => ({
+            id: r.id_reserva,
+            classId: r.detalle_clase?.id_clase || '',
+            className: r.detalle_clase?.clase?.nombre || 'Clase',
+            time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+            date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+            clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+            clientPhone: r.usuario?.celular || '',
+            seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+            price: r.cantidad_cupos * 40,
+            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          }));
+          set({ reservations: mappedReservations });
+        } else {
+          const profileResponse = await api.get(`/usuarios/${user.id}`);
+          const usuario = profileResponse.data.data;
+          const mappedReservations = (usuario.reservas || []).map((r: any) => ({
+            id: r.id_reserva,
+            classId: r.detalle_clase?.id_clase || '',
+            className: r.detalle_clase?.clase?.nombre || 'Clase',
+            time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+            date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+            clientName: user.name,
+            clientPhone: user.phone,
+            seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+            price: r.cantidad_cupos * 40,
+            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          }));
+          set({ reservations: mappedReservations });
+        }
+      }
+    } catch (error) {
+      console.error('Cancel reservation error:', error);
+    }
   }
 }));
