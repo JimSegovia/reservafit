@@ -11,7 +11,8 @@ export class UsuarioRepository {
   // 1. Verificar si el correo ya está registrado en Cuentas
   static async buscarPorCorreo(correo: string) {
     return prisma.cuenta.findUnique({
-      where: { correo_electronico: correo }
+      where: { correo_electronico: correo },
+      include: { usuario: true }
     });
   }
 
