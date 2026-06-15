@@ -16,4 +16,3 @@ export const envs = {
 
   JWT_SECRET: env.get('JWT_SECRET').required().asString()
 };
-};
