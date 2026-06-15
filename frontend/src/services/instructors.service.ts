@@ -9,5 +9,15 @@ export const instructorsService = {
   create: async (data: any) => {
     const response = await api.post('/instructores', data);
     return response.data;
+  },
+
+  update: async (id: string, data: any) => {
+    const response = await api.patch(`/instructores/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/instructores/${id}`);
+    return response.data;
   }
 };
