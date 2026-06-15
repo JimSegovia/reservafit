@@ -20,3 +20,11 @@ export const loginSchema = z.object({
 // 3. Tipos exportados automáticamente para usarlos en tus Services y Repositories
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;
+
+// 4. Escudo Zod para la verificación de OTP
+export const verifyOtpSchema = z.object({
+  correo_electronico: z.string().email('Debe ser un correo electrónico válido'),
+  codigo_otp: z.string().length(6, 'El código OTP debe ser de 6 dígitos'),
+});
+
+export type VerifyOtpDTO = z.infer<typeof verifyOtpSchema>;

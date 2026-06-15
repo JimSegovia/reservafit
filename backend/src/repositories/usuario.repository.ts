@@ -11,12 +11,18 @@ export class UsuarioRepository {
   // 1. Verificar si el correo ya está registrado en Cuentas
   static async buscarPorCorreo(correo: string) {
     return prisma.cuenta.findUnique({
-      where: { correo_electronico: correo }
+      where: { correo_electronico: correo },
+      include: { usuario: true }
     });
   }
 
   // 2. Crear Usuario y Cuenta en una sola transacción
-  static async crearUsuarioConCuenta(data: RegisterDTO, contrasenaHasheada: string) {
+  static async crearUsuarioConCuenta(
+    data: RegisterDTO, 
+    contrasenaHasheada: string,
+    codigoOtp: string,
+    expiracionOtp: Date
+  ) {
     // Agregamos 'Prisma.TransactionClient' al parámetro 'tx' para que TypeScript y Railway no arrojen error
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
 
@@ -33,7 +39,10 @@ export class UsuarioRepository {
           id_usuario: nuevoUsuario.id_usuario,
           correo_electronico: data.correo_electronico,
           contrasena: contrasenaHasheada,
-          rol: data.rol || 'Cliente'
+          rol: data.rol || 'Cliente',
+          codigo_otp: codigoOtp,
+          expiracion_otp: expiracionOtp,
+          estado_verificacion: false
         }
       });
 
@@ -76,6 +85,18 @@ export class UsuarioRepository {
   static async obtenerTodos() {
     return prisma.usuario.findMany({
       include: { cuentas: { select: { correo_electronico: true, rol: true } } }
+    });
+  }
+
+  // 3. Activar cuenta y limpiar OTP
+  static async activarCuenta(correo: string) {
+    return prisma.cuenta.update({
+      where: { correo_electronico: correo },
+      data: {
+        estado_verificacion: true,
+        codigo_otp: null,
+        expiracion_otp: null
+      }
     });
   }
 }

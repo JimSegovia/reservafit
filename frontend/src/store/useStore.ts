@@ -65,7 +65,7 @@ interface AppState {
   // Auth state
   user: User | null;
   otpCode: string | null;
-  tempRegisterData: Partial<User> | null;
+  tempRegisterData: any | null;
   
   // Toast state
   toast: ToastInfo | null;
@@ -87,7 +87,7 @@ interface AppState {
   registerUser: (data: any) => Promise<boolean>;
   fetchClasses: () => Promise<void>;
   fetchInstructors: () => Promise<void>;
-  verifyOtp: (code: string) => boolean;
+  verifyOtp: (code: string) => Promise<boolean>;
   logout: () => void;
   
   // Instructor actions (CRUD)
@@ -185,15 +185,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { authService } = require('../services/auth.service');
       const response = await authService.login(email, password);
       
-      const { token, usuario } = response.data; // adjust based on actual backend response
+      const { token, cuenta } = response.data; 
       
-      const role = usuario.id_rol === 1 ? 'admin' : 'client'; // adjust based on backend logic
+      const role = cuenta.rol === 'Administrador' ? 'admin' : 'client'; 
       
       const userObj: User = {
-        id: usuario.id_usuario.toString(),
-        name: usuario.nombre,
-        email: usuario.email,
-        phone: usuario.telefono || '',
+        id: cuenta.id_usuario.toString(),
+        name: cuenta.usuario ? `${cuenta.usuario.nombres} ${cuenta.usuario.apellidos}` : cuenta.correo_electronico.split('@')[0],
+        email: cuenta.correo_electronico,
+        phone: cuenta.usuario?.celular || '',
         role: role
       };
       
@@ -217,8 +217,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const { authService } = require('../services/auth.service');
       await authService.register(data);
-      // Wait to verify OTP. We'll store data locally for OTP matching if we keep the OTP view.
-      set({ tempRegisterData: data, otpCode: '247196' }); // mockup OTP, you might want real email OTP soon
+      // Guardamos la información temporal para la auto-verificación y login automático
+      set({ tempRegisterData: data });
       return true;
     } catch (error) {
       console.error('Registration error:', error);
@@ -265,21 +265,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  verifyOtp: (code) => {
+  verifyOtp: async (code) => {
     const { tempRegisterData } = get();
-    if (code === '247196' && tempRegisterData) {
-      // Auto login as client
-      const newUser: User = {
-        id: 'client_' + Date.now(),
-        name: `${tempRegisterData.name || 'Invitado'} ${tempRegisterData.phone || ''}`.trim(),
-        email: tempRegisterData.email || 'correo@ejemplo.com',
-        phone: tempRegisterData.phone || '999888777',
-        role: 'client'
-      };
-      set({ user: newUser, tempRegisterData: null, otpCode: null });
-      return true;
+    if (!tempRegisterData || !tempRegisterData.correo_electronico) return false;
+    try {
+      const { authService } = require('../services/auth.service');
+      await authService.verifyOtp(tempRegisterData.correo_electronico, code);
+      
+      // Auto login tras verificación exitosa
+      const success = await get().login(tempRegisterData.correo_electronico, tempRegisterData.contrasena || '');
+      if (success) {
+        set({ tempRegisterData: null, otpCode: null });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      return false;
     }
-    return false;
   },
 
   logout: () => {

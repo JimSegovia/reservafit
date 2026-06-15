@@ -13,6 +13,7 @@ interface ButtonProps {
   loading?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
   className?: string;
+  textClassName?: string;
 }
 
 export function Button({
@@ -23,6 +24,7 @@ export function Button({
   loading = false,
   icon,
   className = '',
+  textClassName = '',
 }: ButtonProps) {
   const getVariantStyles = () => {
     switch (variant) {
@@ -85,7 +87,7 @@ export function Button({
               className="mr-2"
             />
           )}
-          <Text className={`text-base text-center ${textClass}`}>
+          <Text className={`text-base text-center ${textClass} ${textClassName}`}>
             {label}
           </Text>
         </View>
