@@ -12,6 +12,7 @@ import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-rea
 export default function AdminClassesScreen() {
   const router = useRouter();
   const classes = useAppStore((state) => state.classes);
+  const instructors = useAppStore((state) => state.instructors);
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
   const deleteClass = useAppStore((state) => state.deleteClass);
@@ -40,6 +41,7 @@ export default function AdminClassesScreen() {
   const [instructorName, setInstructorName] = useState('');
   const [price, setPrice] = useState('40');
   const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
+  const [showInstructorMenu, setShowInstructorMenu] = useState(false);
 
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
@@ -59,6 +61,7 @@ export default function AdminClassesScreen() {
     setInstructorName('');
     setPrice('40');
     setStatus('Activo');
+    setShowInstructorMenu(false);
     setModalVisible(true);
   };
 
@@ -69,6 +72,7 @@ export default function AdminClassesScreen() {
     setInstructorName(cls.instructorName);
     setPrice(cls.price.toString());
     setStatus(cls.status);
+    setShowInstructorMenu(false);
     setModalVisible(true);
   };
 
@@ -221,73 +225,101 @@ export default function AdminClassesScreen() {
       </ScrollView>
 
       {/* Add/Edit Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-cream rounded-t-[30px] p-6 gap-y-4">
-            <View className="flex-row justify-between items-center border-b border-gray-200 pb-3">
-              <Text className="text-xl font-extrabold text-black">
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/50 px-4">
+          <View className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-secondary">
                 {editingId ? 'Editar Clase' : 'Agregar Clase'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="black" />
+                <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Nombre de la Clase</Text>
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Nombre de la Clase</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Salsa Básica"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Horario y Días</Text>
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Horario y Días</Text>
               <TextInput
                 value={schedule}
                 onChangeText={setSchedule}
                 placeholder="Lun / Mié 6-7 PM"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Nombre del Instructor</Text>
-              <TextInput
-                value={instructorName}
-                onChangeText={setInstructorName}
-                placeholder="Juan Pérez"
-                placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
-              />
+            <View className="mb-4 relative z-50" style={{ zIndex: 50, elevation: 50 }}>
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Nombre del Instructor</Text>
+              <TouchableOpacity
+                onPress={() => setShowInstructorMenu(!showInstructorMenu)}
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 flex-row justify-between items-center"
+              >
+                <Text className={instructorName ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
+                  {instructorName || 'Selecciona un instructor'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+              </TouchableOpacity>
+              {showInstructorMenu && (
+                <View className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 z-50 overflow-hidden">
+                  <ScrollView>
+                    {instructors
+                      .filter((i) => i.status === 'Activo')
+                      .map((inst) => (
+                        <TouchableOpacity
+                          key={inst.id}
+                          onPress={() => {
+                            setInstructorName(inst.name);
+                            setShowInstructorMenu(false);
+                          }}
+                          className="p-3 border-b border-gray-100"
+                        >
+                          <Text className="text-secondary text-sm">{inst.name}</Text>
+                          <Text className="text-xs text-gray-400">{inst.specialty}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    {instructors.filter((i) => i.status === 'Activo').length === 0 && (
+                      <View className="p-3">
+                        <Text className="text-gray-400 text-sm text-center">No hay instructores activos</Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Precio (S/)</Text>
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Precio (S/)</Text>
               <TextInput
                 value={price}
                 onChangeText={setPrice}
                 placeholder="40"
                 keyboardType="numeric"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Estado</Text>
-              <View className="flex-row gap-x-4">
+            <View className="mb-6">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Estado</Text>
+              <View className="flex-row" style={{ gap: 12 }}>
                 <TouchableOpacity
                   onPress={() => setStatus('Activo')}
                   className={`flex-1 py-3 border rounded-xl items-center ${
                     status === 'Activo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-black'}`}>
+                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-secondary'}`}>
                     Activo
                   </Text>
                 </TouchableOpacity>
@@ -298,7 +330,7 @@ export default function AdminClassesScreen() {
                     status === 'Inactivo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-black'}`}>
+                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-secondary'}`}>
                     Inactivo
                   </Text>
                 </TouchableOpacity>
@@ -307,7 +339,7 @@ export default function AdminClassesScreen() {
 
             <TouchableOpacity
               onPress={handleSave}
-              className="w-full bg-primary py-4 rounded-xl items-center shadow-lg shadow-orange-500/20 mt-4"
+              className="w-full bg-primary py-4 rounded-xl items-center shadow-lg shadow-orange-500/20"
             >
               <Text className="text-white text-base font-bold">Guardar</Text>
             </TouchableOpacity>
