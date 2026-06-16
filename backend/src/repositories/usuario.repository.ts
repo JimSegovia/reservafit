@@ -59,7 +59,7 @@ export class UsuarioRepository {
     return prisma.usuario.findUnique({
       where: { id_usuario: id },
       include: {
-        cuenta: {
+        cuentas: {
           select: { correo_electronico: true, rol: true, estado_verificacion: true }
         },
         reservas: {
