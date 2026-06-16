@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, Instructor } from '@/store/useStore';
+import api from '@/api/api';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 export default function AdminInstructorsScreen() {
   const router = useRouter();
   const instructors = useAppStore((state) => state.instructors);
-  const addInstructor = useAppStore((state) => state.addInstructor);
-  const updateInstructor = useAppStore((state) => state.updateInstructor);
   const deleteInstructor = useAppStore((state) => state.deleteInstructor);
-
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
 
   const [search, setSearch] = useState('');
@@ -33,10 +31,18 @@ export default function AdminInstructorsScreen() {
   const [name, setName] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedClass, setSelectedClass] = useState('Todos');
+  const [selectedStatus, setSelectedStatus] = useState('Todos');
+  const [showClassMenu, setShowClassMenu] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
 
-  const filteredInstructors = instructors.filter((inst) =>
-    inst.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredInstructors = instructors.filter((inst) => {
+    const matchesSearch = inst.name.toLowerCase().includes(search.toLowerCase());
+    const matchesClass = selectedClass === 'Todos' || inst.specialty === selectedClass;
+    const matchesStatus = selectedStatus === 'Todos' || inst.status === selectedStatus;
+    return matchesSearch && matchesClass && matchesStatus;
+  });
 
   const openAddModal = () => {
     setEditingId(null);
@@ -54,16 +60,46 @@ export default function AdminInstructorsScreen() {
     setModalVisible(true);
   };
 
-  const handleSave = () => {
-    if (!name || !specialty) return;
-    
-    if (editingId) {
-      updateInstructor(editingId, { name, specialty, status });
-    } else {
-      addInstructor({ name, specialty, status });
+  const handleGuardarInstructor = async () => {
+    if (!name.trim() || !specialty.trim()) {
+      Alert.alert('Campos requeridos', 'Nombre y Especialidad son obligatorios.');
+      return;
     }
-    
-    setModalVisible(false);
+
+    setIsSubmitting(true);
+    try {
+      const names = name.trim().split(' ');
+      const firstName = names[0] || 'Instructor';
+      const lastName = names.slice(1).join(' ') || 'General';
+      const serializedFields = JSON.stringify({
+        specialty: specialty.trim(),
+        status
+      });
+
+      const payload = {
+        nombre: firstName,
+        apellidos: lastName,
+        foto_url: serializedFields
+      };
+
+      if (editingId) {
+        await api.patch(`/instructores/${editingId}`, payload);
+      } else {
+        await api.post('/instructores', payload);
+      }
+
+      setName('');
+      setSpecialty('');
+      setStatus('Activo');
+      setEditingId(null);
+      setModalVisible(false);
+      await fetchInstructors();
+    } catch (error: any) {
+      const message = error?.response?.data?.error || error?.message || 'Error al guardar instructor';
+      Alert.alert('Error', message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -81,7 +117,7 @@ export default function AdminInstructorsScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
-              <Text className="text-2xl font-extrabold text-black mt-0.5">Instructores</Text>
+              <Text className="text-2xl font-bold text-secondary mt-0.5">Instructores</Text>
             </View>
           </View>
 
@@ -94,20 +130,70 @@ export default function AdminInstructorsScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Search bar */}
-        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 mb-6">
-          <Ionicons name="search-outline" size={20} color="gray" />
-          <TextInput
-            placeholder="Buscar instructor"
-            value={search}
-            onChangeText={setSearch}
-            placeholderTextColor="#9CA3AF"
-            className="flex-1 ml-2 text-black text-sm p-0"
-          />
-        </Animated.View>
+        {/* Filters row */}
+        <View className="flex-row items-center flex-wrap gap-3 mb-6 relative z-50" style={{ zIndex: 50, elevation: 50 }}>
+          <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 w-72">
+            <Ionicons name="search-outline" size={20} color="gray" />
+            <TextInput
+              placeholder="Buscar instructor"
+              value={search}
+              onChangeText={setSearch}
+              placeholderTextColor="#9CA3AF"
+              className="flex-1 ml-2 text-black text-sm p-0"
+            />
+          </Animated.View>
+
+          <View className="relative z-50">
+            <TouchableOpacity
+              onPress={() => { setShowClassMenu(!showClassMenu); setShowStatusMenu(false); }}
+              className="flex-row items-center bg-white border border-gray-200 rounded-lg px-4 py-2.5 gap-2"
+            >
+              <Text className="text-sm font-medium text-secondary">Clase</Text>
+              <Text className="text-sm text-gray-500">{selectedClass}</Text>
+              <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+            </TouchableOpacity>
+            {showClassMenu && (
+              <View className="absolute top-full mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg py-1 z-50">
+                {['Todos', 'Salsa', 'Reggaeton', 'Bachata'].map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => { setSelectedClass(option); setShowClassMenu(false); }}
+                    className={`px-4 py-2.5 ${selectedClass === option ? 'bg-gray-50' : ''}`}
+                  >
+                    <Text className={`text-sm ${selectedClass === option ? 'text-primary font-medium' : 'text-secondary'}`}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <View className="relative z-50">
+            <TouchableOpacity
+              onPress={() => { setShowStatusMenu(!showStatusMenu); setShowClassMenu(false); }}
+              className="flex-row items-center bg-white border border-gray-200 rounded-lg px-4 py-2.5 gap-2"
+            >
+              <Text className="text-sm font-medium text-secondary">Estado</Text>
+              <Text className="text-sm text-gray-500">{selectedStatus}</Text>
+              <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+            </TouchableOpacity>
+            {showStatusMenu && (
+              <View className="absolute top-full mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg py-1 z-50">
+                {['Todos', 'Activo', 'Inactivo'].map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => { setSelectedStatus(option); setShowStatusMenu(false); }}
+                    className={`px-4 py-2.5 ${selectedStatus === option ? 'bg-gray-50' : ''}`}
+                  >
+                    <Text className={`text-sm ${selectedStatus === option ? 'text-primary font-medium' : 'text-secondary'}`}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
 
         {/* Instructors list */}
-        <View className="gap-y-4 mb-6">
+        <View className="gap-y-4 mb-6" style={{ zIndex: 1 }}>
           {filteredInstructors.length === 0 ? (
             <Text className="text-center text-gray-500 py-8">No se encontraron instructores.</Text>
           ) : (
@@ -118,7 +204,7 @@ export default function AdminInstructorsScreen() {
                   key={inst.id}
                   entering={FadeInDown.duration(200)}
                   layout={LinearTransition}
-                  className="bg-white border border-gray-250 rounded-2xl p-4 flex-row justify-between items-center"
+                  className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex-row justify-between items-center"
                 >
                   <View className="flex-row items-center flex-1">
                     {/* Circle Photo Placeholder */}
@@ -126,8 +212,8 @@ export default function AdminInstructorsScreen() {
                       <Ionicons name="person" size={22} color="gray" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-base font-extrabold text-black">{inst.name}</Text>
-                      <Text className="text-xs text-gray-500 mt-0.5">{inst.specialty}</Text>
+                      <Text className="text-base font-semibold text-secondary">{inst.name}</Text>
+                      <Text className="text-sm text-gray-500 font-normal mt-0.5">{inst.specialty}</Text>
                     </View>
                   </View>
 
@@ -165,50 +251,50 @@ export default function AdminInstructorsScreen() {
       </ScrollView>
 
       {/* Add/Edit Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-cream rounded-t-[30px] p-6 gap-y-4">
-            <View className="flex-row justify-between items-center border-b border-gray-200 pb-3">
-              <Text className="text-xl font-extrabold text-black">
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/50 px-4">
+          <View className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-secondary">
                 {editingId ? 'Editar Instructor' : 'Agregar Instructor'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="black" />
+                <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Nombre</Text>
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Nombre</Text>
               <TextInput
                 value={name}
                 onChangeText={setName}
                 placeholder="Juan Pérez"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Especialidad</Text>
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Especialidad</Text>
               <TextInput
                 value={specialty}
                 onChangeText={setSpecialty}
                 placeholder="Salsa / Bachata"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-black text-sm"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
-            <View>
-              <Text className="text-gray-500 font-bold text-xs mb-1">Estado</Text>
-              <View className="flex-row gap-x-4">
+            <View className="mb-6">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Estado</Text>
+              <View className="flex-row" style={{ gap: 12 }}>
                 <TouchableOpacity
                   onPress={() => setStatus('Activo')}
                   className={`flex-1 py-3 border rounded-xl items-center ${
                     status === 'Activo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-black'}`}>
+                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-secondary'}`}>
                     Activo
                   </Text>
                 </TouchableOpacity>
@@ -219,7 +305,7 @@ export default function AdminInstructorsScreen() {
                     status === 'Inactivo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-black'}`}>
+                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-secondary'}`}>
                     Inactivo
                   </Text>
                 </TouchableOpacity>
@@ -227,10 +313,11 @@ export default function AdminInstructorsScreen() {
             </View>
 
             <TouchableOpacity
-              onPress={handleSave}
-              className="w-full bg-primary py-4 rounded-xl items-center shadow-lg shadow-orange-500/20 mt-4"
+              onPress={handleGuardarInstructor}
+              disabled={isSubmitting}
+              className={`w-full py-4 rounded-xl items-center shadow-lg shadow-orange-500/20 ${isSubmitting ? 'bg-gray-400' : 'bg-primary'}`}
             >
-              <Text className="text-white text-base font-bold">Guardar</Text>
+              <Text className="text-white text-base font-bold">{isSubmitting ? 'Guardando...' : 'Guardar'}</Text>
             </TouchableOpacity>
           </View>
         </View>

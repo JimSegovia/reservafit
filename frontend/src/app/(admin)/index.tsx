@@ -34,6 +34,12 @@ export default function AdminDashboardScreen() {
     { nombre: 'Sofía Castro', clase: 'Zumba', fecha: '13/06/2025', monto: 'S/ 30.00', estado: 'Pagado' },
   ];
 
+  const filteredReservations = MOCK_RESERVATIONS.filter(
+    (r) =>
+      r.nombre.toLowerCase().includes(searchText.toLowerCase()) ||
+      r.clase.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const TABLE_HEADERS = ['Nombre', 'Clase', 'Fecha', 'Monto', 'Estado'];
 
   const getEstadoBadge = (estado: string) => {
@@ -58,7 +64,7 @@ export default function AdminDashboardScreen() {
       {/* Top Header */}
       <View className="flex-row justify-between items-center mb-8">
         <Animated.View entering={FadeInDown.duration(200)}>
-          <Text className="text-2xl font-extrabold text-secondary">¡Hola, Admin! 👋</Text>
+          <Text className="text-2xl font-bold text-secondary">¡Hola, Admin! 👋</Text>
           <Text className="text-sm text-gray-500 font-medium mt-1">Resumen general</Text>
         </Animated.View>
 
@@ -124,7 +130,7 @@ export default function AdminDashboardScreen() {
         </View>
 
         {/* Table Rows */}
-        {MOCK_RESERVATIONS.map((row, idx) => {
+        {filteredReservations.map((row, idx) => {
           const badge = getEstadoBadge(row.estado);
           return (
             <View
