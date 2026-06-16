@@ -1,49 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-
-import { Image as ExpoImage } from 'expo-image';
-
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function AdminDashboardScreen() {
-  const router = useRouter();
-  const logout = useAppStore((state) => state.logout);
-  
   const classes = useAppStore((state) => state.classes);
   const instructors = useAppStore((state) => state.instructors);
   const reservations = useAppStore((state) => state.reservations);
 
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const handleLogoutConfirm = () => {
-    setShowLogoutConfirm(false);
-    logout();
-    router.replace('/(auth)/landing');
-  };
-
-  // Dynamic calculations based on mock database state
   const activeClassesCount = classes.filter(c => c.status === 'Activo').length;
   const totalReservationsCount = reservations.filter(r => r.status === 'Pagado').length;
   const activeInstructorsCount = instructors.filter(i => i.status === 'Activo').length;
   const totalIncome = reservations
     .filter(r => r.status === 'Pagado')
     .reduce((sum, r) => sum + r.price, 0);
-
-  const quickLinks = [
-    { label: 'Instructores', icon: 'person-outline', route: '/(admin)/instructors' },
-    { label: 'Clases', icon: 'briefcase-outline', route: '/(admin)/classes-mgmt' },
-    { label: 'Historial', icon: 'receipt-outline', route: '/(admin)/bookings-history' },
-    { label: 'Registrar reserva manual', icon: 'calendar-outline', route: '/(admin)/manual-booking' },
-  ];
 
   const kpis = [
     { label: 'Clases hoy', val: activeClassesCount, icon: 'people', color: '#3B82F6' },
@@ -52,79 +25,133 @@ export default function AdminDashboardScreen() {
     { label: 'Ingresos hoy', val: `S/ ${totalIncome}`, icon: 'wallet', color: '#6B7280' },
   ];
 
+  const MOCK_RESERVATIONS = [
+    { nombre: 'Carlos Mendoza', clase: 'Salsa', fecha: '15/06/2025', monto: 'S/ 25.00', estado: 'Pagado' },
+    { nombre: 'Ana Torres', clase: 'Zumba', fecha: '15/06/2025', monto: 'S/ 30.00', estado: 'Pagado' },
+    { nombre: 'Luis García', clase: 'Bachata', fecha: '14/06/2025', monto: 'S/ 25.00', estado: 'Pendiente' },
+    { nombre: 'María López', clase: 'Salsa', fecha: '14/06/2025', monto: 'S/ 25.00', estado: 'Pagado' },
+    { nombre: 'Diego Ramírez', clase: 'Reageton', fecha: '13/06/2025', monto: 'S/ 25.00', estado: 'Cancelado' },
+    { nombre: 'Sofía Castro', clase: 'Zumba', fecha: '13/06/2025', monto: 'S/ 30.00', estado: 'Pagado' },
+  ];
+
+  const TABLE_HEADERS = ['Nombre', 'Clase', 'Fecha', 'Monto', 'Estado'];
+
+  const getEstadoBadge = (estado: string) => {
+    switch (estado) {
+      case 'Pagado':
+        return { bg: 'bg-success-bg', text: 'text-success-text' };
+      case 'Pendiente':
+        return { bg: 'bg-warning-bg', text: 'text-warning-text' };
+      case 'Cancelado':
+        return { bg: 'bg-danger-bg', text: 'text-danger-text' };
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-600' };
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-cream">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
-          <View className="flex-row items-center">
-            <ExpoImage
-              source={require('../../../assets/images/logo.svg')}
-              style={{ width: 150, height: 50 }}
-              contentFit="contain"
+    <ScrollView
+      className="flex-1 bg-cream"
+      contentContainerStyle={{ padding: 32, paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Top Header */}
+      <View className="flex-row justify-between items-center mb-8">
+        <Animated.View entering={FadeInDown.duration(200)}>
+          <Text className="text-2xl font-extrabold text-secondary">¡Hola, Admin! 👋</Text>
+          <Text className="text-sm text-gray-500 font-medium mt-1">Resumen general</Text>
+        </Animated.View>
+
+        <View className="flex-row items-center" style={{ gap: 12 }}>
+          <View className="flex-row items-center bg-white rounded-full border border-gray-200 px-4 py-2.5 max-w-md">
+            <Ionicons name="search" size={18} color="#9CA3AF" />
+            <TextInput
+              placeholder="Buscar..."
+              placeholderTextColor="#9CA3AF"
+              value={searchText}
+              onChangeText={setSearchText}
+              className="ml-2 text-sm text-secondary flex-1"
+              style={{ outlineWidth: 0 }}
             />
           </View>
-          <TouchableOpacity onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={28} color="black" />
+          <TouchableOpacity className="w-10 h-10 rounded-xl bg-white items-center justify-center border border-gray-200">
+            <Ionicons name="notifications-outline" size={20} color="#1F0F08" />
           </TouchableOpacity>
-        </Animated.View>
+        </View>
+      </View>
 
-        {/* Salutation */}
-        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="mb-6">
-          <Text className="text-2xl font-extrabold text-black">¡Hola, Admin! 👋</Text>
-          <Text className="text-sm text-gray-500 font-bold mt-1">Resumen general</Text>
-        </Animated.View>
-
-        {/* KPI Cards Grid */}
-        <View className="flex-row flex-wrap justify-between gap-y-4 mb-6">
-          {kpis.map((kpi, idx) => (
-            <Animated.View
-              key={idx}
-              entering={ZoomIn.duration(200).delay(80 + idx * 30)}
-              className="w-[47%] bg-white border border-gray-150 rounded-3xl p-4 shadow-sm items-center"
+      {/* Stats Cards */}
+      <View className="flex-row flex-wrap mb-8" style={{ gap: 16 }}>
+        {kpis.map((kpi, idx) => (
+          <Animated.View
+            key={idx}
+            entering={ZoomIn.duration(200).delay(80 + idx * 40)}
+            className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm p-5"
+            style={{ minWidth: 180 }}
+          >
+            <View
+              className="w-11 h-11 rounded-lg items-center justify-center mb-4"
+              style={{ backgroundColor: `${kpi.color}18` }}
             >
-              <Ionicons name={kpi.icon as any} size={24} color={kpi.color} />
-              <Text className="text-xs text-gray-400 font-bold mt-2">{kpi.label}</Text>
-              <Text className="text-[20px] font-extrabold text-black mt-1">{kpi.val}</Text>
-            </Animated.View>
+              <Ionicons name={kpi.icon as any} size={20} color={kpi.color} />
+            </View>
+            <Text className="text-xs text-secondary/50 font-semibold">{kpi.label}</Text>
+            <Text className="text-2xl font-bold text-secondary mt-1">{kpi.val}</Text>
+          </Animated.View>
+        ))}
+      </View>
+
+      {/* Table Card */}
+      <View className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <View className="px-6 py-5 border-b border-gray-100">
+          <Text className="text-lg font-bold text-secondary">Reservas</Text>
+        </View>
+
+        {/* Table Header */}
+        <View className="flex-row bg-cream px-6 py-3.5">
+          <Text style={{ flex: 2 }} className="text-xs font-bold text-secondary/60">
+            {TABLE_HEADERS[0]}
+          </Text>
+          {TABLE_HEADERS.slice(1).map((header, idx) => (
+            <Text
+              key={idx}
+              style={{ flex: 1 }}
+              className="text-xs font-bold text-secondary/60"
+            >
+              {header}
+            </Text>
           ))}
         </View>
 
-        {/* Quick Links Section */}
-        <Animated.View entering={FadeInDown.duration(200).delay(150)} className="bg-white border border-gray-155 rounded-3xl p-5 shadow-sm mb-6">
-          <Text className="text-base font-extrabold text-black mb-4">Accesos rápidos</Text>
-          
-          <View className="gap-y-3">
-            {quickLinks.map((link, idx) => (
-              <TouchableOpacity
-                key={idx}
-                onPress={() => router.push(link.route as any)}
-                className="flex-row items-center justify-between border border-gray-150 rounded-2xl p-4 bg-gray-50/50"
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name={link.icon as any} size={22} color="black" className="mr-3" />
-                  <Text className="text-sm font-bold text-black">{link.label}</Text>
+        {/* Table Rows */}
+        {MOCK_RESERVATIONS.map((row, idx) => {
+          const badge = getEstadoBadge(row.estado);
+          return (
+            <View
+              key={idx}
+              className="flex-row px-6 py-4 border-b border-gray-50 items-center"
+            >
+              <Text style={{ flex: 2 }} className="text-sm font-semibold text-secondary">
+                {row.nombre}
+              </Text>
+              <Text style={{ flex: 1 }} className="text-sm text-gray-500">
+                {row.clase}
+              </Text>
+              <Text style={{ flex: 1 }} className="text-sm text-gray-500">
+                {row.fecha}
+              </Text>
+              <Text style={{ flex: 1 }} className="text-sm font-semibold text-secondary">
+                {row.monto}
+              </Text>
+              <View style={{ flex: 1 }}>
+                <View className={`rounded-full px-3 py-1 self-start ${badge.bg}`}>
+                  <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="gray" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Animated.View>
-      </ScrollView>
-
-      <ConfirmDialog
-        visible={showLogoutConfirm}
-        title="Cerrar sesión"
-        message="¿Estás seguro de que deseas salir del panel de administración?"
-        confirmLabel="Salir"
-        cancelLabel="Volver"
-        onConfirm={handleLogoutConfirm}
-        onCancel={() => setShowLogoutConfirm(false)}
-        variant="default"
-      />
-    </SafeAreaView>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </ScrollView>
   );
 }
