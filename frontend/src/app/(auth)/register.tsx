@@ -123,11 +123,10 @@ export default function RegisterScreen() {
 
     try {
       const success = await registerUser({
-        nombres: name,
-        apellidos: lastName,
-        correo_electronico: email,
-        celular: phone,
-        contrasena: password,
+        name: `${name} ${lastName}`,
+        email: email,
+        phone: phone,
+        password: password,
       });
 
       if (success) {
