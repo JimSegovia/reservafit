@@ -12,7 +12,6 @@ import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-rea
 export default function AdminClassesScreen() {
   const router = useRouter();
   const classes = useAppStore((state) => state.classes);
-  const instructors = useAppStore((state) => state.instructors);
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
   const deleteClass = useAppStore((state) => state.deleteClass);
@@ -37,11 +36,7 @@ export default function AdminClassesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
-  const [schedule, setSchedule] = useState('');
-  const [instructorName, setInstructorName] = useState('');
-  const [price, setPrice] = useState('40');
-  const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
-  const [showInstructorMenu, setShowInstructorMenu] = useState(false);
+  const [description, setDescription] = useState('');
 
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
@@ -57,45 +52,41 @@ export default function AdminClassesScreen() {
   const openAddModal = () => {
     setEditingId(null);
     setTitle('');
-    setSchedule('');
-    setInstructorName('');
-    setPrice('40');
-    setStatus('Activo');
-    setShowInstructorMenu(false);
+    setDescription('');
     setModalVisible(true);
   };
 
   const openEditModal = (cls: ClassItem) => {
-    setEditingId(cls.id);
+    const classId = cls.id_clase || cls.id;
+    setEditingId(classId);
     setTitle(cls.title);
-    setSchedule(cls.schedule);
-    setInstructorName(cls.instructorName);
-    setPrice(cls.price.toString());
-    setStatus(cls.status);
-    setShowInstructorMenu(false);
+    setDescription(cls.theme || '');
     setModalVisible(true);
   };
 
   const handleSave = () => {
-    if (!title || !schedule || !instructorName) {
-      showToast('Por favor completa todos los campos obligatorios.', 'warning');
+    if (!title.trim()) {
+      showToast('Por favor ingresa el nombre de la clase.', 'warning');
       return;
     }
     
-    const parsedPrice = parseFloat(price) || 0;
-
     if (editingId) {
-      updateClass(editingId, { title, schedule, instructorName, price: parsedPrice, status });
+      if (!editingId || editingId === 'undefined') {
+        showToast('No se encontró el ID de la clase a editar.', 'error');
+        return;
+      }
+      updateClass(editingId, { title, theme: description.trim() });
       showToast('Clase actualizada con éxito.', 'success');
     } else {
       addClass({
         title,
-        schedule,
-        instructorName,
-        price: parsedPrice,
-        status,
+        schedule: '',
+        instructorName: '',
+        price: 0,
+        status: 'Activo',
         capacity: 30,
-        enrolled: 0
+        enrolled: 0,
+        theme: description.trim()
       });
       showToast('Clase creada con éxito.', 'success');
     }
@@ -159,8 +150,8 @@ export default function AdminClassesScreen() {
           />
         </Animated.View>
 
-        {/* Classes List */}
-        <View className="gap-y-4 mb-6">
+        {/* Classes Grid */}
+        <View className="flex-row flex-wrap gap-4 mb-6">
           {filteredClasses.length === 0 ? (
             <EmptyState
               variant="no-results"
@@ -170,56 +161,40 @@ export default function AdminClassesScreen() {
               onAction={search ? () => setSearch('') : openAddModal}
             />
           ) : (
-            filteredClasses.map((cls) => {
-              const isActive = cls.status === 'Activo';
-              return (
-                <Animated.View
-                  key={cls.id}
-                  entering={FadeInDown.duration(200)}
-                  layout={LinearTransition}
-                  className="bg-white border border-gray-250 rounded-2xl p-4 flex-row justify-between items-center"
-                >
-                  <View className="flex-row items-center flex-1 mr-2">
-                    {/* Circle Image Placeholder */}
-                    <View className="w-12 h-12 rounded-xl bg-gray-200 mr-3 items-center justify-center">
-                      <Ionicons name="calendar" size={22} color="gray" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-extrabold text-black">{cls.title}</Text>
-                      <Text className="text-xs text-gray-400 font-bold mt-0.5">{cls.schedule}</Text>
-                      <Text className="text-[10px] text-gray-500 font-medium">Instructor: {cls.instructorName}</Text>
-                    </View>
+            filteredClasses.map((cls) => (
+              <Animated.View
+                key={cls.id}
+                entering={FadeInDown.duration(200)}
+                layout={LinearTransition}
+                className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm"
+                style={{ width: '48%' as any }}
+              >
+                <View className="flex-row justify-between items-start mb-3">
+                  <View className="w-10 h-10 rounded-xl bg-orange-50 items-center justify-center">
+                    <Ionicons name="fitness-outline" size={20} color="#FF7A00" />
                   </View>
-
-                  <View className="flex-row items-center gap-x-2">
-                    {/* Status badge */}
-                    <View
-                      className={`px-3 py-1 rounded-full border ${
-                        isActive ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300'
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-bold ${
-                          isActive ? 'text-green-700' : 'text-gray-500'
-                        }`}
-                      >
-                        {cls.status}
-                      </Text>
-                    </View>
-
-                    {/* Edit button */}
+                  <View className="flex-row gap-x-1">
                     <TouchableOpacity onPress={() => openEditModal(cls)} className="p-1">
-                      <Ionicons name="pencil-outline" size={20} color="black" />
+                      <Ionicons name="pencil-outline" size={16} color="#9CA3AF" />
                     </TouchableOpacity>
-
-                    {/* Delete button */}
-                    <TouchableOpacity onPress={() => promptDeleteClass(cls.id)} className="p-1">
-                      <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                    <TouchableOpacity onPress={() => promptDeleteClass(cls.id_clase || cls.id)} className="p-1">
+                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
-                </Animated.View>
-              );
-            })
+                </View>
+                <Text className="text-lg font-bold text-secondary mb-1" numberOfLines={1}>{cls.title}</Text>
+                <Text className="text-xs text-gray-400 mb-4" numberOfLines={2}>
+                  {cls.theme || 'Sin descripción'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}`)}
+                  className="flex-row items-center justify-center bg-primary/10 rounded-xl py-2.5"
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#FF7A00" />
+                  <Text className="text-primary font-bold text-xs ml-1.5">Gestionar Horarios</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            ))
           )}
         </View>
       </ScrollView>
@@ -248,93 +223,18 @@ export default function AdminClassesScreen() {
               />
             </View>
 
-            <View className="mb-4">
-              <Text className="text-gray-500 font-bold text-xs mb-1.5">Horario y Días</Text>
-              <TextInput
-                value={schedule}
-                onChangeText={setSchedule}
-                placeholder="Lun / Mié 6-7 PM"
-                placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
-              />
-            </View>
-
-            <View className="mb-4 relative z-50" style={{ zIndex: 50, elevation: 50 }}>
-              <Text className="text-gray-500 font-bold text-xs mb-1.5">Nombre del Instructor</Text>
-              <TouchableOpacity
-                onPress={() => setShowInstructorMenu(!showInstructorMenu)}
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 flex-row justify-between items-center"
-              >
-                <Text className={instructorName ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
-                  {instructorName || 'Selecciona un instructor'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
-              </TouchableOpacity>
-              {showInstructorMenu && (
-                <View className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 z-50 overflow-hidden">
-                  <ScrollView>
-                    {instructors
-                      .filter((i) => i.status === 'Activo')
-                      .map((inst) => (
-                        <TouchableOpacity
-                          key={inst.id}
-                          onPress={() => {
-                            setInstructorName(inst.name);
-                            setShowInstructorMenu(false);
-                          }}
-                          className="p-3 border-b border-gray-100"
-                        >
-                          <Text className="text-secondary text-sm">{inst.name}</Text>
-                          <Text className="text-xs text-gray-400">{inst.specialty}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    {instructors.filter((i) => i.status === 'Activo').length === 0 && (
-                      <View className="p-3">
-                        <Text className="text-gray-400 text-sm text-center">No hay instructores activos</Text>
-                      </View>
-                    )}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
-
-            <View className="mb-4">
-              <Text className="text-gray-500 font-bold text-xs mb-1.5">Precio (S/)</Text>
-              <TextInput
-                value={price}
-                onChangeText={setPrice}
-                placeholder="40"
-                keyboardType="numeric"
-                placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
-              />
-            </View>
-
             <View className="mb-6">
-              <Text className="text-gray-500 font-bold text-xs mb-1.5">Estado</Text>
-              <View className="flex-row" style={{ gap: 12 }}>
-                <TouchableOpacity
-                  onPress={() => setStatus('Activo')}
-                  className={`flex-1 py-3 border rounded-xl items-center ${
-                    status === 'Activo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
-                  }`}
-                >
-                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-secondary'}`}>
-                    Activo
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setStatus('Inactivo')}
-                  className={`flex-1 py-3 border rounded-xl items-center ${
-                    status === 'Inactivo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
-                  }`}
-                >
-                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-secondary'}`}>
-                    Inactivo
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Descripción / Temática</Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Aprende los fundamentos de la salsa cubana..."
+                placeholderTextColor="#9CA3AF"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm min-h-[80px]"
+              />
             </View>
 
             <TouchableOpacity

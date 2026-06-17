@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, Instructor } from '@/store/useStore';
@@ -103,11 +103,12 @@ export default function AdminInstructorsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }} 
         showsVerticalScrollIndicator={false}
         className="flex-1 px-6 py-4"
+        style={{ flex: 1 }}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
@@ -322,6 +323,6 @@ export default function AdminInstructorsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
