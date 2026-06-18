@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { parseDateTime } from '@/utils/date';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
@@ -80,7 +81,7 @@ export default function HorariosDisponiblesScreen() {
     const targetDate = selectedDayObj.date;
     
     const matchingSessions = classSessions.filter((s: any) => {
-      const sDate = new Date(s.fecha_hora_inicio);
+      const sDate = parseDateTime(s.fecha_hora_inicio);
       return sDate.getDate() === targetDate.getDate() &&
              sDate.getMonth() === targetDate.getMonth() &&
              sDate.getFullYear() === targetDate.getFullYear();
@@ -88,8 +89,8 @@ export default function HorariosDisponiblesScreen() {
 
     if (matchingSessions.length > 0) {
       return matchingSessions.map((s: any) => {
-        const startTime = new Date(s.fecha_hora_inicio);
-        const endTime = new Date(s.fecha_hora_fin);
+        const startTime = parseDateTime(s.fecha_hora_inicio);
+        const endTime = parseDateTime(s.fecha_hora_fin);
         
         const formatTime = (d: Date) => {
           let hours = d.getHours();

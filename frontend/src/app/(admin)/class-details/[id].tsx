@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Moda
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
+import { parseDateTime } from '@/utils/date';
 import api from '@/api/api';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
@@ -141,13 +142,27 @@ export default function ClassDetailsScreen() {
         ) : (
           schedules.map((schedule) => {
             const statusStyle = STATUS_STYLES[schedule.estado] || STATUS_STYLES.Disponible;
-            const startDate = new Date(schedule.fecha_hora_inicio);
-            const endDate = new Date(schedule.fecha_hora_fin);
-            const startTimeStr = startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const endTimeStr = endDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const fechaStr = startDate.toLocaleDateString('es-ES');
-            const horaInicio24 = startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-            const horaFin24 = endDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const startDate = parseDateTime(schedule.fecha_hora_inicio);
+            const endDate = parseDateTime(schedule.fecha_hora_fin);
+
+            console.log('DEBUG Schedule:', {
+              raw: schedule.fecha_hora_inicio,
+              parsed: startDate.toString(),
+              valid: !isNaN(startDate.getTime())
+            });
+
+            const fmtTime = (d: Date) =>
+              isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const fmtDate = (d: Date) =>
+              isNaN(d.getTime()) ? '--/--/--' : d.toLocaleDateString('es-ES');
+            const fmtTime24 = (d: Date) =>
+              isNaN(d.getTime()) ? '00:00' : d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const startTimeStr = fmtTime(startDate);
+            const endTimeStr = fmtTime(endDate);
+            const fechaStr = fmtDate(startDate);
+            const horaInicio24 = fmtTime24(startDate);
+            const horaFin24 = fmtTime24(endDate);
+
             return (
               <View
                 key={schedule.id_detalle_clase}

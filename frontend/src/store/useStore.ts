@@ -4,6 +4,7 @@ import { classesService } from '../services/classes.service';
 import { instructorsService } from '../services/instructors.service';
 import { reservationsService } from '../services/reservations.service';
 import api from '../api/api';
+import { parseDateTime } from '../utils/date';
 import { Platform } from 'react-native';
 
 // Types
@@ -134,8 +135,8 @@ interface AppState {
 
 // Helpers to format date/time slots
 const formatTimeSlot = (startStr: string, endStr: string) => {
-  const start = new Date(startStr);
-  const end = new Date(endStr);
+  const start = parseDateTime(startStr);
+  const end = parseDateTime(endStr);
   const formatTime = (d: Date) => {
     let hours = d.getHours();
     const minutes = d.getMinutes().toString().padStart(2, '0');
@@ -148,7 +149,7 @@ const formatTimeSlot = (startStr: string, endStr: string) => {
 };
 
 const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr);
+  const d = parseDateTime(dateStr);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
@@ -289,7 +290,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         } catch (e) {}
 
         const days = classSchedules.map((a: any) => {
-          const d = new Date(a.fecha_hora_inicio);
+          const d = parseDateTime(a.fecha_hora_inicio);
           const labels = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
           const dayNum = d.getDate().toString().padStart(2, '0');
           const monthNum = (d.getMonth() + 1).toString().padStart(2, '0');
