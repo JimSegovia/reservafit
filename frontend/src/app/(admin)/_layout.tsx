@@ -1,76 +1,106 @@
-import { Tabs } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
+import { useAppStore } from '@/store/useStore';
+import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
-export default function AdminTabsLayout() {
-  const insets = useSafeAreaInsets();
-  const bottomPad = Math.max(8, insets.bottom || 8);
+export default function AdminLayout() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const logout = useAppStore((state) => state.logout);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const navItems = [
+    { label: 'Dashboard', icon: 'grid-outline', route: '/(admin)' },
+    { label: 'Instructores', icon: 'people-outline', route: '/(admin)/instructors' },
+    { label: 'Clases', icon: 'calendar-outline', route: '/(admin)/classes-mgmt' },
+    { label: 'Historial', icon: 'receipt-outline', route: '/(admin)/bookings-history' },
+    { label: 'Reservar', icon: 'book-outline', route: '/(admin)/manual-booking' },
+  ];
+
+  const isActive = (route: string) => {
+    if (route === '/(admin)') return pathname === '/';
+    const slug = route.split('/').pop();
+    return pathname === `/${slug}`;
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    router.replace('/(auth)/landing');
+  };
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#white',
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-          height: 60 + bottomPad,
-          paddingBottom: bottomPad,
-          paddingTop: 8,
-        },
-        tabBarActiveTintColor: '#FF7A00',
-        tabBarInactiveTintColor: 'gray',
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: 'bold',
-        }
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Inicio',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={20} color={color} />
-          )
-        }}
+    <View className="flex-row h-screen bg-cream">
+      {/* Sidebar */}
+      <View className="w-64 bg-secondary flex-col justify-between px-4 py-6">
+        <View>
+          <TouchableOpacity
+            onPress={() => router.push('/(admin)')}
+            className="mb-10 px-2"
+          >
+            <ExpoImage
+              source={require('../../../assets/images/logo.svg')}
+              style={{ width: 150, height: 45 }}
+              contentFit="contain"
+            />
+          </TouchableOpacity>
+
+          <View className="gap-y-0.5">
+            {navItems.map((item, idx) => {
+              const active = isActive(item.route);
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => router.push(item.route as any)}
+                  className={`flex-row items-center px-3 py-2.5 rounded-xl ${
+                    active ? 'bg-primary' : ''
+                  }`}
+                >
+                  <Ionicons
+                    name={item.icon as any}
+                    size={20}
+                    color={active ? '#FFFFFF' : '#9CA3AF'}
+                  />
+                  <Text
+                    className={`ml-3 text-sm font-semibold ${
+                      active ? 'text-white' : 'text-gray-400'
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => setShowLogoutConfirm(true)}
+          className="flex-row items-center px-3 py-2.5 rounded-xl mb-2"
+        >
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Text className="ml-3 text-sm font-semibold text-red-400">Cerrar sesión</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Content Area */}
+      <View className="flex-1">
+        <Stack screenOptions={{ headerShown: false }} />
+      </View>
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas salir del panel de administración?"
+        confirmLabel="Salir"
+        cancelLabel="Volver"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="default"
       />
-      <Tabs.Screen
-        name="instructors"
-        options={{
-          title: 'Instructores',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "people" : "people-outline"} size={20} color={color} />
-          )
-        }}
-      />
-      <Tabs.Screen
-        name="classes-mgmt"
-        options={{
-          title: 'Clases',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "calendar" : "calendar-outline"} size={20} color={color} />
-          )
-        }}
-      />
-      <Tabs.Screen
-        name="manual-booking"
-        options={{
-          title: 'Reservar',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} size={20} color={color} />
-          )
-        }}
-      />
-      <Tabs.Screen
-        name="bookings-history"
-        options={{
-          title: 'Reservas',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "cart" : "cart-outline"} size={20} color={color} />
-          )
-        }}
-      />
-    </Tabs>
+    </View>
   );
 }

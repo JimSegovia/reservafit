@@ -24,6 +24,7 @@ export interface Instructor {
 
 export interface ClassItem {
   id: string;
+  id_clase?: string;
   title: string;
   instructorName: string;
   schedule: string;
@@ -465,6 +466,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   updateClass: async (id, updatedFields) => {
     try {
+      if (!id || id === 'undefined') {
+        console.error('updateClass: ID inválido', id);
+        return;
+      }
       const existing = get().classes.find(c => c.id === id);
       if (!existing) return;
 

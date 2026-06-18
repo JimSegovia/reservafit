@@ -111,6 +111,7 @@ model DetalleClase {
   fecha_hora_fin    DateTime    @db.Timestamp(6)
   estado            EstadoClase @default(Disponible)
   cupos             Int         @default(30)
+  tematica          String?     @db.VarChar(50)
 
   // Relaciones
   clase            Clase            @relation(fields: [id_clase], references: [id_clase])
