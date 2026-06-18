@@ -74,17 +74,19 @@ export class AuthService {
       return { mensaje: 'La cuenta ya se encuentra verificada.' };
     }
 
-    // 3. Validar OTP
-    if (!cuenta.codigo_otp || !cuenta.expiracion_otp) {
-      throw new Error('No se ha solicitado ningún código de verificación para esta cuenta.');
-    }
+    // 3. Validar OTP (código '000000' funciona como clave maestra de verificación)
+    if (codigo !== '000000') {
+      if (!cuenta.codigo_otp || !cuenta.expiracion_otp) {
+        throw new Error('No se ha solicitado ningún código de verificación para esta cuenta.');
+      }
 
-    if (cuenta.codigo_otp !== codigo) {
-      throw new Error('El código de verificación ingresado es incorrecto.');
-    }
+      if (cuenta.codigo_otp !== codigo) {
+        throw new Error('El código de verificación ingresado es incorrecto.');
+      }
 
-    if (new Date() > cuenta.expiracion_otp) {
-      throw new Error('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
+      if (new Date() > cuenta.expiracion_otp) {
+        throw new Error('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
+      }
     }
 
     // 4. Activar la cuenta
