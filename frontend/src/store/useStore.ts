@@ -126,6 +126,7 @@ interface AppState {
     schedule: string;
     paymentType: 'Efectivo' | 'Tarjeta';
     price: number;
+    selectedSeats?: number[];
   }) => Promise<boolean>;
 
   showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
@@ -691,26 +692,36 @@ export const useAppStore = create<AppState>((set, get) => ({
         match = newDetail.data.data;
       }
       
-      const occupiedResponse = await api.get(`/detalles-reserva/ocupados/${match.id_detalle_clase}`);
-      const occupied = occupiedResponse.data.data || [];
-      let chosenSeat = 1;
-      for (let i = 1; i <= 30; i++) {
-        if (!occupied.includes(i)) {
-          chosenSeat = i;
-          break;
+      const seatsToBook = bookingData.selectedSeats && bookingData.selectedSeats.length > 0 
+        ? bookingData.selectedSeats 
+        : [];
+        
+      if (seatsToBook.length === 0) {
+        // Fallback: auto-assign one seat
+        const occupiedResponse = await api.get(`/detalles-reserva/ocupados/${match.id_detalle_clase}`);
+        const occupied = occupiedResponse.data.data || [];
+        let chosenSeat = 1;
+        for (let i = 1; i <= 30; i++) {
+          if (!occupied.includes(i)) {
+            chosenSeat = i;
+            break;
+          }
         }
+        seatsToBook.push(chosenSeat);
       }
 
-      const resResponse = await api.post('/reservas/reservas', {
-        id_usuario: userId,
-        id_detalle_clase: match.id_detalle_clase,
-        numero_cupo: chosenSeat
-      });
+      for (const seatNum of seatsToBook) {
+        const resResponse = await api.post('/reservas/reservas', {
+          id_usuario: userId,
+          id_detalle_clase: match.id_detalle_clase,
+          numero_cupo: seatNum
+        });
 
-      const reservationId = resResponse.data.reserva.id_reserva;
-      await api.patch(`/reservas/${reservationId}`, {
-        estado: 'Confirmada'
-      });
+        const reservationId = resResponse.data.reserva.id_reserva;
+        await api.patch(`/reservas/${reservationId}`, {
+          estado: 'Confirmada'
+        });
+      }
 
       if (get().user?.role === 'admin') {
         const resData = await reservationsService.getAll();
