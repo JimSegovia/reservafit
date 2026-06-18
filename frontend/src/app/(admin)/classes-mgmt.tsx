@@ -187,7 +187,7 @@ export default function AdminClassesScreen() {
                   {cls.theme || 'Sin descripción'}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}`)}
+                  onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}` as any)}
                   className="flex-row items-center justify-center bg-primary/10 rounded-xl py-2.5"
                 >
                   <Ionicons name="calendar-outline" size={16} color="#FF7A00" />

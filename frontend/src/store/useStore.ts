@@ -307,7 +307,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           capacity: classSchedules[0]?.cupos || 30,
           enrolled: 0,
           price,
-          theme: c.tematica || undefined,
+          theme: classSchedules[0]?.tematica || undefined,
           days: days.length > 0 ? Array.from(new Set(days)) : ['LUNES 10/05'],
           slots: slots.length > 0 ? Array.from(new Set(slots)) : ['6:00 PM - 7:00 PM'],
           image: c.imagen_url || undefined
@@ -454,7 +454,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         nombre: classItem.title,
         descripcion: descObj,
         dia: classItem.schedule,
-        tematica: classItem.theme || 'General',
         imagen_url: classItem.image || ''
       });
 
@@ -485,7 +484,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         nombre: merged.title,
         descripcion: descObj,
         dia: merged.schedule,
-        tematica: merged.theme || 'General',
         imagen_url: merged.image || ''
       });
 
