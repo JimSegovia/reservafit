@@ -77,7 +77,6 @@ model Clase {
   nombre      String  @db.VarChar(100)
   descripcion String  @db.VarChar(500)
   dia         String  @db.VarChar(100)
-  tematica    String? @db.VarChar(50)
   imagen_url  String? @db.VarChar(300)
 
   // Relaciones

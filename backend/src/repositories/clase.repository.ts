@@ -9,7 +9,6 @@ export class ClaseRepository {
         nombre: data.nombre,
         descripcion: data.descripcion,
         dia: data.dia,
-        tematica: data.tematica,
         imagen_url: data.imagen_url
       }
     });
