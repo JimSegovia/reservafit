@@ -77,7 +77,6 @@ model Clase {
   nombre      String  @db.VarChar(100)
   descripcion String  @db.VarChar(500)
   dia         String  @db.VarChar(100)
-  tematica    String? @db.VarChar(50)
   imagen_url  String? @db.VarChar(300)
 
   // Relaciones
@@ -111,7 +110,7 @@ model DetalleClase {
   fecha_hora_fin    DateTime    @db.Timestamp(6)
   estado            EstadoClase @default(Disponible)
   cupos             Int         @default(30)
-  tematica          String?     @db.VarChar(50)
+  tematica          String?
 
   // Relaciones
   clase            Clase            @relation(fields: [id_clase], references: [id_clase])

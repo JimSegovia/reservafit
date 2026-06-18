@@ -37,7 +37,6 @@ CREATE TABLE "Clases" (
     "nombre" VARCHAR(100) NOT NULL,
     "descripcion" VARCHAR(500) NOT NULL,
     "dia" VARCHAR(100) NOT NULL,
-    "tematica" VARCHAR(50),
     "imagen_url" VARCHAR(300),
     CONSTRAINT "Clases_pkey" PRIMARY KEY ("id_clase")
 );
@@ -63,6 +62,7 @@ CREATE TABLE "Detalles_Clase" (
     "fecha_hora_fin" TIMESTAMP(6) NOT NULL,
     "estado" "EstadoClase" NOT NULL DEFAULT 'Disponible',
     "cupos" INTEGER NOT NULL DEFAULT 30,
+    "tematica" TEXT,
     CONSTRAINT "Detalles_Clase_pkey" PRIMARY KEY ("id_detalle_clase")
 );
 
