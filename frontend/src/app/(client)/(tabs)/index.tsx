@@ -316,7 +316,7 @@ export default function ClientHomeScreen() {
                               style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
                               resizeMode="cover"
                             />
-                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: cls.title, time: '7:00 PM - 8:00 PM', date: '12 May 2025', seat: '13', status: 'Pagado' })}>
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: cls.title, time: '7:00 PM - 8:00 PM', date: `${new Date().getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()]} ${new Date().getFullYear()}`, seat: '13', status: 'Pagado' })}>
                             <View>
                                 <Text className="text-[14px] font-bold text-black">
                                 {cls.title}
