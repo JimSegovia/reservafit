@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, Instructor } from '@/store/useStore';
@@ -9,6 +9,8 @@ import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-rea
 
 export default function AdminInstructorsScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const instructors = useAppStore((state) => state.instructors);
   const deleteInstructor = useAppStore((state) => state.deleteInstructor);
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
@@ -105,9 +107,9 @@ export default function AdminInstructorsScreen() {
   return (
     <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
+        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -132,8 +134,8 @@ export default function AdminInstructorsScreen() {
         </Animated.View>
 
         {/* Filters row */}
-        <View className="flex-row items-center flex-wrap gap-3 mb-6 relative z-50" style={{ zIndex: 50, elevation: 50 }}>
-          <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 w-72">
+        <View className={`${isMobile ? 'flex-col' : 'flex-row items-center flex-wrap'} gap-3 mb-6 relative z-50`} style={{ zIndex: 50, elevation: 50 }}>
+          <Animated.View entering={FadeInDown.duration(200).delay(50)} className={`flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 ${isMobile ? 'w-full' : 'w-72'}`}>
             <Ionicons name="search-outline" size={20} color="gray" />
             <TextInput
               placeholder="Buscar instructor"
@@ -205,44 +207,48 @@ export default function AdminInstructorsScreen() {
                   key={inst.id}
                   entering={FadeInDown.duration(200)}
                   layout={LinearTransition}
-                  className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex-row justify-between items-center"
+                  className={`bg-white border border-gray-200 rounded-2xl shadow-sm p-4 ${isMobile ? '' : 'flex-row justify-between items-center'}`}
                 >
-                  <View className="flex-row items-center flex-1">
-                    {/* Circle Photo Placeholder */}
-                    <View className="w-12 h-12 rounded-full bg-gray-200 mr-3 items-center justify-center">
-                      <Ionicons name="person" size={22} color="gray" />
+                  <View className={`${isMobile ? 'flex-col' : 'flex-row items-center flex-1'}`}>
+                    <View className={`${isMobile ? 'flex-row items-center mb-3' : 'flex-row items-center flex-1'}`}>
+                      {/* Circle Photo Placeholder */}
+                      <View className="w-12 h-12 rounded-full bg-gray-200 mr-3 items-center justify-center">
+                        <Ionicons name="person" size={22} color="gray" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-secondary">{inst.name}</Text>
+                        <Text className="text-sm text-gray-500 font-normal mt-0.5">{inst.specialty}</Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-secondary">{inst.name}</Text>
-                      <Text className="text-sm text-gray-500 font-normal mt-0.5">{inst.specialty}</Text>
-                    </View>
-                  </View>
 
-                  <View className="flex-row items-center gap-x-2">
-                    {/* Status badge */}
-                    <View
-                      className={`px-3 py-1 rounded-full border ${
-                        isActive ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300'
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-bold ${
-                          isActive ? 'text-green-700' : 'text-gray-500'
+                    <View className={`${isMobile ? 'flex-row items-center justify-between' : 'flex-row items-center gap-x-2'}`}>
+                      {/* Status badge */}
+                      <View
+                        className={`px-3 py-1 rounded-full border ${
+                          isActive ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300'
                         }`}
                       >
-                        {inst.status}
-                      </Text>
+                        <Text
+                          className={`text-xs font-bold ${
+                            isActive ? 'text-green-700' : 'text-gray-500'
+                          }`}
+                        >
+                          {inst.status}
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center gap-x-2">
+                        {/* Edit button */}
+                        <TouchableOpacity onPress={() => openEditModal(inst)} className="p-1">
+                          <Ionicons name="pencil-outline" size={20} color="black" />
+                        </TouchableOpacity>
+
+                        {/* Delete button */}
+                        <TouchableOpacity onPress={() => deleteInstructor(inst.id)} className="p-1">
+                          <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-
-                    {/* Edit button */}
-                    <TouchableOpacity onPress={() => openEditModal(inst)} className="p-1">
-                      <Ionicons name="pencil-outline" size={20} color="black" />
-                    </TouchableOpacity>
-
-                    {/* Delete button */}
-                    <TouchableOpacity onPress={() => deleteInstructor(inst.id)} className="p-1">
-                      <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                    </TouchableOpacity>
                   </View>
                 </Animated.View>
               );

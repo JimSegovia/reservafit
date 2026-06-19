@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function AdminDashboardScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const classes = useAppStore((state) => state.classes);
   const instructors = useAppStore((state) => state.instructors);
   const reservations = useAppStore((state) => state.reservations);
@@ -58,18 +60,18 @@ export default function AdminDashboardScreen() {
   return (
     <ScrollView
       className="flex-1 bg-cream"
-      contentContainerStyle={{ padding: 32, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: isMobile ? 16 : 32, paddingBottom: isMobile ? 80 : 40 }}
       showsVerticalScrollIndicator={false}
     >
       {/* Top Header */}
-      <View className="flex-row justify-between items-center mb-8">
+      <View className={`${isMobile ? 'flex-col gap-y-4' : 'flex-row justify-between items-center'} mb-8`}>
         <Animated.View entering={FadeInDown.duration(200)}>
           <Text className="text-2xl font-bold text-secondary">¡Hola, Admin! 👋</Text>
           <Text className="text-sm text-gray-500 font-medium mt-1">Resumen general</Text>
         </Animated.View>
 
-        <View className="flex-row items-center" style={{ gap: 12 }}>
-          <View className="flex-row items-center bg-white rounded-full border border-gray-200 px-4 py-2.5 max-w-md">
+        <View className={`flex-row items-center ${isMobile ? 'w-full' : ''}`} style={{ gap: 12 }}>
+          <View className={`flex-row items-center bg-white rounded-full border border-gray-200 px-4 py-2.5 ${isMobile ? 'flex-1' : 'max-w-md'}`}>
             <Ionicons name="search" size={18} color="#9CA3AF" />
             <TextInput
               placeholder="Buscar..."
@@ -87,77 +89,102 @@ export default function AdminDashboardScreen() {
       </View>
 
       {/* Stats Cards */}
-      <View className="flex-row flex-wrap mb-8" style={{ gap: 16 }}>
+      <View className={`flex-row flex-wrap mb-8`} style={{ gap: isMobile ? 12 : 16 }}>
         {kpis.map((kpi, idx) => (
           <Animated.View
             key={idx}
             entering={ZoomIn.duration(200).delay(80 + idx * 40)}
-            className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm p-5"
-            style={{ minWidth: 180 }}
+            className="bg-white rounded-xl border border-gray-200 shadow-sm"
+            style={isMobile ? { width: '48%' } : { flex: 1, minWidth: 180 }}
           >
-            <View
-              className="w-11 h-11 rounded-lg items-center justify-center mb-4"
-              style={{ backgroundColor: `${kpi.color}18` }}
-            >
-              <Ionicons name={kpi.icon as any} size={20} color={kpi.color} />
+            <View className={isMobile ? 'items-center py-4 px-3' : 'p-5'}>
+              <View
+                className={`${isMobile ? 'w-10 h-10 mb-2' : 'w-11 h-11 mb-4'} rounded-lg items-center justify-center`}
+                style={{ backgroundColor: `${kpi.color}18` }}
+              >
+                <Ionicons name={kpi.icon as any} size={isMobile ? 18 : 20} color={kpi.color} />
+              </View>
+              <Text className={`${isMobile ? 'text-[10px] text-center' : 'text-xs'} text-secondary/50 font-semibold`}>{kpi.label}</Text>
+              <Text className={`${isMobile ? 'text-lg text-center mt-0.5' : 'text-2xl mt-1'} font-bold text-secondary`}>{kpi.val}</Text>
             </View>
-            <Text className="text-xs text-secondary/50 font-semibold">{kpi.label}</Text>
-            <Text className="text-2xl font-bold text-secondary mt-1">{kpi.val}</Text>
           </Animated.View>
         ))}
       </View>
 
       {/* Table Card */}
-      <View className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <Animated.View entering={FadeInDown.duration(200).delay(120)} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <View className="px-6 py-5 border-b border-gray-100">
           <Text className="text-lg font-bold text-secondary">Reservas</Text>
         </View>
 
-        {/* Table Header */}
-        <View className="flex-row bg-cream px-6 py-3.5">
-          <Text style={{ flex: 2 }} className="text-xs font-bold text-secondary/60">
-            {TABLE_HEADERS[0]}
-          </Text>
-          {TABLE_HEADERS.slice(1).map((header, idx) => (
-            <Text
-              key={idx}
-              style={{ flex: 1 }}
-              className="text-xs font-bold text-secondary/60"
-            >
-              {header}
-            </Text>
-          ))}
-        </View>
-
-        {/* Table Rows */}
-        {filteredReservations.map((row, idx) => {
-          const badge = getEstadoBadge(row.estado);
-          return (
-            <View
-              key={idx}
-              className="flex-row px-6 py-4 border-b border-gray-50 items-center"
-            >
-              <Text style={{ flex: 2 }} className="text-sm font-semibold text-secondary">
-                {row.nombre}
-              </Text>
-              <Text style={{ flex: 1 }} className="text-sm text-gray-500">
-                {row.clase}
-              </Text>
-              <Text style={{ flex: 1 }} className="text-sm text-gray-500">
-                {row.fecha}
-              </Text>
-              <Text style={{ flex: 1 }} className="text-sm font-semibold text-secondary">
-                {row.monto}
-              </Text>
-              <View style={{ flex: 1 }}>
-                <View className={`rounded-full px-3 py-1 self-start ${badge.bg}`}>
-                  <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
+        {isMobile ? (
+          <View className="px-4 py-2" style={{ gap: 12 }}>
+            {filteredReservations.map((row, idx) => {
+              const badge = getEstadoBadge(row.estado);
+              return (
+                <View key={idx} className="border border-gray-100 rounded-xl p-4 bg-white">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-sm font-bold text-secondary">{row.nombre}</Text>
+                    <View className={`rounded-full px-3 py-1 ${badge.bg}`}>
+                      <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
+                    </View>
+                  </View>
+                  <View className="flex-row justify-between">
+                    <Text className="text-xs text-gray-500">{row.clase}</Text>
+                    <Text className="text-xs text-gray-500">{row.fecha}</Text>
+                    <Text className="text-xs font-semibold text-secondary">{row.monto}</Text>
+                  </View>
                 </View>
-              </View>
+              );
+            })}
+          </View>
+        ) : (
+          <View>
+            <View className="flex-row bg-cream px-6 py-3.5">
+              <Text style={{ flex: 2 }} className="text-xs font-bold text-secondary/60">
+                {TABLE_HEADERS[0]}
+              </Text>
+              {TABLE_HEADERS.slice(1).map((header, idx) => (
+                <Text
+                  key={idx}
+                  style={{ flex: 1 }}
+                  className="text-xs font-bold text-secondary/60"
+                >
+                  {header}
+                </Text>
+              ))}
             </View>
-          );
-        })}
-      </View>
+
+            {filteredReservations.map((row, idx) => {
+              const badge = getEstadoBadge(row.estado);
+              return (
+                <View
+                  key={idx}
+                  className="flex-row px-6 py-4 border-b border-gray-50 items-center"
+                >
+                  <Text style={{ flex: 2 }} className="text-sm font-semibold text-secondary">
+                    {row.nombre}
+                  </Text>
+                  <Text style={{ flex: 1 }} className="text-sm text-gray-500">
+                    {row.clase}
+                  </Text>
+                  <Text style={{ flex: 1 }} className="text-sm text-gray-500">
+                    {row.fecha}
+                  </Text>
+                  <Text style={{ flex: 1 }} className="text-sm font-semibold text-secondary">
+                    {row.monto}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <View className={`rounded-full px-3 py-1 self-start ${badge.bg}`}>
+                      <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </Animated.View>
     </ScrollView>
   );
 }

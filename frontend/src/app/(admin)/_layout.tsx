@@ -1,5 +1,5 @@
 import { Stack, useRouter, usePathname } from 'expo-router';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useAppStore } from '@/store/useStore';
@@ -11,6 +11,8 @@ export default function AdminLayout() {
   const pathname = usePathname();
   const logout = useAppStore((state) => state.logout);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const navItems = [
     { label: 'Dashboard', icon: 'grid-outline', route: '/(admin)' },
@@ -31,6 +33,54 @@ export default function AdminLayout() {
     logout();
     router.replace('/(auth)/landing');
   };
+
+  if (isMobile) {
+    return (
+      <View className="flex-1 bg-cream">
+        <View className="flex-1">
+          <Stack screenOptions={{ headerShown: false }} />
+        </View>
+        {/* Bottom Navigation Footer */}
+        <View className="bg-secondary flex-row justify-around items-center px-1 py-2 pb-4">
+          {navItems.map((item, idx) => {
+            const active = isActive(item.route);
+            return (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => router.push(item.route as any)}
+                className="items-center py-1 px-0.5"
+                style={{ flex: 1 }}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  size={20}
+                  color={active ? '#FF7A00' : '#9CA3AF'}
+                />
+                <Text
+                  className={`text-[9px] font-semibold mt-0.5 text-center ${
+                    active ? 'text-primary' : 'text-gray-400'
+                  }`}
+                  numberOfLines={1}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+          <TouchableOpacity
+            onPress={() => setShowLogoutConfirm(true)}
+            className="items-center py-1 px-0.5"
+            style={{ flex: 1 }}
+          >
+            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+            <Text className="text-[9px] font-semibold mt-0.5 text-center text-red-400" numberOfLines={1}>
+              Salir
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-row h-screen bg-cream">

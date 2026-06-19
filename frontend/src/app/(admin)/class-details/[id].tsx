@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, Alert, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -14,6 +14,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 
 export default function ClassDetailsScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const { id } = useLocalSearchParams<{ id: string }>();
   const instructors = useAppStore((state) => state.instructors);
   const classes = useAppStore((state) => state.classes);
@@ -110,9 +112,9 @@ export default function ClassDetailsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }}
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
+        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
       >
         <View className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center">
@@ -166,9 +168,9 @@ export default function ClassDetailsScreen() {
             return (
               <View
                 key={schedule.id_detalle_clase}
-                className="bg-white rounded-2xl p-5 mb-4 border border-gray-100 shadow-sm flex-row justify-between items-center"
+                className={`bg-white rounded-2xl p-5 mb-4 border border-gray-100 shadow-sm ${isMobile ? '' : 'flex-row justify-between items-center'}`}
               >
-                <View className="flex-1 mr-3">
+                <View className={`${isMobile ? 'mb-3' : 'flex-1 mr-3'}`}>
                   <Text className="font-bold text-lg text-secondary mb-1">
                     {startTimeStr} - {endTimeStr}
                   </Text>
@@ -178,7 +180,7 @@ export default function ClassDetailsScreen() {
                   </Text>
                 </View>
 
-                <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className={`${isMobile ? 'flex-row items-center justify-between' : 'flex-row items-center'}`} style={{ gap: 12 }}>
                   <View
                     className={`px-3 py-1 rounded-full border ${statusStyle.bg}`}
                   >
@@ -187,27 +189,29 @@ export default function ClassDetailsScreen() {
                     </Text>
                   </View>
 
-                  <TouchableOpacity
-                    onPress={() => {
-                      setEditingScheduleId(schedule.id_detalle_clase);
-                      setFecha(fechaStr);
-                      setHoraInicio(horaInicio24);
-                      setHoraFin(horaFin24);
-                      setInstructorId(schedule.id_instructor);
-                      setSelectedInstructorName(schedule.instructor?.nombre || '');
-                      setEstado(schedule.estado);
-                      setTematica(schedule.tematica || '');
-                      setShowInstructorMenu(false);
-                      setModalVisible(true);
-                    }}
-                    className="p-1"
-                  >
-                    <Ionicons name="pencil-outline" size={20} color="black" />
-                  </TouchableOpacity>
+                  <View className="flex-row items-center" style={{ gap: 12 }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditingScheduleId(schedule.id_detalle_clase);
+                        setFecha(fechaStr);
+                        setHoraInicio(horaInicio24);
+                        setHoraFin(horaFin24);
+                        setInstructorId(schedule.id_instructor);
+                        setSelectedInstructorName(schedule.instructor?.nombre || '');
+                        setEstado(schedule.estado);
+                        setTematica(schedule.tematica || '');
+                        setShowInstructorMenu(false);
+                        setModalVisible(true);
+                      }}
+                      className="p-1"
+                    >
+                      <Ionicons name="pencil-outline" size={20} color="black" />
+                    </TouchableOpacity>
 
-                  <TouchableOpacity onPress={() => { /* TODO: eliminar horario */ }} className="p-1">
-                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                  </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { /* TODO: eliminar horario */ }} className="p-1">
+                      <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             );
@@ -229,8 +233,8 @@ export default function ClassDetailsScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 500 }}>
-              <View className="flex-row gap-3 mb-4">
-                <View className="flex-1">
+              <View className={`${isMobile ? 'flex-col' : 'flex-row'} gap-3 mb-4`}>
+                <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Fecha</Text>
                   <TextInput
                     value={fecha}
@@ -240,7 +244,7 @@ export default function ClassDetailsScreen() {
                     className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-secondary text-sm"
                   />
                 </View>
-                <View className="flex-1">
+                <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Hora Inicio</Text>
                   <TextInput
                     value={horaInicio}
@@ -250,7 +254,7 @@ export default function ClassDetailsScreen() {
                     className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-secondary text-sm"
                   />
                 </View>
-                <View className="flex-1">
+                <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Hora Fin</Text>
                   <TextInput
                     value={horaFin}
@@ -262,8 +266,8 @@ export default function ClassDetailsScreen() {
                 </View>
               </View>
 
-              <View className="flex-row gap-3 mb-4">
-                <View style={{ flex: 2 }}>
+              <View className={`${isMobile ? 'flex-col' : 'flex-row'} gap-3 mb-4`}>
+                <View style={isMobile ? {} : { flex: 2 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Temática (Color de ropa)</Text>
                   <TextInput
                     value={tematica}
@@ -273,7 +277,7 @@ export default function ClassDetailsScreen() {
                     className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
                   />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={isMobile ? {} : { flex: 1 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Cupos</Text>
                   <View className="w-full border border-gray-300 rounded-xl bg-gray-100 px-4 py-3">
                     <Text className="text-secondary text-sm">
@@ -328,7 +332,7 @@ export default function ClassDetailsScreen() {
               {editingScheduleId && (
                 <View className="mb-6">
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Estado</Text>
-                  <View className="flex-row" style={{ gap: 8 }}>
+                  <View className={`${isMobile ? 'flex-col' : 'flex-row'}`} style={{ gap: 8 }}>
                     {ESTADOS.map((option) => {
                       const isSelected = estado === option;
                       return (

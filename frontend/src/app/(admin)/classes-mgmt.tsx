@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, RefreshControl, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
@@ -11,6 +11,8 @@ import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-rea
 
 export default function AdminClassesScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const classes = useAppStore((state) => state.classes);
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
@@ -109,9 +111,9 @@ export default function AdminClassesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }} 
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
+        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}
@@ -167,7 +169,7 @@ export default function AdminClassesScreen() {
                 entering={FadeInDown.duration(200)}
                 layout={LinearTransition}
                 className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm"
-                style={{ width: '48%' as any }}
+                style={isMobile ? { width: '100%' as any } : { width: '48%' as any }}
               >
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="w-10 h-10 rounded-xl bg-orange-50 items-center justify-center">

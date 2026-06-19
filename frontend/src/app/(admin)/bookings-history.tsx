@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -9,6 +9,8 @@ import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-rea
 
 export default function AdminBookingsHistoryScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const reservations = useAppStore((state) => state.reservations);
 
   const [activeTab, setActiveTab] = useState<'Reservas' | 'Pagos'>('Reservas');
@@ -16,9 +18,9 @@ export default function AdminBookingsHistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }} 
         showsVerticalScrollIndicator={false}
-        className="flex-1 px-6 py-4"
+        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
