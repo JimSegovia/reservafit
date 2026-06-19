@@ -217,8 +217,12 @@ export default function ClientHomeScreen() {
             contentFit="contain"
           />
         </View>
-        <TouchableOpacity onPress={() => setShowLogoutConfirm(true)}>
-          <Ionicons name="log-out-outline" size={28} color="black" />
+        <TouchableOpacity 
+          onPress={() => router.push('/profile')}
+          className="flex-row items-center bg-gray-100 px-3 py-2 rounded-full border border-gray-200"
+        >
+          <Text className="text-sm font-bold text-gray-800 mr-2">{user?.name.split(' ')[0]}</Text>
+          <Ionicons name="chevron-down" size={16} color="#374151" />
         </TouchableOpacity>
       </Animated.View>
 

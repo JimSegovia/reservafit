@@ -49,8 +49,14 @@ export interface Reservation {
   clientPhone: string;
   seats: number[];
   price: number;
-  status: 'Pagado' | 'Reembolsado';
+  status: 'Pagado' | 'Pendiente' | 'Cancelado';
 }
+
+const mapReservationStatus = (status: string): 'Pagado' | 'Pendiente' | 'Cancelado' => {
+  if (status === 'Confirmada') return 'Pagado';
+  if (status === 'Pendiente_pago') return 'Pendiente';
+  return 'Cancelado';
+};
 
 interface CurrentBooking {
   classId: string;
@@ -134,6 +140,7 @@ interface AppState {
   hideToast: () => void;
   fetchReservations: () => Promise<void>;
   cancelReservation: (id: string) => Promise<void>;
+  updateProfile: (data: { nombres: string; apellidos: string; celular: string }) => Promise<boolean>;
 }
 
 // Helpers to format date/time slots
@@ -216,7 +223,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
             price: r.cantidad_cupos * 40,
-            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+            status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
           console.error('Fetch all reservations error:', err);
@@ -232,7 +239,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
           price: r.cantidad_cupos * 40,
-          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          status: mapReservationStatus(r.estado)
         }));
       }
 
@@ -649,7 +656,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         clientPhone: phoneYape || user.phone,
         seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
         price: r.cantidad_cupos * 40,
-        status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+        status: mapReservationStatus(r.estado)
       }));
       
       set({ reservations: mappedReservations, currentBooking: null });
@@ -746,7 +753,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
           price: r.cantidad_cupos * 40,
-          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          status: mapReservationStatus(r.estado)
         }));
         set({ reservations: mappedReservations });
       }
@@ -783,7 +790,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
           price: r.cantidad_cupos * 40,
-          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          status: mapReservationStatus(r.estado)
         }));
       } else {
         const profileResponse = await api.get(`/usuarios/${user.id}`);
@@ -798,7 +805,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientPhone: user.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
           price: r.cantidad_cupos * 40,
-          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+          status: mapReservationStatus(r.estado)
         }));
       }
       set({ reservations: mappedReservations });
@@ -829,7 +836,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
             price: r.cantidad_cupos * 40,
-            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+            status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
         } else {
@@ -845,13 +852,28 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientPhone: user.phone,
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
             price: r.cantidad_cupos * 40,
-            status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+            status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
         }
       }
     } catch (error) {
       console.error('Cancel reservation error:', error);
+    }
+  },
+
+  updateProfile: async (data) => {
+    try {
+      const { user } = get();
+      if (!user) return false;
+      await api.patch(`/usuarios/${user.id}`, data);
+      set({ user: { ...user, name: `${data.nombres} ${data.apellidos}`, phone: data.celular } });
+      get().showToast('Perfil actualizado con éxito', 'success');
+      return true;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      get().showToast('Error al actualizar el perfil', 'error');
+      return false;
     }
   }
 }));

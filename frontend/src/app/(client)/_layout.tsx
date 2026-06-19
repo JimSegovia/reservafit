@@ -9,6 +9,7 @@ export default function ClientLayout() {
       <Stack.Screen name="position" />
       <Stack.Screen name="checkout" />
       <Stack.Screen name="success" />
+      <Stack.Screen name="profile" />
     </Stack>
   );
 }

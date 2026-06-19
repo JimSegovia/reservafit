@@ -89,10 +89,10 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
 
       <View className="flex-1">
         <View className="flex-row justify-end items-center px-8 pt-5">
-          <View className="flex-row items-center gap-x-3">
+          <TouchableOpacity onPress={() => router.push('/profile')} className="flex-row items-center gap-x-3">
             <Text className="text-[16px] font-semibold text-black">{user?.name || 'Punch Einstein'}</Text>
             <Ionicons name="chevron-down" size={18} color="black" />
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View className="flex-1 px-8 pb-8 pt-3">

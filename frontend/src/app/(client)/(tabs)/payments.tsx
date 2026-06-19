@@ -25,7 +25,7 @@ export default function ClientPaymentsHistoryScreen() {
 
   const getShortTime = (range: string) => range.split('-')[0]?.trim() || '6:00 PM';
 
-  const getStatusStyles = (status: 'Pagado' | 'Reembolsado') => {
+  const getStatusStyles = (status: 'Pagado' | 'Pendiente' | 'Cancelado') => {
     if (status === 'Pagado') {
       return {
         container: 'bg-emerald-100',
@@ -33,9 +33,16 @@ export default function ClientPaymentsHistoryScreen() {
       };
     }
 
+    if (status === 'Pendiente') {
+      return {
+        container: 'bg-amber-100',
+        text: 'text-amber-800',
+      };
+    }
+
     return {
-      container: 'bg-amber-100',
-      text: 'text-amber-800',
+      container: 'bg-red-100',
+      text: 'text-red-800',
     };
   };
 
@@ -137,9 +144,12 @@ export default function ClientPaymentsHistoryScreen() {
 
               <Text className="text-[22px] font-extrabold text-black">Historial</Text>
 
-              <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center border border-gray-200">
+              <TouchableOpacity
+                onPress={() => router.push('/profile')}
+                className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center border border-gray-200"
+              >
                 <Ionicons name="person-circle-outline" size={22} color="#6b7280" />
-              </View>
+              </TouchableOpacity>
             </Animated.View>
 
             <Animated.View entering={FadeIn.duration(220).delay(40)} className="flex-row border-b border-gray-200 mb-5">
@@ -197,8 +207,14 @@ export default function ClientPaymentsHistoryScreen() {
             {selectedReceipt && (
               <View className="px-6 py-5 gap-y-4">
                 <View className="items-center pb-3 border-b border-gray-100">
-                  <Ionicons name="checkmark-circle" size={44} color="#16a34a" />
-                  <Text className="text-emerald-700 font-bold text-sm mt-1">{selectedReceipt.status}</Text>
+                  <Ionicons 
+                    name={selectedReceipt.status === 'Pagado' ? 'checkmark-circle' : selectedReceipt.status === 'Pendiente' ? 'time' : 'close-circle'} 
+                    size={44} 
+                    color={selectedReceipt.status === 'Pagado' ? '#16a34a' : selectedReceipt.status === 'Pendiente' ? '#d97706' : '#dc2626'} 
+                  />
+                  <Text className={`font-bold text-sm mt-1 ${selectedReceipt.status === 'Pagado' ? 'text-emerald-700' : selectedReceipt.status === 'Pendiente' ? 'text-amber-700' : 'text-red-700'}`}>
+                    {selectedReceipt.status}
+                  </Text>
                 </View>
 
                 <RowDetail label="Clase" value={selectedReceipt.className} />
