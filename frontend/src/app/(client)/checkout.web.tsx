@@ -12,6 +12,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const currentBooking = useAppStore((state) => state.currentBooking);
   const confirmBooking = useAppStore((state) => state.confirmBooking);
+  const decrementTimer = useAppStore((state) => state.decrementTimer);
   const showToast = useAppStore((state) => state.showToast);
   
   const [showPopup, setShowPopup] = useState(false);
@@ -22,6 +23,14 @@ export default function CheckoutScreen() {
       router.replace('/(client)/(tabs)/classes');
     }
   }, [currentBooking, router]);
+
+  useEffect(() => {
+    const interval = setInterval(() => decrementTimer(), 1000);
+    return () => clearInterval(interval);
+  }, [decrementTimer]);
+
+  const formatTime = (seconds: number) =>
+    `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
   if (!currentBooking) return null;
 
@@ -129,7 +138,7 @@ export default function CheckoutScreen() {
 
         <View className="flex-row items-center justify-center mt-4 gap-x-2">
           <Ionicons name="time-outline" size={16} color="#FF7A00" />
-          <Text className="text-[12px] text-gray-500 font-semibold">Reserva bloqueada por 10:00 minutos</Text>
+          <Text className="text-[12px] text-gray-500 font-semibold">Reserva bloqueada por {formatTime(currentBooking.timeLeft)} minutos</Text>
         </View>
       </View>
 
