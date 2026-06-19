@@ -26,32 +26,27 @@ export default function HorariosDisponiblesScreen() {
     return agenda.filter((a: any) => a.id_clase === classItem?.id);
   }, [agenda, classItem]);
 
-  // Dynamically generate all Mondays, Wednesdays, and Fridays for a whole year starting from May 1, 2026 (156 dates)
+  // Dynamically generate the next 90 days from today
   const days = useMemo(() => {
     const result = [];
-    const daysOfWeek = [1, 3, 5]; // Mon, Wed, Fri
-    const current = new Date(2026, 4, 1); // May 1, 2026
+    const current = new Date();
     const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    let count = 0;
-    while (count < 156) {
-      const day = current.getDay();
-      if (daysOfWeek.includes(day)) {
-        const dayName = day === 1 ? 'LUN' : day === 3 ? 'MIE' : 'VIE';
-        const dayNum = current.getDate().toString().padStart(2, '0');
-        const monthLabel = months[current.getMonth()];
-        const formatted = {
-          id: `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`,
-          dayName,
-          dayNum,
-          monthLabel,
-          // matching string format from original model
-          fullLabel: `${day === 1 ? 'LUNES' : day === 3 ? 'MIÉRCOLES' : 'VIERNES'} ${dayNum}/${(current.getMonth() + 1).toString().padStart(2, '0')}`,
-          date: new Date(current)
-        };
-        result.push(formatted);
-        count++;
-      }
-      current.setDate(current.getDate() + 1);
+    const dayNames = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+    const fullDayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    for (let i = 0; i < 90; i++) {
+      const d = new Date(current);
+      d.setDate(current.getDate() + i);
+      const day = d.getDay();
+      const dayNum = d.getDate().toString().padStart(2, '0');
+      const monthLabel = months[d.getMonth()];
+      result.push({
+        id: `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`,
+        dayName: dayNames[day],
+        dayNum,
+        monthLabel,
+        fullLabel: `${fullDayNames[day]} ${dayNum}/${(d.getMonth() + 1).toString().padStart(2, '0')}`,
+        date: new Date(d)
+      });
     }
     return result;
   }, []);
@@ -103,13 +98,13 @@ export default function HorariosDisponiblesScreen() {
 
         const timeStr = `${formatTime(startTime)} - ${formatTime(endTime)}`;
         const teacher = s.instructor ? `Con ${s.instructor.nombre} ${s.instructor.apellidos}` : 'Con Instructor';
-        const occupiedList = occupiedSeats[s.id_detalle_clase] || [];
+        const enrolledCount = s._count?.detalles_reserva || 0;
         
         return {
           id_detalle_clase: s.id_detalle_clase,
           time: timeStr,
           teacher: teacher,
-          enrolled: `${occupiedList.length}/30`,
+          enrolled: `${enrolledCount}/${s.cupos || 30}`,
           status: s.estado as 'Disponible' | 'Lleno' | 'Cancelada'
         };
       });
