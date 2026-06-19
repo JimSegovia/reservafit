@@ -63,6 +63,7 @@ interface CurrentBooking {
   pricePerSeat: number;
   totalPrice: number;
   timeLeft: number; // in seconds
+  startedAt: number; // timestamp when booking started
 }
 
 export interface ToastInfo {
@@ -307,7 +308,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           schedule: c.dia || 'Lunes - Miércoles - Viernes',
           status,
           capacity: classSchedules[0]?.cupos || 30,
-          enrolled: 0,
+          enrolled: classSchedules[0]?._count?.detalles_reserva || 0,
           price,
           theme: c.tematica || undefined,
           days: days.length > 0 ? Array.from(new Set(days)) : ['LUNES 10/05'],
@@ -514,7 +515,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...booking,
       selectedSeats: [],
       timeLeft: 600, // 10 minutes
-      totalPrice: 0
+      totalPrice: 0,
+      startedAt: Date.now()
     };
     set({ currentBooking: newBooking });
   },
@@ -555,13 +557,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { currentBooking } = get();
     if (!currentBooking) return;
 
-    if (currentBooking.timeLeft <= 1) {
+    const elapsed = Math.floor((Date.now() - currentBooking.startedAt) / 1000);
+    const timeLeft = Math.max(0, 600 - elapsed);
+
+    if (timeLeft <= 0) {
       get().clearBooking();
-    } else {
+    } else if (timeLeft !== currentBooking.timeLeft) {
       set({
         currentBooking: {
           ...currentBooking,
-          timeLeft: currentBooking.timeLeft - 1
+          timeLeft
         }
       });
     }
@@ -627,6 +632,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       }
       
+      // Refresh classes and agenda to update enrolled counts
+      await get().fetchClasses();
+
       // Refresh user profile reservations
       const profileResponse = await api.get(`/usuarios/${user.id}`);
       const updatedUser = profileResponse.data.data;
@@ -723,6 +731,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
       }
 
+      await get().fetchClasses();
+
       if (get().user?.role === 'admin') {
         const resData = await reservationsService.getAll();
         const mappedReservations = (resData.data || []).map((r: any) => ({
@@ -761,6 +771,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         estado: 'Cancelada_Por_Gimnasio'
       });
       
+      await get().fetchClasses();
+
       const { user } = get();
       if (user) {
         if (user.role === 'admin') {
