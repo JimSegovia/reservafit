@@ -42,7 +42,7 @@ export default function AdminLayout() {
             className="mb-10 px-2"
           >
             <ExpoImage
-              source={require('../../../assets/images/logo.svg')}
+              source={require('../../../assets/images/logoblanco.svg')}
               style={{ width: 150, height: 45 }}
               contentFit="contain"
             />

@@ -154,10 +154,7 @@ export default function HorariosDisponiblesScreen() {
             <Text className="text-xl font-extrabold text-black">Horarios Disponibles</Text>
             <Text className="text-xs text-gray-500 font-bold">Clase: {classItem?.title || 'Clase'}</Text>
           </View>
-          <TouchableOpacity className="relative">
-            <Ionicons name="notifications-outline" size={24} color="black" />
-            <View className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full" />
-          </TouchableOpacity>
+          <View className="w-10" />
         </Animated.View>
 
         {/* Day selection tabs (Rueda/Carrusel horizontal) */}
