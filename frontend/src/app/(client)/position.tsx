@@ -124,8 +124,8 @@ export default function PositionSelectorScreen() {
           <Text className="text-xs text-gray-400 font-bold mt-1">Cupos: 30 alumnos</Text>
         </View>
 
-        {/* Seat Grid Map 6 columns */}
-        <View className="flex-row flex-wrap justify-between gap-y-3">
+        {/* Seat Grid Map 6x5 - flexbox with calculated widths */}
+        <View className="flex-row flex-wrap gap-2" style={{ gap: 8 }}>
           {seatNumbers.map((seatNum, idx) => {
             const isOccupied = occupiedList.includes(seatNum);
             const isSelected = currentBooking.selectedSeats.includes(seatNum);
@@ -145,14 +145,15 @@ export default function PositionSelectorScreen() {
               <Animated.View 
                 key={seatNum} 
                 entering={ZoomIn.duration(150).delay(50 + idx * 8)} 
-                className="w-[14%] aspect-square"
+                className="aspect-square"
+                style={{ width: '14.5%' }}
               >
                 <TouchableOpacity
                   onPress={() => handleSeatPress(seatNum)}
                   disabled={isOccupied}
                   className={`w-full h-full border rounded-xl items-center justify-center ${bgStyle}`}
                 >
-                  <Text className={`text-sm font-bold ${textStyle}`}>{seatNum}</Text>
+                  <Text className={`text-xs font-bold ${textStyle}`}>{seatNum}</Text>
                 </TouchableOpacity>
               </Animated.View>
             );
@@ -240,16 +241,16 @@ export default function PositionSelectorScreen() {
           </View>
         </View>
 
-        <View className="flex-row flex-wrap justify-between gap-y-4 mt-4">
+        <View className="flex-row flex-wrap gap-3 mt-4" style={{ gap: 12 }}>
           {seatNumbers.map((seatNum, idx) => {
             const isOccupied = occupiedList.includes(seatNum);
             const isSelected = currentBooking.selectedSeats.includes(seatNum);
             const bgStyle = isOccupied ? 'bg-gray-300 border-gray-300' : isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300';
             const textStyle = isOccupied ? 'text-gray-500' : isSelected ? 'text-white' : 'text-black';
             return (
-              <Animated.View key={seatNum} entering={ZoomIn.duration(120).delay(20 + idx * 5)} className="w-[13%] aspect-square">
+              <Animated.View key={seatNum} entering={ZoomIn.duration(120).delay(20 + idx * 5)} className="aspect-square" style={{ width: '14.5%' }}>
                 <TouchableOpacity onPress={() => handleSeatPress(seatNum)} disabled={isOccupied} className={`w-full h-full border rounded-xl items-center justify-center ${bgStyle}`}>
-                  <Text className={`text-xl font-bold ${textStyle}`}>{seatNum}</Text>
+                  <Text className={`text-lg font-bold ${textStyle}`}>{seatNum}</Text>
                 </TouchableOpacity>
               </Animated.View>
             );
