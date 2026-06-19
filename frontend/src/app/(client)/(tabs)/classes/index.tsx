@@ -17,10 +17,10 @@ export default function ClassesSelectorScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
 
-  // Active Tab: 'categorias' | 'calendario'
-  const [activeTab, setActiveTab] = useState<'categorias' | 'calendario'>('categorias');
+  // Active Tab: 'clases' | 'calendario'
+  const [activeTab, setActiveTab] = useState<'clases' | 'calendario'>('clases');
 
-  // Categorías Tab states
+  // Clases Tab states
   const [selectedDay, setSelectedDay] = useState<string>('Todos');
   const [selectedTheme, setSelectedTheme] = useState<string>('Todos');
   const [refreshing, setRefreshing] = useState(false);
@@ -35,11 +35,10 @@ export default function ClassesSelectorScreen() {
     loadClasses();
   }, [fetchClasses]);
 
-  // Calendario Tab states
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 4, 12));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showYearCalendar, setShowYearCalendar] = useState(false);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(4); // May
-  const [currentCalendarYear, setCurrentCalendarYear] = useState(2026);
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
 
   const monthsNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -53,6 +52,11 @@ export default function ClassesSelectorScreen() {
     // Sun=0, Mon=1, Tue=2, ...
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(date.setDate(diff));
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    return date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
   };
 
   const monday = getMonday(selectedDate);
@@ -223,11 +227,11 @@ export default function ClassesSelectorScreen() {
       {/* Tab Selector Web */}
       <View className="flex-row border-b border-gray-200 mb-6 max-w-md mx-auto w-full bg-white p-1 rounded-xl shadow-sm">
         <TouchableOpacity
-          onPress={() => setActiveTab('categorias')}
-          className={`flex-1 py-3 rounded-lg ${activeTab === 'categorias' ? 'bg-primary' : 'bg-transparent'}`}
+          onPress={() => setActiveTab('clases')}
+          className={`flex-1 py-3 rounded-lg ${activeTab === 'clases' ? 'bg-primary' : 'bg-transparent'}`}
         >
-          <Text className={`font-bold text-center text-sm ${activeTab === 'categorias' ? 'text-white' : 'text-gray-500'}`}>
-            Categorías
+          <Text className={`font-bold text-center text-sm ${activeTab === 'clases' ? 'text-white' : 'text-gray-500'}`}>
+            Clases
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -240,7 +244,7 @@ export default function ClassesSelectorScreen() {
         </TouchableOpacity>
       </View>
 
-      {activeTab === 'categorias' ? (
+      {activeTab === 'clases' ? (
         <Animated.View entering={FadeIn.duration(200)}>
           {/* Filters in Desktop */}
           <View className="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
@@ -401,13 +405,14 @@ export default function ClassesSelectorScreen() {
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
+                    const isPast = isPastDate(cellDate);
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { setSelectedDate(cellDate); setShowYearCalendar(false); }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : 'bg-gray-50'}`}
+                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -419,14 +424,15 @@ export default function ClassesSelectorScreen() {
             <View className="flex-row justify-between mb-6 px-1 max-w-xl mx-auto w-full">
               {weekDays.map((day, idx) => {
                 const isSelected = day.date.getDate() === selectedDate.getDate() && day.date.getMonth() === selectedDate.getMonth() && day.date.getFullYear() === selectedDate.getFullYear();
+                const isPast = isPastDate(day.date);
                 return (
                   <TouchableOpacity
                     key={idx}
-                    onPress={() => setSelectedDate(day.date)}
-                    className={`items-center p-3 rounded-xl w-[55px] ${isSelected ? 'bg-primary shadow-sm' : 'bg-gray-55'}`}
+                    onPress={() => !isPast && setSelectedDate(day.date)}
+                    className={`items-center p-3 rounded-xl w-[55px] ${isSelected ? 'bg-primary shadow-sm' : isPast ? 'bg-gray-100' : 'bg-gray-55'}`}
                   >
-                    <Text className={`text-[11px] font-bold ${isSelected ? 'text-white' : 'text-gray-500'}`}>{day.label}</Text>
-                    <Text className={`text-lg font-extrabold mt-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>{day.num}</Text>
+                    <Text className={`text-[11px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>
+                    <Text className={`text-lg font-extrabold mt-0.5 ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{day.num}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -487,7 +493,7 @@ export default function ClassesSelectorScreen() {
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
         showsVerticalScrollIndicator={false}
-        refreshControl={activeTab === 'categorias' ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} /> : undefined}
+        refreshControl={activeTab === 'clases' ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} /> : undefined}
       >
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(200)} className="mb-4">
@@ -499,10 +505,10 @@ export default function ClassesSelectorScreen() {
         {/* Tab Headers Mobile */}
         <View className="flex-row border-b border-gray-200 mb-6">
           <TouchableOpacity 
-            onPress={() => setActiveTab('categorias')}
-            className={`flex-1 pb-3 border-b-2 ${activeTab === 'categorias' ? 'border-primary' : 'border-transparent'}`}
+            onPress={() => setActiveTab('clases')}
+            className={`flex-1 pb-3 border-b-2 ${activeTab === 'clases' ? 'border-primary' : 'border-transparent'}`}
           >
-            <Text className={`font-bold text-center text-base ${activeTab === 'categorias' ? 'text-primary' : 'text-gray-400'}`}>Categorías</Text>
+            <Text className={`font-bold text-center text-base ${activeTab === 'clases' ? 'text-primary' : 'text-gray-400'}`}>Clases</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab('calendario')}
@@ -512,7 +518,7 @@ export default function ClassesSelectorScreen() {
           </TouchableOpacity>
         </View>
 
-        {activeTab === 'categorias' ? (
+        {activeTab === 'clases' ? (
           <Animated.View entering={FadeIn.duration(200)}>
             {/* Filters Panel Mobile */}
             <View className="mb-6">
@@ -658,13 +664,14 @@ export default function ClassesSelectorScreen() {
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
+                    const isPast = isPastDate(cellDate);
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { setSelectedDate(cellDate); setShowYearCalendar(false); }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : 'bg-gray-50'}`}
+                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -676,14 +683,15 @@ export default function ClassesSelectorScreen() {
             <View className="flex-row justify-between mb-6 px-1 mt-2">
               {weekDays.map((day, idx) => {
                 const isSelected = day.date.getDate() === selectedDate.getDate() && day.date.getMonth() === selectedDate.getMonth() && day.date.getFullYear() === selectedDate.getFullYear();
+                const isPast = isPastDate(day.date);
                 return (
                   <TouchableOpacity
                     key={idx}
-                    onPress={() => setSelectedDate(day.date)}
-                    className={`items-center p-2 rounded-xl w-[45px] ${isSelected ? 'bg-primary' : 'bg-transparent'}`}
+                    onPress={() => !isPast && setSelectedDate(day.date)}
+                    className={`items-center p-2 rounded-xl w-[45px] ${isSelected ? 'bg-primary' : isPast ? 'bg-gray-100' : 'bg-transparent'}`}
                   >
-                    <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : 'text-gray-500'}`}>{day.label}</Text>
-                    <Text className={`text-base font-extrabold mt-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>{day.num}</Text>
+                    <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>
+                    <Text className={`text-base font-extrabold mt-0.5 ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{day.num}</Text>
                   </TouchableOpacity>
                 );
               })}

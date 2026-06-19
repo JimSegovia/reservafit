@@ -12,11 +12,10 @@ export default function CalendarScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
   
-  // Selected Date (defaults to May 12, 2026)
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 4, 12));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showYearCalendar, setShowYearCalendar] = useState(false);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(4); // May
-  const [currentCalendarYear, setCurrentCalendarYear] = useState(2026);
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
 
   const monthsNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -45,6 +44,11 @@ export default function CalendarScreen() {
       };
     });
   }, [monday]);
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    return date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
 
   const formatWeekRange = (mondayDate: Date) => {
     const saturdayDate = new Date(mondayDate);
@@ -211,19 +215,22 @@ export default function CalendarScreen() {
                 const isSelected = cellDate.getDate() === selectedDate.getDate() &&
                                    cellDate.getMonth() === selectedDate.getMonth() &&
                                    cellDate.getFullYear() === selectedDate.getFullYear();
+                const isPast = isPastDate(cellDate);
                 
                 return (
                   <TouchableOpacity
                     key={idx}
                     onPress={() => {
-                      setSelectedDate(cellDate);
-                      setShowYearCalendar(false);
+                      if (!isPast) {
+                        setSelectedDate(cellDate);
+                        setShowYearCalendar(false);
+                      }
                     }}
                     className={`w-[13%] aspect-square items-center justify-center rounded-xl ${
-                      isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : 'bg-gray-50'
+                      isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'
                     }`}
                   >
-                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
+                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>
                       {cellDate.getDate()}
                     </Text>
                   </TouchableOpacity>
@@ -239,18 +246,19 @@ export default function CalendarScreen() {
             const isSelected = day.date.getDate() === selectedDate.getDate() && 
                                day.date.getMonth() === selectedDate.getMonth() &&
                                day.date.getFullYear() === selectedDate.getFullYear();
+            const isPast = isPastDate(day.date);
             return (
               <TouchableOpacity
                 key={idx}
-                onPress={() => setSelectedDate(day.date)}
+                onPress={() => !isPast && setSelectedDate(day.date)}
                 className={`items-center p-2 rounded-xl w-[45px] ${
-                  isSelected ? 'bg-primary' : 'bg-transparent'
+                  isSelected ? 'bg-primary' : isPast ? 'bg-gray-100' : 'bg-transparent'
                 }`}
               >
-                <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : 'text-gray-500'}`}>
+                <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>
                   {day.label}
                 </Text>
-                <Text className={`text-base font-extrabold mt-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>
+                <Text className={`text-base font-extrabold mt-0.5 ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>
                   {day.num}
                 </Text>
               </TouchableOpacity>
