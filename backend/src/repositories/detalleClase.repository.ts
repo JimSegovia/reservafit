@@ -18,10 +18,13 @@ export class DetalleClaseRepository {
 
   static async obtenerTodos() {
     return prisma.detalleClase.findMany({
-      orderBy: { fecha_hora_inicio: 'asc' }, // Ordenamos por fecha (de las más próximas en adelante)
+      orderBy: { fecha_hora_inicio: 'asc' },
       include: {
-        clase: true,       // Trae los datos de la tabla Clases
-        instructor: true   // Trae los datos de la tabla Instructores
+        clase: true,
+        instructor: true,
+        _count: {
+          select: { detalles_reserva: true }
+        }
       }
     });
   }

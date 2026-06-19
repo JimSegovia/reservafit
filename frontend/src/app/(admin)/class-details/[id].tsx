@@ -174,7 +174,7 @@ export default function ClassDetailsScreen() {
                   </Text>
                   <Text className="text-sm text-gray-500">{schedule.instructor?.nombre || 'Sin asignar'}</Text>
                   <Text className="text-sm font-medium text-gray-400 mt-1">
-                    0/{schedule.cupos} cupos
+                    {schedule._count?.detalles_reserva || 0}/{schedule.cupos} cupos
                   </Text>
                 </View>
 
@@ -276,7 +276,11 @@ export default function ClassDetailsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Cupos</Text>
                   <View className="w-full border border-gray-300 rounded-xl bg-gray-100 px-4 py-3">
-                    <Text className="text-secondary text-sm">0 / 30</Text>
+                    <Text className="text-secondary text-sm">
+                      {editingScheduleId
+                        ? `${schedules.find(s => s.id_detalle_clase === editingScheduleId)?._count?.detalles_reserva || 0} / ${schedules.find(s => s.id_detalle_clase === editingScheduleId)?.cupos || 30}`
+                        : '0 / 30'}
+                    </Text>
                   </View>
                 </View>
               </View>
