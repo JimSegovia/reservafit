@@ -132,6 +132,7 @@ interface AppState {
 
   showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
   hideToast: () => void;
+  fetchReservations: () => Promise<void>;
   cancelReservation: (id: string) => Promise<void>;
 }
 
@@ -763,6 +764,47 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   hideToast: () => {
     set({ toast: null });
+  },
+
+  fetchReservations: async () => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      let mappedReservations: Reservation[] = [];
+      if (user.role === 'admin') {
+        const resData = await reservationsService.getAll();
+        mappedReservations = (resData.data || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+          clientPhone: r.usuario?.celular || '',
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * 40,
+          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+        }));
+      } else {
+        const profileResponse = await api.get(`/usuarios/${user.id}`);
+        const usuario = profileResponse.data.data;
+        mappedReservations = (usuario.reservas || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: user.name,
+          clientPhone: user.phone,
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * 40,
+          status: r.estado === 'Confirmada' ? 'Pagado' : 'Reembolsado'
+        }));
+      }
+      set({ reservations: mappedReservations });
+    } catch (error) {
+      console.error('Fetch reservations error:', error);
+    }
   },
 
   cancelReservation: async (id) => {

@@ -342,10 +342,6 @@ export default function ClassesSelectorScreen() {
                           <Text className="text-[13px] text-gray-500 font-semibold">{cls.schedule}</Text>
                         </View>
                         <View className="flex-row items-center">
-                          <Ionicons name="person-outline" size={14} color="#FF7A00" className="mr-1.5" />
-                          <Text className="text-[13px] text-gray-500 font-semibold">Profesor: {cls.instructorName}</Text>
-                        </View>
-                        <View className="flex-row items-center">
                           <Ionicons name="wallet-outline" size={14} color="#FF7A00" className="mr-1.5" />
                           <Text className="text-[13px] text-primary font-bold">Precio: S/ {cls.price.toFixed(2)}</Text>
                         </View>
@@ -601,9 +597,8 @@ export default function ClassesSelectorScreen() {
                         </Text>
                       </View>
 
-                      {/* Instructor and Price visible on Card */}
+                      {/* Price visible on Card */}
                       <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 px-2 mb-2">
-                        <Text className="text-xs font-semibold text-gray-500">Instructor: {cls.instructorName}</Text>
                         <Text className="text-xs font-bold text-primary">Precio: S/ {cls.price.toFixed(2)}</Text>
                       </View>
 

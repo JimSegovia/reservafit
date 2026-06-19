@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -72,6 +72,7 @@ export default function ClientHomeScreen() {
   const showToast = useAppStore((state) => state.showToast);
   const fetchClasses = useAppStore((state) => state.fetchClasses);
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
+  const fetchReservations = useAppStore((state) => state.fetchReservations);
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
@@ -92,18 +93,27 @@ export default function ClientHomeScreen() {
   }, [reservations]);
 
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => earliestReservationWeekStart ?? getMonday(new Date()));
+  const initialWeekSynced = useRef(false);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       await Promise.all([
         fetchClasses(),
-        fetchInstructors()
+        fetchInstructors(),
+        fetchReservations()
       ]);
       setLoading(false);
     };
     loadData();
-  }, [fetchClasses, fetchInstructors]);
+  }, [fetchClasses, fetchInstructors, fetchReservations]);
+
+  useEffect(() => {
+    if (earliestReservationWeekStart && !initialWeekSynced.current) {
+      setSelectedWeekStart(earliestReservationWeekStart);
+      initialWeekSynced.current = true;
+    }
+  }, [earliestReservationWeekStart]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
@@ -115,19 +125,21 @@ export default function ClientHomeScreen() {
     setReservationToCancel(id);
   };
 
-  const handleCancelReservationConfirm = () => {
+  const handleCancelReservationConfirm = async () => {
     if (reservationToCancel) {
-      cancelReservation(reservationToCancel);
+      await cancelReservation(reservationToCancel);
       setReservationToCancel(null);
       showToast('Tu reserva ha sido cancelada y reembolsada.', 'success');
     }
   };
 
   const clientReservations = reservations.filter((res) => res.status === 'Pagado');
-  const dashboardClasses = useMemo(
-    () => classes.filter((cls) => ['c7', 'c8', 'c9'].includes(cls.id)),
-    [classes]
-  );
+  const todayReservations = useMemo(() => {
+    const today = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedToday = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+    return clientReservations.filter(res => res.date === formattedToday);
+  }, [clientReservations]);
 
   const weeklyCalendarData = useMemo(() => {
     const paidReservations = reservations.filter((res) => res.status === 'Pagado');
@@ -155,12 +167,23 @@ export default function ClientHomeScreen() {
       const normalizedDate = new Date(res.parsedDate);
       normalizedDate.setHours(0, 0, 0, 0);
       const dayIdx = Math.round((normalizedDate.getTime() - weekStart.getTime()) / DAY_MS);
+      const [startTime] = res.time.split('-').map(s => s.trim());
+      const eventDateTime = new Date(res.parsedDate);
+      if (startTime) {
+        const [timePart, period] = startTime.split(' ');
+        const [hours, minutes] = timePart.split(':').map(Number);
+        let hour24 = hours;
+        if (period === 'PM' && hours !== 12) hour24 += 12;
+        if (period === 'AM' && hours === 12) hour24 = 0;
+        eventDateTime.setHours(hour24, minutes || 0, 0, 0);
+      }
       return {
         id: res.id,
         dayIdx,
         slot: res.slotLabel as string,
         title: res.className,
         time: res.time,
+        isPast: eventDateTime < new Date(),
       };
     }).filter((event) => event.dayIdx >= 0 && event.dayIdx <= 6);
 
@@ -298,50 +321,63 @@ export default function ClientHomeScreen() {
                         <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
                         <Text className="text-[15px] font-bold text-black ml-3">Estas son tus Clases Reservadas</Text>
                     </View>
+                    {clientReservations.length === 0 ? (
+                        <EmptyState
+                          variant="no-bookings"
+                          title="No tienes reservas activas"
+                          message="No tienes reservas activas para esta semana."
+                          actionLabel="Explorar clases"
+                          onAction={() => router.push('/(client)/(tabs)/classes')}
+                        />
+                    ) : (
                     <View className="gap-y-3">
-                        {dashboardClasses.map((cls, idx) => (
-                        <View key={cls.id} className="flex-row items-stretch border border-gray-200 rounded-xl overflow-hidden bg-white min-h-[88px]">
+                        {clientReservations.map((res) => {
+                        const parsedDate = new Date(res.date);
+                        const dayLabels = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+                        const dayLabel = dayLabels[parsedDate.getDay()] || 'LUN';
+                        const dayNumber = parsedDate.getDate();
+                        const classInfo = classes.find(c => c.id === res.classId);
+                        return (
+                        <View key={res.id} className="flex-row items-stretch border border-gray-200 rounded-xl overflow-hidden bg-white min-h-[88px]">
                             <View className="w-[72px] items-center justify-center border-r border-gray-200 bg-white">
-                            <Text className="text-primary text-[13px] font-bold">{idx === 0 ? 'LUN' : idx === 1 ? 'MAR' : 'MIÉ'}</Text>
-                            <Text className="text-[20px] font-bold text-gray-700 leading-none mt-1">{20 + idx}</Text>
+                            <Text className="text-primary text-[13px] font-bold">{dayLabel}</Text>
+                            <Text className="text-[20px] font-bold text-gray-700 leading-none mt-1">{dayNumber}</Text>
                             </View>
                             <Image
                               source={
-                                cls.id === 'c7'
+                                res.className.toLowerCase().includes('zumba')
                                   ? require('../../../../assets/images/zumba.jpg')
-                                  : cls.id === 'c8'
+                                  : res.className.toLowerCase().includes('salsa')
                                   ? require('../../../../assets/images/Salsa.jpeg')
                                   : require('../../../../assets/images/bachata.jpg')
                               }
                               style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
                               resizeMode="cover"
                             />
-                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: cls.title, time: '7:00 PM - 8:00 PM', date: `${new Date().getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()]} ${new Date().getFullYear()}`, seat: '13', status: 'Pagado' })}>
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), status: 'Pagado' })}>
                             <View>
-                                <Text className="text-[14px] font-bold text-black">
-                                {cls.title}
-                                </Text>
-                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">7:00 PM - 8:00 PM</Text>
-                                <Text className="text-[12px] font-medium text-gray-500 mt-0.5">Instructor: {cls.instructorName}</Text>
+                                <Text className="text-[14px] font-bold text-black">{res.className}</Text>
+                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">{res.time}</Text>
+                                <Text className="text-[12px] font-medium text-gray-500 mt-0.5">Instructor: {classInfo?.instructorName || 'Profesor'}</Text>
+                                <Text className="text-[12px] font-medium text-gray-500 mt-0.5">Cupos: {res.seats.join(', ')}</Text>
                             </View>
                             </TouchableOpacity>
-                            <View className="w-[290px] px-4 py-3 justify-between">
-                            <View>
-                                <Text className="text-[13px] font-semibold text-gray-600">{cls.days?.[0] || 'Lunes - Miércoles - Viernes'}</Text>
-                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">{cls.schedule}</Text>
-                            </View>
-                            </View>
                             <View className="w-[124px] items-center justify-center pr-4">
-                            {idx === 2 ? (
-                                <View className="bg-green-100 rounded-lg px-4 py-2">
-                                <Text className="text-green-700 font-bold text-sm">Disponible</Text>
-                                </View>
-                            ) : null}
-                            <Ionicons name="chevron-forward" size={22} color="#555" className="mt-2" />
+                            <View className="bg-green-100 rounded-lg px-4 py-2">
+                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => promptCancelReservation(res.id)}
+                                className="mt-2 bg-red-50 px-3 py-1.5 rounded-xl border border-red-100"
+                            >
+                                <Text className="text-red-600 text-xs font-bold">Cancelar</Text>
+                            </TouchableOpacity>
                             </View>
                         </View>
-                        ))}
+                        );
+                        })}
                     </View>
+                    )}
                     </Animated.View>
                 )}
 
@@ -352,38 +388,54 @@ export default function ClientHomeScreen() {
                         <Text className="text-[15px] font-bold text-black ml-3">Clases de hoy</Text>
                     </View>
 
+                    {todayReservations.length === 0 ? (
+                        <EmptyState
+                          variant="no-bookings"
+                          title="Sin clases hoy"
+                          message="No tienes reservas para hoy."
+                          actionLabel="Explorar clases"
+                          onAction={() => router.push('/(client)/(tabs)/classes')}
+                        />
+                    ) : (
                     <View className="gap-y-3">
-                        {dashboardClasses.slice(0, 2).map((cls, idx) => (
-                        <View key={cls.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white flex-row min-h-[132px]">
+                        {todayReservations.map((res) => {
+                        const classInfo = classes.find(c => c.id === res.classId);
+                        return (
+                        <View key={res.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white flex-row min-h-[132px]">
                             <Image
                               source={
-                                idx === 0
+                                res.className.toLowerCase().includes('zumba')
                                   ? require('../../../../assets/images/zumba.jpg')
-                                  : require('../../../../assets/images/Salsa.jpeg')
+                                  : res.className.toLowerCase().includes('salsa')
+                                  ? require('../../../../assets/images/Salsa.jpeg')
+                                  : require('../../../../assets/images/bachata.jpg')
                               }
                               style={{ width: 240, height: '100%', aspectRatio: 16 / 9 }}
                               resizeMode="cover"
                             />
                             <View className="flex-1 px-5 py-4 justify-between">
                             <View>
-                                <Text className="text-[15px] font-bold text-black">{cls.title}</Text>
+                                <Text className="text-[15px] font-bold text-black">{res.className}</Text>
                                 <Text className="text-[18px] font-bold text-black mt-2">
-                                {idx === 0 ? '6:00 PM - 7:00 PM' : '7:00 PM - 8:00 PM'}
+                                {res.time}
                                 </Text>
+                                <Text className="text-[13px] font-semibold text-gray-600 mt-1">Cupos: {res.seats.join(', ')}</Text>
                             </View>
                             <View className="flex-row items-center justify-between">
                                 <View>
                                 <Text className="text-[11px] font-semibold text-gray-500 uppercase">Instructor</Text>
-                                <Text className="text-[12px] font-semibold text-black">{cls.instructorName}</Text>
+                                <Text className="text-[12px] font-semibold text-black">{classInfo?.instructorName || 'Profesor'}</Text>
                                 </View>
-                                <View className="w-8 h-8 rounded-full bg-amber-700 items-center justify-center">
-                                <Text className="text-white font-bold">{cls.instructorName.charAt(0)}</Text>
+                                <View className="bg-green-100 rounded-lg px-4 py-2">
+                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
                                 </View>
                             </View>
                             </View>
                         </View>
-                        ))}
+                        );
+                        })}
                     </View>
+                    )}
                     </Animated.View>
                 )}
 
@@ -415,12 +467,16 @@ export default function ClientHomeScreen() {
                     >
                         <View className="flex-row border-b border-gray-200">
                         <View style={{ width: timeColumnWidth }} />
-                        {weeklyCalendarData.weekDays.map((day, dayIdx) => (
-                            <View key={day.key} className={`flex-1 items-center py-4 border-l border-gray-200 ${dayIdx === 0 ? 'border-l-0' : ''}`}>
+                        {weeklyCalendarData.weekDays.map((day, dayIdx) => {
+                            const todayMidnight = new Date(new Date().toDateString());
+                            const isPastDay = day.date < todayMidnight;
+                            return (
+                            <View key={day.key} className={`flex-1 items-center py-4 border-l border-gray-200 ${dayIdx === 0 ? 'border-l-0' : ''} ${isPastDay ? 'opacity-40' : ''}`}>
                             <Text className={`${isCompactDesktop ? 'text-[13px]' : 'text-[15px]'} font-bold text-gray-700 text-center`}>{day.label}</Text>
                             <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[18px]'} font-bold text-gray-700`}>{day.dayNumber}</Text>
                             </View>
-                        ))}
+                            );
+                        })}
                         </View>
 
                         {weekSlots.map((slot) => (
@@ -433,8 +489,8 @@ export default function ClientHomeScreen() {
                             return (
                                 <View key={`${slot}-${dayIdx}`} className="flex-1 border-l border-gray-200 p-2 justify-center">
                                 {event ? (
-                                    <View className="rounded-lg px-3 py-3 items-center" style={{ backgroundColor: getEventColor(event.title) }}>
-                                    <Text className={`${isCompactDesktop ? 'text-xs' : 'text-sm'} text-black font-bold`}>{event.title}</Text>
+                                    <View className={`rounded-lg px-3 py-3 items-center ${event.isPast ? 'opacity-40' : ''}`} style={{ backgroundColor: getEventColor(event.title) }}>
+                                    <Text className={`${isCompactDesktop ? 'text-xs' : 'text-sm'} text-black font-bold ${event.isPast ? 'line-through' : ''}`}>{event.title}</Text>
                                     <Text className="text-black font-bold text-xs mt-0.5">{event.time}</Text>
                                     </View>
                                 ) : null}
