@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
 import { ClaseService } from '../services/clase.service.js';
-import { CreateClaseDTO } from '../types/clase.dto.js';
+import { CreateClaseDTO, UpdateClaseDTO } from '../types/clase.dto.js';
 
 export class ClaseController {
   
   // Crear una nueva clase
   static async create(req: Request, res: Response): Promise<void> {
     try {
-      const data: CreateClaseDTO = req.body;
+      const { nombre, descripcion, imagen_url } = req.body;
+      const data: CreateClaseDTO = { nombre, descripcion, imagen_url };
       const nuevaClase = await ClaseService.registrarClase(data);
       
       res.status(201).json({
@@ -33,7 +34,8 @@ export class ClaseController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const data = req.body;
+      const { nombre, descripcion, imagen_url } = req.body;
+      const data: UpdateClaseDTO = { nombre, descripcion, imagen_url };
       
       const claseActualizada = await ClaseService.modificarClase(id, data);
       

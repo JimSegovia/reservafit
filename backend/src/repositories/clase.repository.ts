@@ -1,5 +1,5 @@
 import prisma from '../config/prisma.js';
-import { CreateClaseDTO } from '../types/clase.dto.js';
+import { CreateClaseDTO, UpdateClaseDTO } from '../types/clase.dto.js';
 
 export class ClaseRepository {
   
@@ -27,10 +27,14 @@ export class ClaseRepository {
     });
   }
 
-  static async actualizar(id: string, data: any) {
+  static async actualizar(id: string, data: UpdateClaseDTO) {
     return prisma.clase.update({
       where: { id_clase: id },
-      data
+      data: {
+        ...(data.nombre !== undefined && { nombre: data.nombre }),
+        ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
+        ...(data.imagen_url !== undefined && { imagen_url: data.imagen_url })
+      }
     });
   }
 

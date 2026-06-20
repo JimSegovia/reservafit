@@ -32,7 +32,7 @@ export function Tooltip({ content, className = '', size = 16 }: TooltipProps) {
           onPress={() => setVisible(false)}
         >
           <Pressable 
-            className="w-full max-w-[280px] bg-white border border-gray-150 rounded-2xl p-4 shadow-xl"
+            className="w-[85%] max-w-sm min-h-[160px] bg-white rounded-[32px] p-8 shadow-xl shadow-black/10"
             onPress={(e) => e.stopPropagation()}
           >
             <View className="flex-row justify-between items-center mb-2 border-b border-gray-100 pb-1.5">

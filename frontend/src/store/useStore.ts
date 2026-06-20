@@ -318,7 +318,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           capacity: classSchedules[0]?.cupos || 30,
           enrolled: classSchedules[0]?._count?.detalles_reserva || 0,
           price,
-          theme: c.tematica || undefined,
+          theme: descText || undefined,
           days: days.length > 0 ? Array.from(new Set(days)) : ['LUNES 10/05'],
           slots: slots.length > 0 ? Array.from(new Set(slots)) : ['6:00 PM - 7:00 PM'],
           image: c.imagen_url || undefined
@@ -454,18 +454,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Class CRUD
   addClass: async (classItem) => {
     try {
-      const descObj = JSON.stringify({
-        description: 'Clase de baile',
-        instructorName: classItem.instructorName,
-        price: classItem.price,
-        status: classItem.status
-      });
-
       await classesService.create({
         nombre: classItem.title,
-        descripcion: descObj,
-        dia: classItem.schedule,
-        tematica: classItem.theme || 'General',
+        descripcion: classItem.theme || '',
         imagen_url: classItem.image || ''
       });
 
@@ -485,18 +476,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!existing) return;
 
       const merged = { ...existing, ...updatedFields };
-      const descObj = JSON.stringify({
-        description: 'Clase de baile',
-        instructorName: merged.instructorName,
-        price: merged.price,
-        status: merged.status
-      });
 
       await classesService.update(id, {
         nombre: merged.title,
-        descripcion: descObj,
-        dia: merged.schedule,
-        tematica: merged.theme || 'General',
+        descripcion: merged.theme || '',
         imagen_url: merged.image || ''
       });
 
