@@ -47,6 +47,9 @@ export class ClaseService {
     
     const endDate = new Date(baseDate);
     endDate.setHours(19, 0, 0, 0); // 7:00 PM
+
+    // Array para obtener el nombre del día automáticamente
+    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     
     await prisma.detalleClase.create({
       data: {
@@ -54,6 +57,7 @@ export class ClaseService {
         id_instructor: instructor.id_instructor,
         fecha_hora_inicio: baseDate,
         fecha_hora_fin: endDate,
+        dia: dayNames[baseDate.getDay()], // <-- Este es el campo clave que faltaba
         estado: 'Disponible',
         cupos: 30
       }

@@ -5,8 +5,7 @@ import { Platform } from 'react-native';
 // 1. Creamos la instancia central de Axios
 const api = axios.create({
   // Llamamos a la variable de entorno con el estándar de Expo, o un default para desarrollo local
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
-  
+  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
   // Opcional: Un timeout de 10 segundos. Si el server no responde, cancela la petición
   // en lugar de dejar al usuario con una pantalla de carga infinita.
   timeout: 10000, 

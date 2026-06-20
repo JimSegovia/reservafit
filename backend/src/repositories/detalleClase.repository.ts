@@ -8,9 +8,9 @@ export class DetalleClaseRepository {
       data: {
         id_clase: data.id_clase,
         id_instructor: data.id_instructor,
-        // Convertimos el texto (string) que manda el frontend a un objeto Date real de Node.js
         fecha_hora_inicio: new Date(data.fecha_hora_inicio),
         fecha_hora_fin: new Date(data.fecha_hora_fin),
+        dia: data.dia,
         tematica: data.tematica || null
       }
     });

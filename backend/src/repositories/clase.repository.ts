@@ -8,7 +8,6 @@ export class ClaseRepository {
       data: {
         nombre: data.nombre,
         descripcion: data.descripcion,
-        dia: data.dia,
         imagen_url: data.imagen_url
       }
     });
@@ -16,13 +15,15 @@ export class ClaseRepository {
 
   static async obtenerTodas() {
     return prisma.clase.findMany({
+      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true },
       orderBy: { nombre: 'asc' }
     });
   }
 
   static async buscarPorId(id: string) {
     return prisma.clase.findUnique({
-      where: { id_clase: id }
+      where: { id_clase: id },
+      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true }
     });
   }
 

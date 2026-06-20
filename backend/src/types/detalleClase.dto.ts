@@ -5,6 +5,7 @@ export interface CreateDetalleClaseDTO {
   id_instructor: string;
   fecha_hora_inicio: string; 
   fecha_hora_fin: string;
+  dia: string;
   tematica?: string;
 }
 
@@ -15,5 +16,6 @@ export interface UpdateDetalleClaseDTO {
   fecha_hora_fin?: string;
   estado?: EstadoClase;
   cupos?: number;
+  dia?: string;
   tematica?: string;
 }

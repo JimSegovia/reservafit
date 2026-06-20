@@ -1,4 +1,3 @@
-// 1. CONFIGURACIÓN DEL GENERADOR Y CONEXIÓN
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,7 +6,139 @@ datasource db {
   provider = "postgresql"
 }
 
-// 2. DEFINICIÓN DE ENUMS (Tipos de datos personalizados)
+model Usuario {
+  id_usuario String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombres    String    @db.VarChar(100)
+  apellidos  String    @db.VarChar(100)
+  celular    String?   @db.VarChar(20)
+  cuentas    Cuenta[]
+  reservas   Reserva[]
+
+  @@map("Usuarios")
+}
+
+model Instructor {
+  id_instructor  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre         String         @db.VarChar(100)
+  apellidos      String         @db.VarChar(100)
+  fecha_creacion DateTime       @default(now()) @db.Timestamp(6)
+  foto_url       String?        @db.VarChar(200)
+  detalles_clase DetalleClase[]
+
+  @@map("Instructores")
+}
+
+model Clase {
+  id_clase       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre         String         @db.VarChar(100)
+  descripcion    String
+  imagen_url     String?        @db.VarChar(300)
+  detalles_clase DetalleClase[]
+
+  @@map("Clases")
+}
+
+model Cuenta {
+  id_cuenta           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_usuario          String    @db.Uuid
+  correo_electronico  String    @unique @db.VarChar(150)
+  contrasena          String    @map("contraseña") @db.VarChar(150)
+  rol                 Rol       @default(Cliente)
+  fecha_creacion      DateTime  @default(now()) @db.Timestamp(6)
+  estado_verificacion Boolean?  @default(false)
+  codigo_otp          String?   @db.VarChar(6)
+  expiracion_otp      DateTime? @db.Timestamp(6)
+  usuario             Usuario   @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@map("Cuentas")
+}
+
+model DetalleClase {
+  id_detalle_clase  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_clase          String           @db.Uuid
+  id_instructor     String           @db.Uuid
+  fecha_hora_inicio DateTime         @unique @db.Timestamp(6)
+  fecha_hora_fin    DateTime         @db.Timestamp(6)
+  estado            EstadoClase      @default(Disponible)
+  cupos             Int              @default(30)
+  tematica          String?
+  Dia               String?
+  clase             Clase            @relation(fields: [id_clase], references: [id_clase])
+  instructor        Instructor       @relation(fields: [id_instructor], references: [id_instructor])
+  detalles_reserva  DetalleReserva[]
+  reservas          Reserva[]
+
+  @@map("Detalles_Clase")
+}
+
+model Reserva {
+  id_reserva            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_detalle_clase      String           @db.Uuid
+  id_usuario            String           @db.Uuid
+  cantidad_cupos        Int              @default(1)
+  estado                EstadoReserva    @default(Pendiente_pago)
+  fecha_reserva         DateTime         @default(now()) @db.Timestamp(6)
+  fecha_expiracion_pago DateTime?        @db.Timestamp(6)
+  detalles_reserva      DetalleReserva[]
+  pagos                 Pago[]
+  detalle_clase         DetalleClase     @relation(fields: [id_detalle_clase], references: [id_detalle_clase])
+  usuario               Usuario          @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@map("Reservas")
+}
+
+model DetalleReserva {
+  id_detalle_reserva String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_reserva         String       @db.Uuid
+  id_detalle_clase   String       @db.Uuid
+  numero_cupo        Int
+  detalle_clase      DetalleClase @relation(fields: [id_detalle_clase], references: [id_detalle_clase])
+  reserva            Reserva      @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade)
+
+  @@unique([id_detalle_clase, numero_cupo], name: "asiento_unico")
+  @@map("Detalles_reserva")
+}
+
+model Pago {
+  id_pago           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_reserva        String             @db.Uuid
+  id_preferencia_mp String?            @unique @db.VarChar(255)
+  id_pago_mp        String?            @unique @db.VarChar(255)
+  metodo_pago       MetodoPago
+  estado_pago       EstadoPago         @default(Pendiente)
+  monto             Decimal            @db.Decimal(10, 2)
+  moneda            String             @default("PEN") @db.VarChar(3)
+  reserva           Reserva            @relation(fields: [id_reserva], references: [id_reserva])
+  reembolsos        Reembolso[]
+  webhooks          WebHookProcesado[]
+
+  @@map("Pagos")
+}
+
+model Reembolso {
+  id_reembolso      String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_pago           String          @db.Uuid
+  id_reembolso_mp   String?         @unique @db.VarChar(255)
+  monto_reembolsado Decimal         @db.Decimal(10, 2)
+  motivo            String          @db.VarChar(255)
+  estado            EstadoReembolso
+  fecha_creacion    DateTime        @default(now()) @db.Timestamp(6)
+  fecha_procesado   DateTime?       @db.Timestamp(6)
+  pago              Pago            @relation(fields: [id_pago], references: [id_pago])
+
+  @@map("Reembolsos")
+}
+
+model WebHookProcesado {
+  id_evento       String   @id @db.VarChar(255)
+  id_pago         String?  @db.Uuid
+  tipo_evento     String   @db.VarChar(100)
+  fecha_procesado DateTime @default(now()) @db.Timestamp(6)
+  pago            Pago?    @relation(fields: [id_pago], references: [id_pago])
+
+  @@map("WebHooks_Procesados")
+}
+
 enum Rol {
   Cliente
   Administrador
@@ -42,160 +173,4 @@ enum EstadoReembolso {
   Pendiente_Manual
   Completado
   Fallido
-}
-
-// 3. MODELOS (Tablas de la Base de Datos)
-
-model Usuario {
-  id_usuario String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombres    String   @db.VarChar(100)
-  apellidos  String   @db.VarChar(100)
-  celular    String?  @db.VarChar(20)
-
-  // Relaciones
-  cuentas    Cuenta[]
-  reservas   Reserva[]
-
-  @@map("Usuarios")
-}
-
-model Instructor {
-  id_instructor  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombre         String   @db.VarChar(100)
-  apellidos      String   @db.VarChar(100)
-  fecha_creacion DateTime @default(now()) @db.Timestamp(6)
-  foto_url       String?  @db.VarChar(200)
-
-  // Relaciones
-  detalles_clase DetalleClase[]
-
-  @@map("Instructores")
-}
-
-model Clase {
-  id_clase    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombre      String  @db.VarChar(100)
-  descripcion String  @db.VarChar(500)
-  dia         String  @db.VarChar(100)
-  imagen_url  String? @db.VarChar(300)
-
-  // Relaciones
-  detalles_clase DetalleClase[]
-
-  @@map("Clases")
-}
-
-model Cuenta {
-  id_cuenta           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_usuario          String    @db.Uuid
-  correo_electronico  String    @unique @db.VarChar(150)
-  contrasena          String    @map("contraseña") @db.VarChar(150) // Mapeado para no usar la "ñ" en TypeScript
-  rol                 Rol       @default(Cliente)
-  fecha_creacion      DateTime  @default(now()) @db.Timestamp(6)
-  estado_verificacion Boolean?  @default(false)
-  codigo_otp          String?   @db.VarChar(6)
-  expiracion_otp      DateTime? @db.Timestamp(6)
-
-  // Relaciones
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@map("Cuentas")
-}
-
-model DetalleClase {
-  id_detalle_clase  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_clase          String      @db.Uuid
-  id_instructor     String      @db.Uuid
-  fecha_hora_inicio DateTime    @unique @db.Timestamp(6)
-  fecha_hora_fin    DateTime    @db.Timestamp(6)
-  estado            EstadoClase @default(Disponible)
-  cupos             Int         @default(30)
-  tematica          String?     @db.VarChar(50)
-
-  // Relaciones
-  clase            Clase            @relation(fields: [id_clase], references: [id_clase])
-  instructor       Instructor       @relation(fields: [id_instructor], references: [id_instructor])
-  reservas         Reserva[]
-  detalles_reserva DetalleReserva[]
-
-  @@map("Detalles_Clase")
-}
-
-model Reserva {
-  id_reserva            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_detalle_clase      String        @db.Uuid
-  id_usuario            String        @db.Uuid
-  cantidad_cupos        Int           @default(1)
-  estado                EstadoReserva @default(Pendiente_pago)
-  fecha_reserva         DateTime      @default(now()) @db.Timestamp(6)
-  fecha_expiracion_pago DateTime?     @db.Timestamp(6)
-
-  // Relaciones
-  detalle_clase    DetalleClase     @relation(fields: [id_detalle_clase], references: [id_detalle_clase])
-  usuario          Usuario          @relation(fields: [id_usuario], references: [id_usuario])
-  detalles_reserva DetalleReserva[]
-  pagos            Pago[]
-
-  @@map("Reservas")
-}
-
-model DetalleReserva {
-  id_detalle_reserva String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_reserva         String @db.Uuid
-  id_detalle_clase   String @db.Uuid
-  numero_cupo        Int
-
-  // Relaciones
-  reserva       Reserva      @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade)
-  detalle_clase DetalleClase @relation(fields: [id_detalle_clase], references: [id_detalle_clase])
-
-  // Blindaje en BD contra doble reserva
-  @@unique([id_detalle_clase, numero_cupo], name: "asiento_unico")
-  @@map("Detalles_reserva")
-}
-
-model Pago {
-  id_pago           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_reserva        String     @db.Uuid
-  id_preferencia_mp String?    @unique @db.VarChar(255) // Cambiado: Guarda la preferencia (init_point)
-  id_pago_mp        String?    @unique @db.VarChar(255) // Cambiado: Guarda el ID de pago real cuando MP apruebe la transacción
-  metodo_pago       MetodoPago
-  estado_pago       EstadoPago @default(Pendiente)
-  monto             Decimal    @db.Decimal(10, 2)
-  moneda            String     @default("PEN") @db.VarChar(3)
-
-  // Relaciones
-  reserva    Reserva            @relation(fields: [id_reserva], references: [id_reserva])
-  reembolsos Reembolso[]
-  webhooks   WebHookProcesado[]
-
-  @@map("Pagos")
-}
-
-model Reembolso {
-  id_reembolso    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_pago         String          @db.Uuid
-  id_reembolso_mp String?         @unique @db.VarChar(255) // Cambiado: Guarda el ID de reembolso de Mercado Pago
-  monto_reembolsado Decimal       @db.Decimal(10, 2)
-  motivo          String          @db.VarChar(255)
-  estado          EstadoReembolso
-  fecha_creacion  DateTime        @default(now()) @db.Timestamp(6)
-  fecha_procesado DateTime?       @db.Timestamp(6)
-
-  // Relaciones
-  pago Pago @relation(fields: [id_pago], references: [id_pago])
-
-  @@map("Reembolsos")
-}
-
-model WebHookProcesado {
-  id_evento       String   @id @db.VarChar(255)
-  id_pago         String?  @db.Uuid
-  tipo_evento     String   @db.VarChar(100)
-  fecha_procesado DateTime @default(now()) @db.Timestamp(6)
-
-  // Relaciones
-  pago Pago? @relation(fields: [id_pago], references: [id_pago])
-
-  @@map("WebHooks_Procesados")
 }
