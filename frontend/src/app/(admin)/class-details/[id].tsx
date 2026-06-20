@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, SafeAreaView, Modal, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -110,21 +110,21 @@ export default function ClassDetailsScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-cream" style={{ flex: 1 }}>
+    <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: isMobile ? 80 : 40 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }}
         showsVerticalScrollIndicator={false}
         className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
         style={{ flex: 1 }}
       >
         <View className="flex-row justify-between items-center mb-6">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center flex-1 mr-2">
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>
             <View>
               <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Clase</Text>
-              <Text className="text-2xl font-extrabold text-black mt-0.5">Horarios de la Clase</Text>
+              <Text className="text-2xl font-bold text-secondary mt-0.5">Horarios de la Clase</Text>
             </View>
           </View>
 
@@ -380,6 +380,6 @@ export default function ClassDetailsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
