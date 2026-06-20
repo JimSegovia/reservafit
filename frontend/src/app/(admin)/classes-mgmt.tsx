@@ -109,11 +109,12 @@ export default function AdminClassesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <SafeAreaView className="flex-1 bg-cream" style={{ flex: 1 }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 80 : 40 }} 
         showsVerticalScrollIndicator={false}
         className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        style={{ flex: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}

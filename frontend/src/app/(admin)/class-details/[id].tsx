@@ -110,11 +110,12 @@ export default function ClassDetailsScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <SafeAreaView className="flex-1 bg-cream" style={{ flex: 1 }}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? 80 : 40 }}
         showsVerticalScrollIndicator={false}
         className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        style={{ flex: 1 }}
       >
         <View className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center">
@@ -136,7 +137,7 @@ export default function ClassDetailsScreen() {
         </View>
 
         {schedules.length === 0 ? (
-          <View className="flex-1 justify-center items-center py-10">
+          <View className="justify-center items-center py-10" style={{ minHeight: 300 }}>
             <Ionicons name="calendar-outline" size={48} color="#D1D5DB" />
             <Text className="text-gray-400 mt-4 text-center font-medium">No hay horarios programados aún.</Text>
             <Text className="text-gray-400 text-center text-sm mt-1">Haz clic en el botón '+' para añadir uno.</Text>
@@ -164,6 +165,11 @@ export default function ClassDetailsScreen() {
             const fechaStr = fmtDate(startDate);
             const horaInicio24 = fmtTime24(startDate);
             const horaFin24 = fmtTime24(endDate);
+            const diaSemana =
+              schedule.Dia ||
+              (isNaN(startDate.getTime())
+                ? null
+                : startDate.toLocaleDateString('es-ES', { weekday: 'long' }));
 
             return (
               <View
@@ -171,6 +177,11 @@ export default function ClassDetailsScreen() {
                 className={`bg-white rounded-2xl p-5 mb-4 border border-gray-100 shadow-sm ${isMobile ? '' : 'flex-row justify-between items-center'}`}
               >
                 <View className={`${isMobile ? 'mb-3' : 'flex-1 mr-3'}`}>
+                  {diaSemana ? (
+                    <Text className="font-semibold text-sm text-gray-800 capitalize mb-0.5">
+                      {diaSemana}
+                    </Text>
+                  ) : null}
                   <Text className="font-bold text-lg text-secondary mb-1">
                     {startTimeStr} - {endTimeStr}
                   </Text>
