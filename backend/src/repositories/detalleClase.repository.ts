@@ -1,16 +1,22 @@
 import prisma from '../config/prisma.js';
 import { CreateDetalleClaseDTO, UpdateDetalleClaseDTO } from '../types/detalleClase.dto.js';
 
+function obtenerDiaSemana(fecha: Date): string {
+  const dia = fecha.toLocaleDateString('es-ES', { weekday: 'long' });
+  return dia.charAt(0).toUpperCase() + dia.slice(1);
+}
+
 export class DetalleClaseRepository {
   
   static async crear(data: CreateDetalleClaseDTO) {
+    const inicio = new Date(data.fecha_hora_inicio);
     return prisma.detalleClase.create({
       data: {
         id_clase: data.id_clase,
         id_instructor: data.id_instructor,
-        fecha_hora_inicio: new Date(data.fecha_hora_inicio),
+        fecha_hora_inicio: inicio,
         fecha_hora_fin: new Date(data.fecha_hora_fin),
-        dia: data.dia,
+        Dia: obtenerDiaSemana(inicio),
         tematica: data.tematica || null
       }
     });
@@ -36,11 +42,13 @@ export class DetalleClaseRepository {
   }
 
   static async actualizar(id: string, data: UpdateDetalleClaseDTO) {
-    // Preparamos los datos aislando las fechas para convertirlas
-    const datosActualizar: any = { ...data };
+    const { dia, ...resto } = data as any;
+    const datosActualizar: any = { ...resto };
 
     if (data.fecha_hora_inicio) {
-      datosActualizar.fecha_hora_inicio = new Date(data.fecha_hora_inicio);
+      const inicio = new Date(data.fecha_hora_inicio);
+      datosActualizar.fecha_hora_inicio = inicio;
+      datosActualizar.Dia = obtenerDiaSemana(inicio);
     }
     if (data.fecha_hora_fin) {
       datosActualizar.fecha_hora_fin = new Date(data.fecha_hora_fin);
