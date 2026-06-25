@@ -74,22 +74,63 @@ export class AuthService {
       return { mensaje: 'La cuenta ya se encuentra verificada.' };
     }
 
-    // 3. Validar OTP (código '000000' funciona como clave maestra de verificación)
-    if (codigo !== '000000') {
-      if (!cuenta.codigo_otp || !cuenta.expiracion_otp) {
-        throw new Error('No se ha solicitado ningún código de verificación para esta cuenta.');
-      }
+    // 3. Validar OTP
+    if (!cuenta.codigo_otp || !cuenta.expiracion_otp) {
+      throw new Error('No se ha solicitado ningún código de verificación para esta cuenta.');
+    }
 
-      if (cuenta.codigo_otp !== codigo) {
-        throw new Error('El código de verificación ingresado es incorrecto.');
-      }
+    if (cuenta.codigo_otp !== codigo) {
+      throw new Error('El código de verificación ingresado es incorrecto.');
+    }
 
-      if (new Date() > cuenta.expiracion_otp) {
-        throw new Error('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
-      }
+    if (new Date() > cuenta.expiracion_otp) {
+      throw new Error('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
     }
 
     // 4. Activar la cuenta
     return await UsuarioRepository.activarCuenta(correo);
+  }
+
+  static async solicitarRestablecimiento(correo: string) {
+    const cuenta = await UsuarioRepository.buscarPorCorreo(correo);
+    if (!cuenta) {
+      return { mensaje: 'Si el correo existe, recibirás un código de restablecimiento.' };
+    }
+
+    const codigoOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiracionOtp = new Date(Date.now() + 10 * 60 * 1000);
+
+    await UsuarioRepository.actualizarOtp(correo, codigoOtp, expiracionOtp);
+
+    MailService.enviarCodigoRestablecimiento(correo, codigoOtp).catch((err) => {
+      console.error('[AuthService] Error de envío de correo de restablecimiento en segundo plano:', err);
+    });
+
+    return { mensaje: 'Si el correo existe, recibirás un código de restablecimiento.' };
+  }
+
+  static async restablecerContrasena(correo: string, codigo: string, nuevaContrasena: string) {
+    const cuenta = await UsuarioRepository.buscarPorCorreo(correo);
+    if (!cuenta) {
+      throw new Error('La cuenta no existe.');
+    }
+
+    if (!cuenta.codigo_otp || !cuenta.expiracion_otp) {
+      throw new Error('No se ha solicitado ningún código de restablecimiento.');
+    }
+
+    if (cuenta.codigo_otp !== codigo) {
+      throw new Error('El código de verificación es incorrecto.');
+    }
+
+    if (new Date() > cuenta.expiracion_otp) {
+      throw new Error('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
+    }
+
+    const contrasenaHasheada = await hashPassword(nuevaContrasena);
+    await UsuarioRepository.actualizarContrasena(correo, contrasenaHasheada);
+    await UsuarioRepository.limpiarOtp(correo);
+
+    return { mensaje: 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.' };
   }
 }

@@ -17,6 +17,20 @@ export const authService = {
     const response = await api.post('/auth/verify-otp', { correo_electronico: email, codigo_otp: otp });
     return response.data;
   },
+
+  forgotPassword: async (email: string) => {
+    const response = await api.post('/auth/forgot-password', { correo_electronico: email });
+    return response.data;
+  },
+
+  resetPassword: async (email: string, otp: string, newPassword: string) => {
+    const response = await api.post('/auth/reset-password', {
+      correo_electronico: email,
+      codigo_otp: otp,
+      contrasena: newPassword,
+    });
+    return response.data;
+  },
   
   logout: async () => {
     if (Platform.OS === 'web') {

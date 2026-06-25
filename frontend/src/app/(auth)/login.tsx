@@ -210,7 +210,7 @@ export default function LoginScreen() {
                       <Text className="text-gray-700 text-sm ml-2 font-medium">Recordarme</Text>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity disabled={loading}>
+                    <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
                       <Text className="text-primary font-bold text-sm">¿Olvidaste tu contraseña?</Text>
                     </TouchableOpacity>
                   </Animated.View>

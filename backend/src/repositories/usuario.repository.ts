@@ -108,4 +108,33 @@ export class UsuarioRepository {
       }
     });
   }
+
+  static async actualizarOtp(correo: string, codigoOtp: string, expiracionOtp: Date) {
+    return prisma.cuenta.update({
+      where: { correo_electronico: correo },
+      data: {
+        codigo_otp: codigoOtp,
+        expiracion_otp: expiracionOtp,
+      }
+    });
+  }
+
+  static async actualizarContrasena(correo: string, contrasenaHasheada: string) {
+    return prisma.cuenta.update({
+      where: { correo_electronico: correo },
+      data: {
+        contrasena: contrasenaHasheada,
+      }
+    });
+  }
+
+  static async limpiarOtp(correo: string) {
+    return prisma.cuenta.update({
+      where: { correo_electronico: correo },
+      data: {
+        codigo_otp: null,
+        expiracion_otp: null,
+      }
+    });
+  }
 }

@@ -28,3 +28,18 @@ export const verifyOtpSchema = z.object({
 });
 
 export type VerifyOtpDTO = z.infer<typeof verifyOtpSchema>;
+
+// 5. Escudo Zod para olvidé mi contraseña (solicitar restablecimiento)
+export const forgotPasswordSchema = z.object({
+  correo_electronico: z.string().email('Debe ser un correo electrónico válido'),
+});
+
+// 6. Escudo Zod para restablecer contraseña (confirmar con OTP + nueva contraseña)
+export const resetPasswordSchema = z.object({
+  correo_electronico: z.string().email('Debe ser un correo electrónico válido'),
+  codigo_otp: z.string().length(6, 'El código OTP debe ser de 6 dígitos'),
+  contrasena: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(150),
+});
+
+export type ForgotPasswordDTO = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;
