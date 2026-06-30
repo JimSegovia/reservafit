@@ -228,7 +228,7 @@ export default function ClientHomeScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(200).delay(50)} className="mb-6">
-        <Text className="text-2xl text-black">
+        <Text className="text-2xl font-normal text-black">
           ¡Hola, {user?.name || 'Ana Pérez'}! 👋
         </Text>
       </Animated.View>

@@ -66,7 +66,7 @@ export function EmptyState({
         <Ionicons name={defaults.icon} size={36} color={defaults.iconColor} />
       </View>
 
-      <Text className="text-lg text-black dark:text-white text-center mb-2">
+      <Text className="text-lg font-normal text-black dark:text-white text-center mb-2">
         {displayTitle}
       </Text>
 
