@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { ThemedText } from '../themed-text';
 import { ThemedView } from '../themed-view';
 
@@ -51,7 +51,7 @@ export function Loader({
     <View className="flex-1 justify-center items-center py-6">
       <ActivityIndicator size={size} color={color} />
       {label && (
-        <ThemedText className="mt-2 text-sm font-semibold text-gray-500">
+        <ThemedText className={`mt-2 text-sm font-semibold ${Platform.OS !== 'web' ? 'text-gray-600' : 'text-gray-500'}`}>
           {label}
         </ThemedText>
       )}

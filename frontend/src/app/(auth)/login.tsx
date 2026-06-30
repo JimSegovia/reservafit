@@ -15,6 +15,7 @@ export default function LoginScreen() {
   const showToast = useAppStore((state) => state.showToast);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const [email, setEmail] = useState('cliente@reservafit.com');
   const [password, setPassword] = useState('123456');
@@ -150,7 +151,7 @@ export default function LoginScreen() {
                 </Animated.View>
 
                 {error ? (
-                  <Animated.Text entering={FadeIn.duration(150)} className="text-red-500 text-sm text-center mb-4 font-semibold">
+                  <Animated.Text entering={FadeIn.duration(150)} className={`${isNative ? 'text-red-600' : 'text-red-500'} text-sm text-center mb-4 font-semibold`}>
                     {error}
                   </Animated.Text>
                 ) : null}
@@ -170,7 +171,7 @@ export default function LoginScreen() {
                       />
                     </View>
                     {emailError ? (
-                      <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{emailError}</Text>
+                      <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{emailError}</Text>
                     ) : null}
                   </View>
 
@@ -190,7 +191,7 @@ export default function LoginScreen() {
                       </TouchableOpacity>
                     </View>
                     {passwordError ? (
-                      <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{passwordError}</Text>
+                      <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{passwordError}</Text>
                     ) : null}
                   </View>
                 </Animated.View>
@@ -211,7 +212,7 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                     
                     <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
-                      <Text className="text-primary font-bold text-sm">¿Olvidaste tu contraseña?</Text>
+                      <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>¿Olvidaste tu contraseña?</Text>
                     </TouchableOpacity>
                   </Animated.View>
                 )}
@@ -220,7 +221,7 @@ export default function LoginScreen() {
                   <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mb-6 mt-2">
                     <Text className="text-gray-600 text-sm">¿No tienes cuenta? </Text>
                     <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
-                      <Text className="text-primary font-bold text-sm">Regístrate</Text>
+                      <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Regístrate</Text>
                     </TouchableOpacity>
                   </Animated.View>
                 )}
@@ -240,7 +241,7 @@ export default function LoginScreen() {
                     <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mt-8">
                       <Text className="text-gray-700 text-base font-medium">¿No tienes cuenta? </Text>
                       <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
-                        <Text className="text-primary font-bold text-base">Regístrate</Text>
+                        <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-base`}>Regístrate</Text>
                       </TouchableOpacity>
                     </Animated.View>
                     <Animated.View entering={FadeInDown.duration(200).delay(300)} className="flex-row justify-center items-center mt-4">

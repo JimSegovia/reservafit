@@ -11,6 +11,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
   const user = useAppStore((state) => state.user);
   const updateProfile = useAppStore((state) => state.updateProfile);
 
@@ -67,7 +68,7 @@ export default function ProfileScreen() {
           <TextInput
             value={email}
             editable={false}
-            className="bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-500"
+            className={`bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-base ${isNative ? 'text-gray-600' : 'text-gray-500'}`}
           />
         </View>
 

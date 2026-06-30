@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
@@ -60,6 +60,7 @@ export function EmptyState({
   const defaults = getDefaults();
   const displayTitle = title || defaults.title;
   const displayMessage = message || defaults.message;
+  const isMobile = Platform.OS !== 'web';
 
   return (
     <ThemedView className="py-12 px-6 items-center justify-center bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl p-6 shadow-sm w-full">
@@ -71,7 +72,7 @@ export function EmptyState({
         {displayTitle}
       </ThemedText>
 
-      <ThemedText className="text-sm text-gray-500 dark:text-gray-400 text-center leading-relaxed max-w-sm mb-6">
+      <ThemedText className={`text-sm ${isMobile ? 'text-gray-600' : 'text-gray-500'} dark:text-gray-400 text-center leading-relaxed max-w-sm mb-6`}>
         {displayMessage}
       </ThemedText>
 

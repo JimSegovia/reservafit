@@ -16,6 +16,7 @@ export default function RegisterScreen() {
   const showToast = useAppStore((state) => state.showToast);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -220,7 +221,7 @@ export default function RegisterScreen() {
                   />
                 </View>
                 {nameError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{nameError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{nameError}</Text>
                 ) : null}
               </Animated.View>
 
@@ -242,7 +243,7 @@ export default function RegisterScreen() {
                   />
                 </View>
                 {lastNameError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{lastNameError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{lastNameError}</Text>
                 ) : null}
               </Animated.View>
 
@@ -266,7 +267,7 @@ export default function RegisterScreen() {
                   />
                 </View>
                 {emailError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{emailError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{emailError}</Text>
                 ) : null}
               </Animated.View>
 
@@ -290,7 +291,7 @@ export default function RegisterScreen() {
                   />
                 </View>
                 {phoneError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{phoneError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{phoneError}</Text>
                 ) : null}
               </Animated.View>
 
@@ -316,7 +317,7 @@ export default function RegisterScreen() {
                   </TouchableOpacity>
                 </View>
                 {passwordError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{passwordError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{passwordError}</Text>
                 ) : null}
               </Animated.View>
 
@@ -342,7 +343,7 @@ export default function RegisterScreen() {
                   </TouchableOpacity>
                 </View>
                 {confirmPasswordError ? (
-                  <Text className="text-red-500 text-xs mt-1 ml-1 font-semibold">{confirmPasswordError}</Text>
+                  <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{confirmPasswordError}</Text>
                 ) : null}
               </Animated.View>
             </View>
@@ -361,7 +362,7 @@ export default function RegisterScreen() {
             <Animated.View entering={FadeInDown.duration(200).delay(230)} className="flex-row justify-center items-center mb-6">
               <Text className="text-gray-600 text-sm">¿Ya tienes cuenta? </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/login')} disabled={loading}>
-                <Text className="text-primary font-bold text-sm">Iniciar sesión</Text>
+                <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Iniciar sesión</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>

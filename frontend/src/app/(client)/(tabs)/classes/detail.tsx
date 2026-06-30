@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ export default function ClassDetailScreen() {
   const startBooking = useAppStore((state) => state.startBooking);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   // If no ID is passed, default to 'c10' (Baile funcional) to match V7 mockup exactly!
   const classId = (id as string) || 'c10';
@@ -104,7 +105,7 @@ export default function ClassDetailScreen() {
                 </Text>
               </View>
               <View>
-                <Text className="text-[10px] text-gray-400 font-bold uppercase">Instructor</Text>
+                <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold uppercase`}>Instructor</Text>
                 <Text className="text-sm font-extrabold text-black">{classItem.instructorName}</Text>
               </View>
             </Animated.View>
@@ -115,7 +116,7 @@ export default function ClassDetailScreen() {
                 <Ionicons name="calendar-outline" size={20} color="#FF7A00" />
               </View>
               <View>
-                <Text className="text-[10px] text-gray-400 font-bold uppercase">Día</Text>
+                <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold uppercase`}>Día</Text>
                 <Text className="text-sm font-extrabold text-black">
                   {(day as string) || classItem.days?.[0] || 'Lunes 09/05'}
                 </Text>
@@ -128,7 +129,7 @@ export default function ClassDetailScreen() {
                 <Ionicons name="time-outline" size={20} color="#FF7A00" />
               </View>
               <View>
-                <Text className="text-[10px] text-gray-400 font-bold uppercase">Horario</Text>
+                <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold uppercase`}>Horario</Text>
                 <Text className="text-sm font-extrabold text-black">
                   {(time as string) || classItem.slots?.[0] || '6:00 PM - 7:00 PM'}
                 </Text>
@@ -143,7 +144,7 @@ export default function ClassDetailScreen() {
               <View className="flex-1">
                 <View className="flex-row justify-between items-end mb-1">
                   <View>
-                    <Text className="text-[10px] text-gray-400 font-bold uppercase">Cupos</Text>
+                    <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold uppercase`}>Cupos</Text>
                     <Text className="text-sm font-extrabold text-black">
                       {classItem.enrolled}/{classItem.capacity} inscritos
                     </Text>
@@ -167,7 +168,7 @@ export default function ClassDetailScreen() {
                   <Ionicons name="color-palette-outline" size={20} color="#FF7A00" />
                 </View>
                 <View>
-                  <Text className="text-[10px] text-gray-400 font-bold uppercase">Temática</Text>
+                  <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold uppercase`}>Temática</Text>
                   <View className="bg-pink-100 px-3 py-0.5 rounded-full border border-pink-200 mt-0.5">
                     <Text className="text-pink-700 text-xs font-bold">{classItem.theme}</Text>
                   </View>
@@ -187,7 +188,7 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          <Text className="text-gray-500 text-xs text-center leading-relaxed px-4">
+          <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} text-xs text-center leading-relaxed px-4`}>
             Tu cupo sera reservado por 10 minutos para completar el pago
           </Text>
         </Animated.View>

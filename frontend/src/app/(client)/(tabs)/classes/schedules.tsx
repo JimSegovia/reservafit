@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ export default function HorariosDisponiblesScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const classId = (id as string) || classes[0]?.id || 'c7';
   const classItem = classes.find((c) => c.id === classId) || classes[0];
@@ -147,7 +148,7 @@ export default function HorariosDisponiblesScreen() {
           </TouchableOpacity>
           <View className="items-center">
             <Text className="text-xl font-extrabold text-black">Horarios Disponibles</Text>
-            <Text className="text-xs text-gray-500 font-bold">Clase: {classItem?.title || 'Clase'}</Text>
+            <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold`}>Clase: {classItem?.title || 'Clase'}</Text>
           </View>
           <View className="w-10" />
         </Animated.View>
@@ -174,7 +175,7 @@ export default function HorariosDisponiblesScreen() {
                 >
                   <Text
                     className={`text-[9px] font-extrabold text-center uppercase tracking-wider ${
-                      isSelected ? 'text-white/80' : 'text-gray-400'
+                      isSelected ? 'text-white/80' : (isNative ? 'text-gray-600' : 'text-gray-400')
                     }`}
                   >
                     {day.monthLabel}
@@ -188,7 +189,7 @@ export default function HorariosDisponiblesScreen() {
                   </Text>
                   <Text
                     className={`text-[9px] font-extrabold text-center uppercase ${
-                      isSelected ? 'text-white' : 'text-gray-500'
+                      isSelected ? 'text-white' : (isNative ? 'text-gray-600' : 'text-gray-500')
                     }`}
                   >
                     {day.dayName}
@@ -203,7 +204,7 @@ export default function HorariosDisponiblesScreen() {
         <View className="gap-y-4 mb-6">
           {slots.map((slot, index) => {
             let badgeBg = 'bg-gray-100';
-            let badgeText = 'text-gray-500';
+            let badgeText = isNative ? 'text-gray-600' : 'text-gray-500';
             let badgeBorder = 'border-gray-200';
 
             if (slot.status === 'Disponible') {
@@ -231,8 +232,8 @@ export default function HorariosDisponiblesScreen() {
                 >
                   <View>
                     <Text className="text-base font-extrabold text-black mb-1">{slot.time}</Text>
-                    <Text className="text-xs text-gray-500 mb-1">{slot.teacher}</Text>
-                    <Text className="text-xs text-gray-400 font-bold">{slot.enrolled}</Text>
+                    <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} mb-1`}>{slot.teacher}</Text>
+                    <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold`}>{slot.enrolled}</Text>
                   </View>
 
                   <View className={`px-3 py-1 rounded-full border ${badgeBg} ${badgeBorder}`}>
@@ -246,10 +247,10 @@ export default function HorariosDisponiblesScreen() {
 
         {/* Footer info text */}
         <Animated.View entering={FadeInDown.duration(200).delay(120)} className="items-center mt-2 mb-4">
-          <Text className="text-gray-500 text-xs font-bold text-center mb-1">
+          <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} text-xs font-bold text-center mb-1`}>
             Minimo para la clase: 7 personas
           </Text>
-          <Text className="text-gray-500 text-xs font-bold text-center">
+          <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} text-xs font-bold text-center`}>
             Las reservas deben ser 3 horas antes
           </Text>
         </Animated.View>

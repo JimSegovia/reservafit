@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ConfirmDialogProps {
@@ -24,6 +24,7 @@ export function ConfirmDialog({
   variant = 'default',
 }: ConfirmDialogProps) {
   const isDanger = variant === 'danger';
+  const isMobile = Platform.OS !== 'web';
 
   return (
     <Modal transparent visible={visible} animationType="fade">
@@ -48,7 +49,7 @@ export function ConfirmDialog({
           </Text>
 
           {/* Message */}
-          <Text className="text-gray-500 dark:text-gray-400 text-center text-[15px] leading-relaxed mb-8 px-2">
+          <Text className={`${isMobile ? 'text-gray-600' : 'text-gray-500'} dark:text-gray-400 text-center text-[15px] leading-relaxed mb-8 px-2`}>
             {message}
           </Text>
 
@@ -68,7 +69,7 @@ export function ConfirmDialog({
                 isDanger ? 'bg-danger-border' : 'bg-primary'
               }`}
             >
-              <Text className="text-white text-[15px] font-bold">
+              <Text className={`${isMobile && !isDanger ? 'text-secondary' : 'text-white'} text-[15px] font-bold`}>
                 {confirmLabel}
               </Text>
             </TouchableOpacity>

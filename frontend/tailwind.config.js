@@ -9,6 +9,8 @@ module.exports = {
         primary: {
           DEFAULT: "#FF7A00",
           dark: "#E06B00",
+          "text-mobile": "#D35400",
+          "text-strong": "#B85A00",
         },
         secondary: {
           DEFAULT: "#1F0F08",
@@ -28,6 +30,7 @@ module.exports = {
         warning: {
           bg: "#FFFDE7",
           text: "#F57F17",
+          "text-mobile": "#9E5D00",
           border: "#FBC02D",
         },
         occupy: "#B0BEC5",
