@@ -49,6 +49,7 @@ export default function ProfileScreen() {
         <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center mb-8">
           <TouchableOpacity
             onPress={() => router.back()}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200 mr-4"
           >
             <Ionicons name="arrow-back" size={18} color="#111827" />

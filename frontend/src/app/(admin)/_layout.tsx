@@ -50,6 +50,7 @@ export default function AdminLayout() {
                 onPress={() => router.push(item.route as any)}
                 className="items-center py-1 px-0.5"
                 style={{ flex: 1 }}
+                hitSlop={{ top: 7, bottom: 7, left: 0, right: 0 }}
               >
                 <Ionicons
                   name={item.icon as any}
@@ -71,6 +72,7 @@ export default function AdminLayout() {
             onPress={() => setShowLogoutConfirm(true)}
             className="items-center py-1 px-0.5"
             style={{ flex: 1 }}
+            hitSlop={{ top: 7, bottom: 7, left: 0, right: 0 }}
           >
             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
             <Text className="text-[9px] font-semibold mt-0.5 text-center text-red-400" numberOfLines={1}>

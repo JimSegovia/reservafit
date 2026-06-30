@@ -84,7 +84,7 @@ export default function AdminDashboardScreen() {
               style={{ outlineWidth: 0 }}
             />
           </View>
-          <TouchableOpacity className="w-10 h-10 rounded-xl bg-white items-center justify-center border border-gray-200">
+          <TouchableOpacity hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }} className="w-10 h-10 rounded-xl bg-white items-center justify-center border border-gray-200">
             <Ionicons name="notifications-outline" size={20} color="#1F0F08" />
           </TouchableOpacity>
         </View>

@@ -66,6 +66,7 @@ export default function ClientPaymentsHistoryScreen() {
             <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center mb-5">
               <TouchableOpacity
                 onPress={() => router.replace('/(client)/(tabs)')}
+                hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
                 className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200 mr-3"
               >
                 <Ionicons name="arrow-back" size={18} color="#111827" />
@@ -107,10 +108,10 @@ export default function ClientPaymentsHistoryScreen() {
                       </View>
 
                       <View className="w-[110px] flex-row justify-center gap-x-2">
-                        <TouchableOpacity onPress={() => setSelectedReceipt(res)} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
+                        <TouchableOpacity onPress={() => setSelectedReceipt(res)} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
                           <Ionicons name="document-text-outline" size={17} color="#c2410c" />
                         </TouchableOpacity>
-                        <TouchableOpacity className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
+                        <TouchableOpacity hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
                           <Ionicons name="print-outline" size={17} color="#c2410c" />
                         </TouchableOpacity>
                       </View>
@@ -139,6 +140,7 @@ export default function ClientPaymentsHistoryScreen() {
             <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center justify-between mb-5 mt-1">
               <TouchableOpacity
                 onPress={() => router.replace('/(client)/(tabs)')}
+                hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
                 className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200"
               >
                 <Ionicons name="arrow-back" size={18} color="#111827" />
@@ -148,6 +150,7 @@ export default function ClientPaymentsHistoryScreen() {
 
               <TouchableOpacity
                 onPress={() => router.push('/profile')}
+                hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
                 className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center border border-gray-200"
               >
                 <Ionicons name="person-circle-outline" size={22} color="#6b7280" />

@@ -143,7 +143,7 @@ export default function HorariosDisponiblesScreen() {
     >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <View className="items-center">

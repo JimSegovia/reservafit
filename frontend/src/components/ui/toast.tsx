@@ -78,7 +78,7 @@ export function Toast() {
         <Text className={`flex-1 text-sm font-semibold leading-5 ${textClass}`}>
           {toast.message}
         </Text>
-        <TouchableOpacity onPress={hideToast} className="p-1">
+        <TouchableOpacity onPress={hideToast} className="p-1" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons name="close" size={20} color={iconColor} />
         </TouchableOpacity>
       </View>

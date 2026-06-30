@@ -71,6 +71,7 @@ export default function ClassDetailScreen() {
           />
           <TouchableOpacity
             onPress={() => router.back()}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 items-center justify-center"
           >
             <Ionicons name="chevron-back" size={24} color="white" />

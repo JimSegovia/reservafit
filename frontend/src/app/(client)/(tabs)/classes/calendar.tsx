@@ -150,7 +150,7 @@ export default function CalendarScreen() {
        >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity onPress={() => router.replace('/(client)/(tabs)/classes')}>
+          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(client)/(tabs)/classes')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
           <Text className="text-2xl font-extrabold text-black">Calendario</Text>
@@ -186,13 +186,13 @@ export default function CalendarScreen() {
           >
             {/* Month selector header */}
             <View className="flex-row justify-between items-center mb-4 px-1">
-              <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                 <Ionicons name="chevron-back" size={20} color="black" />
               </TouchableOpacity>
               <Text className="text-base font-extrabold text-black uppercase">
                 {monthsNames[currentCalendarMonth]} {currentCalendarYear}
               </Text>
-              <TouchableOpacity onPress={handleNextMonth} className="p-1">
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                 <Ionicons name="chevron-forward" size={20} color="black" />
               </TouchableOpacity>
             </View>

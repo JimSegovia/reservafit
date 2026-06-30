@@ -121,7 +121,7 @@ export default function AdminClassesScreen() {
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center flex-1 mr-2">
-            <TouchableOpacity onPress={() => router.replace('/(admin)')}>
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
             <View>
@@ -136,6 +136,7 @@ export default function AdminClassesScreen() {
           {/* Add Button */}
           <TouchableOpacity
             onPress={openAddModal}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-sm"
           >
             <Ionicons name="add" size={24} color="white" />
@@ -178,10 +179,10 @@ export default function AdminClassesScreen() {
                     <Ionicons name="fitness-outline" size={20} color="#FF7A00" />
                   </View>
                   <View className="flex-row gap-x-1">
-                    <TouchableOpacity onPress={() => openEditModal(cls)} className="p-1">
+                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => openEditModal(cls)} className="p-1">
                       <Ionicons name="pencil-outline" size={16} color="#9CA3AF" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => promptDeleteClass(cls.id_clase || cls.id)} className="p-1">
+                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => promptDeleteClass(cls.id_clase || cls.id)} className="p-1">
                       <Ionicons name="trash-outline" size={16} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
@@ -211,7 +212,7 @@ export default function AdminClassesScreen() {
               <Text className="text-xl font-bold text-secondary">
                 {editingId ? 'Editar Clase' : 'Agregar Clase'}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>

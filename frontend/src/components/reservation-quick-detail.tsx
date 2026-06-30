@@ -20,7 +20,7 @@ export function ReservationQuickDetail({ visible, onClose, title, time, date, se
         <View className="w-full max-w-[420px] bg-white rounded-3xl p-5">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-[18px] font-bold text-black">Detalle de reserva</Text>
-            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={20} color="black" /></TouchableOpacity>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}><Ionicons name="close" size={20} color="black" /></TouchableOpacity>
           </View>
           <View className="gap-y-3">
             <Text className="text-[14px] text-gray-500">Clase: <Text className="text-black font-semibold">{title}</Text></Text>

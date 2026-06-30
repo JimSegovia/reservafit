@@ -17,6 +17,7 @@ export function Tooltip({ content, className = '', size = 16 }: TooltipProps) {
         onPress={() => setVisible(true)} 
         activeOpacity={0.6}
         className="p-0.5"
+        hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
       >
         <Ionicons name="help-circle-outline" size={size} color="#FF7A00" />
       </TouchableOpacity>
@@ -40,7 +41,7 @@ export function Tooltip({ content, className = '', size = 16 }: TooltipProps) {
                 <Ionicons name="information-circle" size={16} color="#FF7A00" className="mr-1" />
                 <Text className="text-xs font-extrabold text-black">Ayuda e Información</Text>
               </View>
-              <TouchableOpacity onPress={() => setVisible(false)}>
+              <TouchableOpacity onPress={() => setVisible(false)} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
                 <Ionicons name="close" size={16} color="black" />
               </TouchableOpacity>
             </View>

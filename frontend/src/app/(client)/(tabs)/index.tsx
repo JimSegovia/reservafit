@@ -453,10 +453,10 @@ export default function ClientHomeScreen() {
                         </View>
                         <View className={`flex-row items-center ${isCompactDesktop ? 'gap-x-3' : 'gap-x-4'}`}>
                         <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[20px]'} font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>{weeklyCalendarData.weekRangeLabel}</Text>
-                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
+                        <TouchableOpacity hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
                           <Ionicons name="chevron-back" size={18} color="#555" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
+                        <TouchableOpacity hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
                           <Ionicons name="chevron-forward" size={18} color="#555" />
                         </TouchableOpacity>
                         </View>

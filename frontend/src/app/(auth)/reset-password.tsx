@@ -181,7 +181,7 @@ export default function ResetPasswordScreen() {
                     className="flex-1 text-black text-base p-0"
                     editable={!loading}
                   />
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                     <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
                   </TouchableOpacity>
                 </View>

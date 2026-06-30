@@ -312,7 +312,7 @@ export default function RegisterScreen() {
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
                   />
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                     <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
                   </TouchableOpacity>
                 </View>
@@ -338,7 +338,7 @@ export default function RegisterScreen() {
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
                   />
-                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} disabled={loading}>
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowConfirmPassword(!showConfirmPassword)} disabled={loading}>
                     <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
                   </TouchableOpacity>
                 </View>

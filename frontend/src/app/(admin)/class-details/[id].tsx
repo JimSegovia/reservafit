@@ -119,7 +119,7 @@ export default function ClassDetailsScreen() {
       >
         <View className="flex-row justify-between items-center mb-6">
           <View className="flex-row items-center flex-1 mr-2">
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.back()} className="mr-4">
               <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>
             <View>
@@ -130,6 +130,7 @@ export default function ClassDetailsScreen() {
 
           <TouchableOpacity
             onPress={openModal}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-sm"
           >
             <Ionicons name="add" size={24} color="white" />
@@ -202,6 +203,7 @@ export default function ClassDetailsScreen() {
 
                   <View className="flex-row items-center" style={{ gap: 12 }}>
                     <TouchableOpacity
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       onPress={() => {
                         setEditingScheduleId(schedule.id_detalle_clase);
                         setFecha(fechaStr);
@@ -219,7 +221,7 @@ export default function ClassDetailsScreen() {
                       <Ionicons name="pencil-outline" size={20} color="black" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => { /* TODO: eliminar horario */ }} className="p-1">
+                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => { /* TODO: eliminar horario */ }} className="p-1">
                       <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
@@ -238,7 +240,7 @@ export default function ClassDetailsScreen() {
               <Text className="text-xl font-bold text-secondary">
                 {editingScheduleId ? 'Editar Sesión / Horario' : 'Añadir Sesión / Horario'}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>

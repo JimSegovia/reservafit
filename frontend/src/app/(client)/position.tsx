@@ -83,7 +83,7 @@ export default function PositionSelectorScreen() {
   const mobileContent = (
     <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16 }}>
       <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => {
           clearBooking();
           router.back();
         }}>

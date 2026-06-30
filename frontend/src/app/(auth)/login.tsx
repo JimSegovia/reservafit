@@ -127,6 +127,7 @@ export default function LoginScreen() {
               {!isWeb && (
                 <TouchableOpacity 
                   onPress={() => router.back()} 
+                  hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
                   className="w-10 h-10 rounded-full bg-white/90 items-center justify-center absolute top-4 left-4 z-10 shadow-sm"
                 >
                   <Ionicons name="arrow-back" size={24} color="black" />
@@ -186,7 +187,7 @@ export default function LoginScreen() {
                         className="flex-1 text-black text-base p-0"
                         editable={!loading}
                       />
-                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
+                      <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                         <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
                       </TouchableOpacity>
                     </View>
@@ -199,6 +200,7 @@ export default function LoginScreen() {
                 {!isWeb && (
                   <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-between items-center mb-8">
                     <TouchableOpacity
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       onPress={() => setRememberMe(!rememberMe)}
                       className="flex-row items-center"
                       disabled={loading}

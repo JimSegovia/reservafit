@@ -261,6 +261,7 @@ export default function ClassesSelectorScreen() {
                     <TouchableOpacity
                       key={day}
                       onPress={() => handleFilterDay(day)}
+                      hitSlop={{ top: 11, bottom: 11, left: 0, right: 0 }}
                       className={`px-3 py-1.5 rounded-lg border text-xs ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
                     >
                       <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
@@ -279,6 +280,7 @@ export default function ClassesSelectorScreen() {
                     <TouchableOpacity
                       key={theme}
                       onPress={() => handleFilterTheme(theme)}
+                      hitSlop={{ top: 11, bottom: 11, left: 0, right: 0 }}
                       className={`px-3 py-1.5 rounded-lg border text-xs ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
                     >
                       <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
@@ -383,13 +385,13 @@ export default function ClassesSelectorScreen() {
             {showYearCalendar && (
               <Animated.View entering={FadeInDown.duration(200)} className="bg-white border border-gray-200 rounded-3xl p-6 mb-6 shadow-md max-w-md mx-auto w-full">
                 <View className="flex-row justify-between items-center mb-4 px-1">
-                  <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                     <Ionicons name="chevron-back" size={20} color="black" />
                   </TouchableOpacity>
                   <Text className="text-base font-extrabold text-black uppercase">
                     {monthsNames[currentCalendarMonth]} {currentCalendarYear}
                   </Text>
-                  <TouchableOpacity onPress={handleNextMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                     <Ionicons name="chevron-forward" size={20} color="black" />
                   </TouchableOpacity>
                 </View>
@@ -407,6 +409,7 @@ export default function ClassesSelectorScreen() {
                       <TouchableOpacity
                         key={idx}
                         onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
                         className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
                       >
                         <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
@@ -426,6 +429,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={idx}
                     onPress={() => !isPast && setSelectedDate(day.date)}
+                    hitSlop={{ top: 2, bottom: 2, left: 0, right: 0 }}
                     className={`items-center p-3 rounded-xl w-[55px] ${isSelected ? 'bg-primary shadow-sm' : isPast ? 'bg-gray-100' : 'bg-gray-55'}`}
                   >
                     <Text className={`text-[11px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>
@@ -529,6 +533,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={day}
                     onPress={() => handleFilterDay(day)}
+                    hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
                     className={`px-4 py-2 rounded-full border ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
                   >
                     <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
@@ -546,6 +551,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={theme}
                     onPress={() => handleFilterTheme(theme)}
+                    hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
                     className={`px-4 py-2 rounded-full border ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
                   >
                     <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
@@ -641,13 +647,13 @@ export default function ClassesSelectorScreen() {
             {showYearCalendar && (
               <Animated.View entering={FadeInDown.duration(200)} className="bg-white border border-gray-200 rounded-3xl p-5 mb-6 shadow-md">
                 <View className="flex-row justify-between items-center mb-4 px-1">
-                  <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                     <Ionicons name="chevron-back" size={20} color="black" />
                   </TouchableOpacity>
                   <Text className="text-sm font-extrabold text-black uppercase">
                     {monthsNames[currentCalendarMonth]} {currentCalendarYear}
                   </Text>
-                  <TouchableOpacity onPress={handleNextMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                     <Ionicons name="chevron-forward" size={20} color="black" />
                   </TouchableOpacity>
                 </View>
@@ -665,6 +671,7 @@ export default function ClassesSelectorScreen() {
                       <TouchableOpacity
                         key={idx}
                         onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
                         className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
                       >
                         <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
@@ -684,6 +691,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={idx}
                     onPress={() => !isPast && setSelectedDate(day.date)}
+                    hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
                     className={`items-center p-2 rounded-xl w-[45px] ${isSelected ? 'bg-primary' : isPast ? 'bg-gray-100' : 'bg-transparent'}`}
                   >
                     <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>

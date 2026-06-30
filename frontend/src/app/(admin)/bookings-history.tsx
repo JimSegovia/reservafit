@@ -25,7 +25,7 @@ export default function AdminBookingsHistoryScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity onPress={() => router.replace('/(admin)')}>
+          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
           <View>
