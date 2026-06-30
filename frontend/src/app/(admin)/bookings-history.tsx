@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, useWindowDimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -11,6 +11,7 @@ export default function AdminBookingsHistoryScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+  const isNative = Platform.OS !== 'web';
   const reservations = useAppStore((state) => state.reservations);
 
   const [activeTab, setActiveTab] = useState<'Reservas' | 'Pagos'>('Reservas');
@@ -41,7 +42,7 @@ export default function AdminBookingsHistoryScreen() {
           >
             <Text
               className={`font-bold text-center text-sm ${
-                activeTab === 'Reservas' ? 'text-white' : 'text-gray-500'
+                activeTab === 'Reservas' ? isNative ? 'text-secondary' : 'text-white' : 'text-gray-500'
               }`}
             >
               Reservas
@@ -54,7 +55,7 @@ export default function AdminBookingsHistoryScreen() {
           >
             <Text
               className={`font-bold text-center text-sm ${
-                activeTab === 'Pagos' ? 'text-white' : 'text-gray-500'
+                activeTab === 'Pagos' ? isNative ? 'text-secondary' : 'text-white' : 'text-gray-500'
               }`}
             >
               Pagos

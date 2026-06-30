@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, RefreshControl, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, RefreshControl, useWindowDimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, ClassItem } from '@/store/useStore';
@@ -13,6 +13,7 @@ export default function AdminClassesScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+  const isNative = Platform.OS !== 'web';
   const classes = useAppStore((state) => state.classes);
   const addClass = useAppStore((state) => state.addClass);
   const updateClass = useAppStore((state) => state.updateClass);
@@ -194,7 +195,7 @@ export default function AdminClassesScreen() {
                   className="flex-row items-center justify-center bg-primary/10 rounded-xl py-2.5"
                 >
                   <Ionicons name="calendar-outline" size={16} color="#FF7A00" />
-                  <Text className="text-primary font-bold text-xs ml-1.5">Gestionar Horarios</Text>
+                  <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-xs ml-1.5`}>Gestionar Horarios</Text>
                 </TouchableOpacity>
               </Animated.View>
             ))

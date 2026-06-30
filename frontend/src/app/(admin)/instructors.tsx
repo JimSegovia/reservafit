@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert, useWindowDimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore, Instructor } from '@/store/useStore';
@@ -11,6 +11,7 @@ export default function AdminInstructorsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+  const isNative = Platform.OS !== 'web';
   const instructors = useAppStore((state) => state.instructors);
   const deleteInstructor = useAppStore((state) => state.deleteInstructor);
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
@@ -301,7 +302,7 @@ export default function AdminInstructorsScreen() {
                     status === 'Activo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Activo' ? 'text-white' : 'text-secondary'}`}>
+                  <Text className={`font-bold ${status === 'Activo' ? isNative ? 'text-secondary' : 'text-white' : 'text-secondary'}`}>
                     Activo
                   </Text>
                 </TouchableOpacity>
@@ -312,7 +313,7 @@ export default function AdminInstructorsScreen() {
                     status === 'Inactivo' ? 'bg-primary border-primary' : 'bg-white border-gray-300'
                   }`}
                 >
-                  <Text className={`font-bold ${status === 'Inactivo' ? 'text-white' : 'text-secondary'}`}>
+                  <Text className={`font-bold ${status === 'Inactivo' ? isNative ? 'text-secondary' : 'text-white' : 'text-secondary'}`}>
                     Inactivo
                   </Text>
                 </TouchableOpacity>

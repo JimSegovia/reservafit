@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Loader } from './loader';
 
@@ -26,6 +26,8 @@ export function Button({
   className = '',
   textClassName = '',
 }: ButtonProps) {
+  const isMobile = Platform.OS !== 'web';
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'secondary':
@@ -37,8 +39,8 @@ export function Button({
       case 'outline':
         return {
           buttonClass: 'bg-transparent border border-primary',
-          textClass: 'text-primary font-bold',
-          iconColor: '#FF7A00',
+          textClass: isMobile ? 'text-primary-text-strong font-bold' : 'text-primary font-bold',
+          iconColor: isMobile ? '#B85A00' : '#FF7A00',
         };
       case 'danger':
         return {
@@ -49,15 +51,15 @@ export function Button({
       case 'ghost':
         return {
           buttonClass: 'bg-transparent',
-          textClass: 'text-primary font-semibold',
-          iconColor: '#FF7A00',
+          textClass: isMobile ? 'text-primary-text-strong font-semibold' : 'text-primary font-semibold',
+          iconColor: isMobile ? '#B85A00' : '#FF7A00',
         };
       case 'primary':
       default:
         return {
           buttonClass: 'bg-primary active:bg-primary/90',
-          textClass: 'text-white font-bold',
-          iconColor: '#FFFFFF',
+          textClass: isMobile ? 'text-secondary font-bold' : 'text-white font-bold',
+          iconColor: isMobile ? '#1F0F08' : '#FFFFFF',
         };
     }
   };
@@ -87,7 +89,7 @@ export function Button({
               className="mr-2"
             />
           )}
-          <Text className={`text-base text-center ${textClass} ${textClassName}`}>
+          <Text className={`${isMobile ? 'text-lg' : 'text-base'} text-center ${textClass} ${textClassName}`}>
             {label}
           </Text>
         </View>

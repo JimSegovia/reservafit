@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
@@ -44,12 +44,14 @@ export default function AdminDashboardScreen() {
 
   const TABLE_HEADERS = ['Nombre', 'Clase', 'Fecha', 'Monto', 'Estado'];
 
+  const isNative = Platform.OS !== 'web';
+
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
       case 'Pagado':
         return { bg: 'bg-success-bg', text: 'text-success-text' };
       case 'Pendiente':
-        return { bg: 'bg-warning-bg', text: 'text-warning-text' };
+        return { bg: 'bg-warning-bg', text: isNative ? 'text-warning-text-mobile' : 'text-warning-text' };
       case 'Cancelado':
         return { bg: 'bg-danger-bg', text: 'text-danger-text' };
       default:
@@ -104,7 +106,7 @@ export default function AdminDashboardScreen() {
               >
                 <Ionicons name={kpi.icon as any} size={isMobile ? 18 : 20} color={kpi.color} />
               </View>
-              <Text className={`${isMobile ? 'text-[10px] text-center' : 'text-xs'} text-secondary/50 font-semibold`}>{kpi.label}</Text>
+              <Text className={`${isMobile ? 'text-[10px] text-center' : 'text-xs'} ${isNative ? 'text-gray-500' : 'text-secondary/50'} font-semibold`}>{kpi.label}</Text>
               <Text className={`${isMobile ? 'text-lg text-center mt-0.5' : 'text-2xl mt-1'} font-bold text-secondary`}>{kpi.val}</Text>
             </View>
           </Animated.View>

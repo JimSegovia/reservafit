@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, useWindowDimensions, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ export default function LandingScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   return (
     <SafeAreaView className="flex-1 bg-cream p-0 m-0">
@@ -75,9 +76,9 @@ export default function LandingScreen() {
            <View className={`${isWeb ? 'flex-1 pr-6' : 'mb-8'}`}>
              <Animated.View entering={FadeInDown.duration(250).delay(50)}>
                 <Text className={`font-extrabold text-slate-800 leading-tight ${isWeb ? 'text-6xl lg:text-[64px] text-left max-w-xl' : 'text-[38px] text-center max-w-sm mx-auto'}`}>
-                 Entrena a tu ritmo, asegura tu <Text className="text-primary">espacio</Text>
+                  Entrena a tu ritmo, asegura tu <Text className={isNative ? 'text-primary-text-strong' : 'text-primary'}>espacio</Text>
                </Text>
-               <Text className={`text-gray-500 mt-5 text-base lg:text-lg leading-relaxed max-w-xl ${isWeb ? 'text-left' : 'text-center mx-auto'}`}>
+                <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} mt-5 text-base lg:text-lg leading-relaxed max-w-xl ${isWeb ? 'text-left' : 'text-center mx-auto'}`}>
                  La forma más simple y rápida de reservar tu cupo en sala. Elige tu clase favorita, selecciona tu ubicación y prepárate para entrenar.
                </Text>
              </Animated.View>
@@ -98,7 +99,7 @@ export default function LandingScreen() {
                     className="min-h-0 h-12 shadow-md shadow-primary/30"
                   />
                  <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-1">
-                   <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
+                    <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Centro de Ayuda / FAQ</Text>
                  </TouchableOpacity>
                </Animated.View>
              )}

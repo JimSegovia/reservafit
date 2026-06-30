@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/useStore';
@@ -16,6 +16,7 @@ export default function ClassesSelectorScreen() {
   const fetchClasses = useAppStore((state) => state.fetchClasses);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   // Active Tab: 'clases' | 'calendario'
   const [activeTab, setActiveTab] = useState<'clases' | 'calendario'>('clases');
@@ -230,7 +231,7 @@ export default function ClassesSelectorScreen() {
           onPress={() => setActiveTab('clases')}
           className={`flex-1 py-3 rounded-lg ${activeTab === 'clases' ? 'bg-primary' : 'bg-transparent'}`}
         >
-          <Text className={`font-bold text-center text-sm ${activeTab === 'clases' ? 'text-white' : 'text-gray-500'}`}>
+          <Text className={`font-bold text-center text-sm ${activeTab === 'clases' ? isNative ? 'text-secondary' : 'text-white' : 'text-gray-500'}`}>
             Clases
           </Text>
         </TouchableOpacity>
@@ -238,7 +239,7 @@ export default function ClassesSelectorScreen() {
           onPress={() => setActiveTab('calendario')}
           className={`flex-1 py-3 rounded-lg ${activeTab === 'calendario' ? 'bg-primary' : 'bg-transparent'}`}
         >
-          <Text className={`font-bold text-center text-sm ${activeTab === 'calendario' ? 'text-white' : 'text-gray-500'}`}>
+          <Text className={`font-bold text-center text-sm ${activeTab === 'calendario' ? isNative ? 'text-secondary' : 'text-white' : 'text-gray-500'}`}>
             Calendario
           </Text>
         </TouchableOpacity>
@@ -343,12 +344,12 @@ export default function ClassesSelectorScreen() {
                         </View>
                         <View className="flex-row items-center">
                           <Ionicons name="wallet-outline" size={14} color="#FF7A00" className="mr-1.5" />
-                          <Text className="text-[13px] text-primary font-bold">Precio: S/ {cls.price.toFixed(2)}</Text>
+                          <Text className={`text-[13px] ${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold`}>Precio: S/ {cls.price.toFixed(2)}</Text>
                         </View>
                       </View>
 
                       <TouchableOpacity onPress={() => router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`)} className="bg-primary rounded-xl py-3 items-center mt-3">
-                        <Text className="text-white font-bold text-sm">Ver horarios</Text>
+                        <Text className={`${isNative ? 'text-secondary' : 'text-white'} font-bold text-sm`}>Ver horarios</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -504,13 +505,13 @@ export default function ClassesSelectorScreen() {
             onPress={() => setActiveTab('clases')}
             className={`flex-1 pb-3 border-b-2 ${activeTab === 'clases' ? 'border-primary' : 'border-transparent'}`}
           >
-            <Text className={`font-bold text-center text-base ${activeTab === 'clases' ? 'text-primary' : 'text-gray-400'}`}>Clases</Text>
+            <Text className={`font-bold text-center text-base ${activeTab === 'clases' ? isNative ? 'text-primary-text-strong' : 'text-primary' : isNative ? 'text-gray-600' : 'text-gray-400'}`}>Clases</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab('calendario')}
             className={`flex-1 pb-3 border-b-2 ${activeTab === 'calendario' ? 'border-primary' : 'border-transparent'}`}
           >
-            <Text className={`font-bold text-center text-base ${activeTab === 'calendario' ? 'text-primary' : 'text-gray-400'}`}>Calendario</Text>
+            <Text className={`font-bold text-center text-base ${activeTab === 'calendario' ? isNative ? 'text-primary-text-strong' : 'text-primary' : isNative ? 'text-gray-600' : 'text-gray-400'}`}>Calendario</Text>
           </TouchableOpacity>
         </View>
 
@@ -599,7 +600,7 @@ export default function ClassesSelectorScreen() {
 
                       {/* Price visible on Card */}
                       <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 px-2 mb-2">
-                        <Text className="text-xs font-bold text-primary">Precio: S/ {cls.price.toFixed(2)}</Text>
+                        <Text className={`text-xs font-bold ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>Precio: S/ {cls.price.toFixed(2)}</Text>
                       </View>
 
                       <TouchableOpacity
@@ -608,7 +609,7 @@ export default function ClassesSelectorScreen() {
                         }}
                         className="py-2.5 w-full items-center border-t border-gray-50 mt-2"
                       >
-                        <Text className="text-primary font-bold text-sm">Ver horarios y reservar</Text>
+                        <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Ver horarios y reservar</Text>
                       </TouchableOpacity>
                     </View>
                   </Animated.View>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ export default function CalendarScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showYearCalendar, setShowYearCalendar] = useState(false);
@@ -199,7 +200,7 @@ export default function CalendarScreen() {
             {/* Weekdays legend */}
             <View className="flex-row justify-between mb-2 border-b border-gray-100 pb-2">
               {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((dayL, idx) => (
-                <Text key={idx} className="w-[13%] text-center text-xs font-extrabold text-gray-400">
+                <Text key={idx} className={`w-[13%] text-center text-xs font-extrabold ${isNative ? 'text-gray-600' : 'text-gray-400'}`}>
                   {dayL}
                 </Text>
               ))}
@@ -255,7 +256,7 @@ export default function CalendarScreen() {
                   isSelected ? 'bg-primary' : isPast ? 'bg-gray-100' : 'bg-transparent'
                 }`}
               >
-                <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>
+                <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : (isNative ? 'text-gray-600' : 'text-gray-500')}`}>
                   {day.label}
                 </Text>
                 <Text className={`text-base font-extrabold mt-0.5 ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>
@@ -271,7 +272,7 @@ export default function CalendarScreen() {
           {timeBlocks.length === 0 || timeBlocks.every(tb => !tb.class) ? (
             <View className="py-12 items-center justify-center bg-white">
               <Ionicons name="calendar-outline" size={40} color="lightgray" />
-              <Text className="text-gray-400 font-bold text-sm mt-3">No hay clases programadas para hoy</Text>
+              <Text className={`${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold text-sm mt-3`}>No hay clases programadas para hoy</Text>
             </View>
           ) : (
             timeBlocks.map((block, idx) => (
@@ -297,7 +298,7 @@ export default function CalendarScreen() {
                         </Text>
                         <View className="flex-row items-center mt-1">
                           <Ionicons name="person" size={10} color="gray" />
-                          <Text className="text-[10px] text-gray-500 ml-1">
+                          <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-500'} ml-1`}>
                             {block.class.teacher}
                           </Text>
                         </View>
@@ -314,7 +315,7 @@ export default function CalendarScreen() {
         {/* Footer Warning Info */}
         <Animated.View entering={FadeInDown.duration(200).delay(200)} className="flex-row items-center justify-center py-2 mb-4">
           <Ionicons name="time-outline" size={16} color="gray" />
-          <Text className="text-xs text-gray-500 font-bold ml-1">
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>
             Las reservas deben ser 3 horas antes
           </Text>
         </Animated.View>

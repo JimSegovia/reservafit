@@ -16,6 +16,7 @@ export default function VerifyScreen() {
   const showToast = useAppStore((state) => state.showToast);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -147,7 +148,7 @@ export default function VerifyScreen() {
               </Animated.View>
 
               {error ? (
-                <Animated.Text entering={FadeIn.duration(150)} className="text-red-500 text-sm text-center mb-4 font-semibold">
+                <Animated.Text entering={FadeIn.duration(150)} className={`${isNative ? 'text-red-600' : 'text-red-500'} text-sm text-center mb-4 font-semibold`}>
                   {error}
                 </Animated.Text>
               ) : null}
@@ -176,7 +177,7 @@ export default function VerifyScreen() {
                 <TouchableOpacity onPress={handleResend} disabled={countdown > 0 || loading}>
                   <Text className={`${isWeb ? 'text-[20px]' : 'text-sm'} text-gray-500 font-semibold text-center`}>
                     ¿No recibiste el código?{' '}
-                    <Text className={`font-bold ${countdown > 0 ? 'text-gray-400' : 'text-primary'}`}>
+                    <Text className={`font-bold ${countdown > 0 ? 'text-gray-400' : isNative ? 'text-primary-text-strong' : 'text-primary'}`}>
                       Reenviar {countdown > 0 ? `(00:${countdown < 10 ? '0' : ''}${countdown})` : ''}
                     </Text>
                   </Text>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,9 +9,10 @@ import { ClientDesktopShell } from '@/components/client-desktop-shell';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 function RowDetail({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  const isNative = Platform.OS !== 'web';
   return (
     <View className="flex-row justify-between items-center">
-      <Text className="text-gray-500 text-sm font-medium">{label}</Text>
+      <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} text-sm font-medium`}>{label}</Text>
       <Text className={`text-gray-900 text-sm ${bold ? 'font-extrabold text-base' : 'font-semibold'}`}>{value}</Text>
     </View>
   );
@@ -22,6 +23,7 @@ export default function ClientPaymentsHistoryScreen() {
   const reservations = useAppStore((state) => state.reservations);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const getShortTime = (range: string) => range.split('-')[0]?.trim() || '6:00 PM';
 
@@ -73,7 +75,7 @@ export default function ClientPaymentsHistoryScreen() {
 
             <Animated.View entering={FadeIn.duration(220).delay(40)} className="flex-row border-b border-gray-200 mb-6 px-1">
               <View className="pb-3 border-b-2 border-primary min-w-[120px]">
-                <Text className="text-primary font-bold text-center text-base">Pagos</Text>
+                <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-center text-base`}>Pagos</Text>
               </View>
             </Animated.View>
 
@@ -154,7 +156,7 @@ export default function ClientPaymentsHistoryScreen() {
 
             <Animated.View entering={FadeIn.duration(220).delay(40)} className="flex-row border-b border-gray-200 mb-5">
               <View className="pb-3 border-b-2 border-primary min-w-[95px]">
-                <Text className="text-primary font-bold text-center text-base">Pagos</Text>
+                <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-center text-base`}>Pagos</Text>
               </View>
             </Animated.View>
 

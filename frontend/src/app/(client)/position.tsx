@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,7 @@ export default function PositionSelectorScreen() {
   const clearBooking = useAppStore((state) => state.clearBooking);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const [occupiedList, setOccupiedList] = useState<number[]>([]);
 
@@ -90,7 +91,7 @@ export default function PositionSelectorScreen() {
         </TouchableOpacity>
         <View className="flex-1">
           <Text className="text-xl font-extrabold text-black uppercase">{currentBooking.className}</Text>
-          <Text className="text-xs text-gray-500 font-bold mt-0.5">
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold mt-0.5`}>
             {currentBooking.day.split(' ')[0]}, {currentBooking.time} • Instructor: {currentBooking.instructorName} • S/ {currentBooking.pricePerSeat.toFixed(2)} c/u
           </Text>
         </View>
@@ -100,17 +101,17 @@ export default function PositionSelectorScreen() {
       <View className="flex-row items-center justify-center mb-6 gap-x-2 px-2">
         <View className="flex-row items-center">
           <View className="w-5 h-5 rounded-full bg-orange-200 items-center justify-center"><Text className="text-[10px] font-bold text-orange-800">1</Text></View>
-          <Text className="text-[10px] text-gray-500 font-bold ml-1">Clase</Text>
+          <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>Clase</Text>
         </View>
         <View className="w-4 h-[2px] bg-primary" />
         <View className="flex-row items-center">
           <View className="w-5 h-5 rounded-full bg-primary items-center justify-center"><Text className="text-[10px] font-bold text-white">2</Text></View>
-          <Text className="text-[10px] text-primary font-bold ml-1">Asientos</Text>
+          <Text className={`text-[10px] ${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold ml-1`}>Asientos</Text>
         </View>
         <View className="w-4 h-[2px] bg-gray-200" />
         <View className="flex-row items-center">
-          <View className="w-5 h-5 rounded-full bg-gray-200 items-center justify-center"><Text className="text-[10px] font-bold text-gray-500">3</Text></View>
-          <Text className="text-[10px] text-gray-500 font-bold ml-1">Pago</Text>
+          <View className="w-5 h-5 rounded-full bg-gray-200 items-center justify-center"><Text className={`text-[10px] font-bold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>3</Text></View>
+          <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>Pago</Text>
         </View>
       </View>
 
@@ -121,7 +122,7 @@ export default function PositionSelectorScreen() {
             <Text className="text-base font-extrabold text-black mr-1">Sala Única</Text>
             <Tooltip content="Presiona un número de asiento libre (blanco) para seleccionarlo. Los ocupados (gris) no se pueden elegir." />
           </View>
-          <Text className="text-xs text-gray-400 font-bold mt-1">Cupos: 30 alumnos</Text>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold mt-1`}>Cupos: 30 alumnos</Text>
         </View>
 
         {/* Seat Grid Map 6x5 - flexbox with calculated widths */}
@@ -135,7 +136,7 @@ export default function PositionSelectorScreen() {
 
             if (isOccupied) {
               bgStyle = 'bg-gray-300 border-gray-300';
-              textStyle = 'text-gray-500';
+              textStyle = isNative ? 'text-gray-600' : 'text-gray-500';
             } else if (isSelected) {
               bgStyle = 'bg-primary border-primary';
               textStyle = 'text-white';
@@ -165,15 +166,15 @@ export default function PositionSelectorScreen() {
       <Animated.View entering={FadeIn.duration(200).delay(150)} className="flex-row justify-around mb-8">
         <View className="flex-row items-center">
           <View className="w-4 h-4 rounded-full border border-gray-350 bg-white mr-1.5" />
-          <Text className="text-xs font-bold text-gray-500">Disponible</Text>
+          <Text className={`text-xs font-bold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Disponible</Text>
         </View>
         <View className="flex-row items-center">
           <View className="w-4 h-4 rounded-full bg-primary mr-1.5" />
-          <Text className="text-xs font-bold text-gray-500">Seleccionado</Text>
+          <Text className={`text-xs font-bold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Seleccionado</Text>
         </View>
         <View className="flex-row items-center">
           <View className="w-4 h-4 rounded-full bg-gray-300 mr-1.5" />
-          <Text className="text-xs font-bold text-gray-500">Ocupado</Text>
+          <Text className={`text-xs font-bold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Ocupado</Text>
         </View>
       </Animated.View>
 
@@ -190,7 +191,7 @@ export default function PositionSelectorScreen() {
       {/* Countdown */}
       <Animated.View entering={FadeIn.duration(200).delay(210)} className="flex-row items-center justify-center py-2 mb-4 mt-2">
         <Ionicons name="time-outline" size={16} color="#FF7A00" />
-        <Text className="text-xs text-gray-500 font-semibold ml-1.5">
+        <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold ml-1.5`}>
           Reserva bloqueada por {formatTime(currentBooking.timeLeft)} min
         </Text>
       </Animated.View>
@@ -206,7 +207,7 @@ export default function PositionSelectorScreen() {
         <View className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
           <Text className="text-[22px] font-bold text-black uppercase">{currentBooking.className}</Text>
           <Text className="text-[16px] text-gray-600 mt-1">{currentBooking.day.split(' ')[0]}, {currentBooking.time}</Text>
-          <Text className="text-[14px] text-gray-500 mt-2 font-bold">Precio por asiento: S/ {currentBooking.pricePerSeat.toFixed(2)}</Text>
+          <Text className={`text-[14px] ${isNative ? 'text-gray-600' : 'text-gray-500'} mt-2 font-bold`}>Precio por asiento: S/ {currentBooking.pricePerSeat.toFixed(2)}</Text>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
           <Text className="text-[18px] font-bold text-black mb-2">Instructor: {currentBooking.instructorName}</Text>
@@ -214,8 +215,8 @@ export default function PositionSelectorScreen() {
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5">
           <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full border border-black mr-4" /><Text className="text-[15px]">Disponible</Text></View>
-          <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full bg-primary mr-4" /><Text className="text-[15px] text-primary">Seleccionado</Text></View>
-          <View className="flex-row items-center"><View className="w-5 h-5 rounded-full bg-gray-300 mr-4" /><Text className="text-[15px] text-gray-500">Ocupado</Text></View>
+          <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full bg-primary mr-4" /><Text className={`text-[15px] ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>Seleccionado</Text></View>
+          <View className="flex-row items-center"><View className="w-5 h-5 rounded-full bg-gray-300 mr-4" /><Text className={`text-[15px] ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Ocupado</Text></View>
         </View>
       </View>
 
@@ -227,17 +228,17 @@ export default function PositionSelectorScreen() {
         <View className="flex-row items-center justify-center my-6 gap-x-2 px-2">
           <View className="flex-row items-center">
             <View className="w-6 h-6 rounded-full bg-orange-200 items-center justify-center"><Text className="text-xs font-bold text-orange-800">1</Text></View>
-            <Text className="text-xs text-gray-500 font-bold ml-1">Clase</Text>
+            <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>Clase</Text>
           </View>
           <View className="w-8 h-[2px] bg-primary" />
           <View className="flex-row items-center">
             <View className="w-6 h-6 rounded-full bg-primary items-center justify-center"><Text className="text-xs font-bold text-white">2</Text></View>
-            <Text className="text-xs text-primary font-bold ml-1">Asientos</Text>
+            <Text className={`text-xs ${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold ml-1`}>Asientos</Text>
           </View>
           <View className="w-8 h-[2px] bg-gray-200" />
           <View className="flex-row items-center">
-            <View className="w-6 h-6 rounded-full bg-gray-200 items-center justify-center"><Text className="text-xs font-bold text-gray-500">3</Text></View>
-            <Text className="text-xs text-gray-500 font-bold ml-1">Pago</Text>
+            <View className="w-6 h-6 rounded-full bg-gray-200 items-center justify-center"><Text className={`text-xs font-bold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>3</Text></View>
+            <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>Pago</Text>
           </View>
         </View>
 
@@ -246,7 +247,7 @@ export default function PositionSelectorScreen() {
             const isOccupied = occupiedList.includes(seatNum);
             const isSelected = currentBooking.selectedSeats.includes(seatNum);
             const bgStyle = isOccupied ? 'bg-gray-300 border-gray-300' : isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300';
-            const textStyle = isOccupied ? 'text-gray-500' : isSelected ? 'text-white' : 'text-black';
+            const textStyle = isOccupied ? (isNative ? 'text-gray-600' : 'text-gray-500') : isSelected ? (isNative ? 'text-secondary' : 'text-white') : 'text-black';
             return (
               <Animated.View key={seatNum} entering={ZoomIn.duration(120).delay(20 + idx * 5)} className="aspect-square" style={{ width: '14.5%' }}>
                 <TouchableOpacity onPress={() => handleSeatPress(seatNum)} disabled={isOccupied} className={`w-full h-full border rounded-xl items-center justify-center ${bgStyle}`}>
@@ -270,7 +271,7 @@ export default function PositionSelectorScreen() {
             <Text className="text-[20px] font-bold text-black mr-1">Asientos seleccionados</Text>
             <Tooltip content="Selecciona tus asientos haciendo clic en los casilleros disponibles del mapa." />
           </View>
-          <Text className="text-[22px] font-extrabold mb-6 text-primary">{currentBooking.selectedSeats.join(', ') || '-'}</Text>
+          <Text className={`text-[22px] font-extrabold mb-6 ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>{currentBooking.selectedSeats.join(', ') || '-'}</Text>
           <Button
             label="Pagar reserva"
             onPress={handleContinue}

@@ -15,6 +15,7 @@ export default function HelpScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const isNative = Platform.OS !== 'web';
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -115,7 +116,7 @@ export default function HelpScreen() {
                       activeOpacity={0.7}
                       className="flex-row justify-between items-center p-4"
                     >
-                      <Text className={`text-sm font-bold flex-1 pr-4 ${isOpen ? 'text-primary' : 'text-gray-800'}`}>
+                      <Text className={`text-sm font-bold flex-1 pr-4 ${isOpen ? isNative ? 'text-primary-text-strong' : 'text-primary' : 'text-gray-800'}`}>
                         {faq.question}
                       </Text>
                       <Ionicons 
@@ -127,7 +128,7 @@ export default function HelpScreen() {
 
                     {isOpen && (
                       <Animated.View entering={FadeIn.duration(200)} className="px-4 pb-4 pt-1 border-t border-gray-100">
-                        <Text className="text-xs text-gray-500 font-semibold leading-relaxed">
+                        <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold leading-relaxed`}>
                           {faq.answer}
                         </Text>
                       </Animated.View>
