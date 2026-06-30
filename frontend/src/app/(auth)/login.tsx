@@ -218,12 +218,19 @@ export default function LoginScreen() {
                 )}
 
                 {isWeb && (
-                  <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mb-6 mt-2">
-                    <Text className="text-gray-600 text-sm">¿No tienes cuenta? </Text>
-                    <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
-                      <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Regístrate</Text>
-                    </TouchableOpacity>
-                  </Animated.View>
+                  <>
+                    <Animated.View entering={FadeInDown.duration(200).delay(250)} className="flex-row justify-center items-center mb-4 mt-2">
+                      <Text className="text-gray-600 text-sm">¿No tienes cuenta? </Text>
+                      <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
+                        <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Regístrate</Text>
+                      </TouchableOpacity>
+                    </Animated.View>
+                    <Animated.View entering={FadeInDown.duration(200).delay(300)} className="flex-row justify-center items-center mb-6">
+                      <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
+                        <Text className="text-primary font-bold text-sm">¿Olvidaste tu contraseña?</Text>
+                      </TouchableOpacity>
+                    </Animated.View>
+                  </>
                 )}
 
                 <Animated.View entering={FadeInDown.duration(200).delay(200)}>
