@@ -1,8 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
 import { Button } from './button';
 
 export type EmptyStateVariant = 'no-classes' | 'no-bookings' | 'no-results' | 'error';
@@ -63,18 +61,18 @@ export function EmptyState({
   const isMobile = Platform.OS !== 'web';
 
   return (
-    <ThemedView className="py-12 px-6 items-center justify-center bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl p-6 shadow-sm w-full">
-      <View className="w-16 h-16 rounded-full bg-gray-50 dark:bg-zinc-850 items-center justify-center mb-4">
+    <View className="py-12 px-6 items-center justify-center bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl p-6 shadow-sm w-full">
+      <View className="w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mb-4">
         <Ionicons name={defaults.icon} size={36} color={defaults.iconColor} />
       </View>
 
-      <ThemedText className="text-lg font-extrabold text-black dark:text-white text-center mb-2">
+      <Text className="text-lg font-extrabold text-black dark:text-white text-center mb-2">
         {displayTitle}
-      </ThemedText>
+      </Text>
 
-      <ThemedText className={`text-sm ${isMobile ? 'text-gray-600' : 'text-gray-500'} dark:text-gray-400 text-center leading-relaxed max-w-sm mb-6`}>
+      <Text className={`text-sm ${isMobile ? 'text-gray-600' : 'text-gray-500'} dark:text-gray-400 text-center leading-relaxed max-w-sm mb-6`}>
         {displayMessage}
-      </ThemedText>
+      </Text>
 
       {onAction && actionLabel ? (
         <Button
@@ -84,6 +82,6 @@ export function EmptyState({
           className="w-auto px-8"
         />
       ) : null}
-    </ThemedView>
+    </View>
   );
 }
