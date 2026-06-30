@@ -43,4 +43,30 @@ export class AuthController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  static async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { correo_electronico } = req.body;
+      const result = await AuthService.solicitarRestablecimiento(correo_electronico);
+
+      res.status(200).json({
+        mensaje: result.mensaje,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { correo_electronico, codigo_otp, contrasena } = req.body;
+      const result = await AuthService.restablecerContrasena(correo_electronico, codigo_otp, contrasena);
+
+      res.status(200).json({
+        mensaje: result.mensaje,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }

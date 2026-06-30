@@ -82,6 +82,7 @@ interface AppState {
   user: User | null;
   otpCode: string | null;
   tempRegisterData: Partial<User> | null;
+  tempResetEmail: string | null;
   
   // Toast state
   toast: ToastInfo | null;
@@ -105,6 +106,8 @@ interface AppState {
   fetchClasses: () => Promise<void>;
   fetchInstructors: () => Promise<void>;
   verifyOtp: (code: string) => Promise<boolean>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (code: string, newPassword: string) => Promise<boolean>;
   logout: () => void;
   
   // Instructor actions (CRUD)
@@ -169,6 +172,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   user: null,
   otpCode: null,
   tempRegisterData: null,
+  tempResetEmail: null,
   
   instructors: [],
   classes: [],
@@ -383,6 +387,31 @@ export const useAppStore = create<AppState>((set, get) => ({
       return true;
     } catch (error) {
       console.error('Verify OTP error:', error);
+      return false;
+    }
+  },
+
+  forgotPassword: async (email) => {
+    try {
+      await authService.forgotPassword(email);
+      set({ tempResetEmail: email });
+      return true;
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return false;
+    }
+  },
+
+  resetPassword: async (code, newPassword) => {
+    try {
+      const { tempResetEmail } = get();
+      if (!tempResetEmail) return false;
+
+      await authService.resetPassword(tempResetEmail, code, newPassword);
+      set({ tempResetEmail: null });
+      return true;
+    } catch (error) {
+      console.error('Reset password error:', error);
       return false;
     }
   },

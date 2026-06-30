@@ -16,6 +16,7 @@ export const envs = {
 
   JWT_SECRET: env.get('JWT_SECRET').required().asString(),
 
-  // Servicio de Correos
-  RESEND_API_KEY: env.get('RESEND_API_KEY').required().asString()
+  // Servicio de Correos (Nodemailer + Gmail SMTP)
+  GMAIL_USER: env.get('GMAIL_USER').required().asString(),
+  GMAIL_APP_PASSWORD: env.get('GMAIL_APP_PASSWORD').required().asString()
 };
