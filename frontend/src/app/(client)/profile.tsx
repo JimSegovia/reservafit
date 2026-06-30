@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 export default function ProfileScreen() {
@@ -13,7 +14,9 @@ export default function ProfileScreen() {
   const isWeb = width >= 768;
   const user = useAppStore((state) => state.user);
   const updateProfile = useAppStore((state) => state.updateProfile);
+  const logout = useAppStore((state) => state.logout);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [nombres, setNombres] = useState(user?.name?.split(' ')[0] || '');
   const [apellidos, setApellidos] = useState(user?.name?.split(' ').slice(1).join(' ') || '');
   const [email] = useState(user?.email || '');
@@ -27,6 +30,16 @@ export default function ProfileScreen() {
     if (success) {
       router.back();
     }
+  };
+
+  const handleLogoutPress = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    router.replace('/(auth)/landing');
   };
 
   const formContent = (
@@ -94,7 +107,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={useAppStore.getState().logout}
+          onPress={handleLogoutPress}
           className="flex-row justify-center items-center py-4 mt-2"
         >
           <Ionicons name="log-out-outline" size={20} color="#dc2626" />
@@ -105,17 +118,31 @@ export default function ProfileScreen() {
   );
 
   return (
-    isWeb
-      ? <ClientDesktopShell title="Mi Perfil" subtitle="Edita tus datos personales">{formContent}</ClientDesktopShell>
-      : (
-        <SafeAreaView className="flex-1 bg-cream">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-          >
-            {formContent}
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      )
+    <>
+      {isWeb
+        ? <ClientDesktopShell title="Mi Perfil" subtitle="Edita tus datos personales">{formContent}</ClientDesktopShell>
+        : (
+          <SafeAreaView className="flex-1 bg-cream">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              className="flex-1"
+            >
+              {formContent}
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        )
+      }
+
+      <ConfirmDialog
+        visible={showLogoutConfirm}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas cerrar sesión en ReservaFit?"
+        confirmLabel="Cerrar sesión"
+        cancelLabel="Volver"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="default"
+      />
+    </>
   );
 }
