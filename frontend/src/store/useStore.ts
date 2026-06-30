@@ -265,10 +265,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         celular: data.phone || ''
       });
       set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client', id: data.password } });
-      return true;
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
+      const message = error?.response?.data?.error || error?.response?.data?.detalles?.[0]?.mensaje || 'Error al registrar. Verifica tus datos o intenta más tarde.';
       console.error('Registration error:', error);
-      return false;
+      return { success: false, error: message };
     }
   },
 

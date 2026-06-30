@@ -122,19 +122,19 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      const success = await registerUser({
+      const result = await registerUser({
         name: `${name} ${lastName}`,
         email: email,
         phone: phone,
         password: password,
       });
 
-      if (success) {
+      if (result.success) {
         showToast('¡Código de verificación enviado a tu correo!', 'success');
         router.replace('/(auth)/verify');
       } else {
-        setEmailError('Error al registrar. Verifica tus datos o intenta más tarde.');
-        showToast('Error en el registro', 'error');
+        setEmailError(result.error);
+        showToast(result.error, 'error');
       }
     } finally {
       setLoading(false);
