@@ -224,7 +224,7 @@ export default function ClassesSelectorScreen() {
   );
 
   const desktopContent = (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="flex-1">
       {/* Tab Selector Web */}
       <View className="flex-row border-b border-gray-200 mb-6 max-w-md mx-auto w-full bg-white p-1 rounded-xl shadow-sm">
         <TouchableOpacity
@@ -472,11 +472,6 @@ export default function ClassesSelectorScreen() {
                   </View>
                 ))
               )}
-            </View>
-
-            <View className="flex-row items-center justify-center py-2">
-              <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-medium ml-1">Las reservas deben ser realizadas al menos 3 horas antes.</Text>
             </View>
           </View>
         </Animated.View>
@@ -734,12 +729,6 @@ export default function ClassesSelectorScreen() {
                   </View>
                 ))
               )}
-            </View>
-
-            {/* Footer warning */}
-            <View className="flex-row items-center justify-center py-2 mb-4">
-              <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-medium ml-1">Las reservas deben ser 3 horas antes</Text>
             </View>
           </Animated.View>
         )}

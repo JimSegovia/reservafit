@@ -59,12 +59,12 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
 
   return (
     <View className="flex-1 flex-row bg-cream">
-      <View className="w-[280px] bg-[#1f0f08] px-6 py-8 justify-between">
+      <View className="w-60 bg-[#1f0f08] py-8 justify-between">
         <View>
-          <View className="flex-row justify-center items-center mb-10 mt-2">
+          <View className="flex-row justify-center items-center mb-10 mt-2 px-4">
             <ExpoImage
               source={require('../../assets/images/logoblanco.svg')}
-              style={{ width: 200, height: 66 }}
+              style={{ width: 190, height: 64 }}
               contentFit="contain"
             />
           </View>
@@ -73,7 +73,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
             <TouchableOpacity
               key={item.href}
               onPress={() => router.replace(item.href as any)}
-              className={`flex-row items-center rounded-lg px-4 py-4 mb-4 ${isActive(item.href) ? 'bg-primary' : ''}`}
+              className={`flex-row items-center w-full rounded-sm pl-4 pr-3 py-4 mb-4 ${isActive(item.href) ? 'bg-primary' : ''}`}
             >
               <Ionicons name={item.icon} size={22} color="white" />
               <Text className="text-white font-semibold ml-3 text-[15px]">{item.label}</Text>
@@ -81,7 +81,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
           ))}
         </View>
 
-        <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center px-4 py-4 mb-2">
+        <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center w-full pl-4 pr-3 py-4 mb-2">
           <Ionicons name="log-out-outline" size={22} color="white" />
           <Text className="text-white font-semibold ml-3 text-[15px]">Cerrar sesión</Text>
         </TouchableOpacity>
