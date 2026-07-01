@@ -61,7 +61,7 @@ export function EmptyState({
   const isMobile = Platform.OS !== 'web';
 
   return (
-    <View className="py-12 px-6 items-center justify-center bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl p-6 shadow-sm w-full">
+    <View className="py-12 px-6 items-center justify-center bg-white dark:bg-zinc-900 border border-gray-200 rounded-3xl p-6 shadow-md w-full">
       <View className="w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mb-4">
         <Ionicons name={defaults.icon} size={36} color={defaults.iconColor} />
       </View>

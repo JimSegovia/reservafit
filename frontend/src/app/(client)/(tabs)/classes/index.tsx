@@ -262,7 +262,7 @@ export default function ClassesSelectorScreen() {
                       key={day}
                       onPress={() => handleFilterDay(day)}
                       hitSlop={{ top: 11, bottom: 11, left: 0, right: 0 }}
-                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                     >
                       <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
                     </TouchableOpacity>
@@ -281,7 +281,7 @@ export default function ClassesSelectorScreen() {
                       key={theme}
                       onPress={() => handleFilterTheme(theme)}
                       hitSlop={{ top: 11, bottom: 11, left: 0, right: 0 }}
-                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                     >
                       <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
                     </TouchableOpacity>
@@ -374,7 +374,7 @@ export default function ClassesSelectorScreen() {
                 }}
                 className="flex-row items-center bg-white border border-gray-200 px-5 py-3 rounded-full shadow-sm"
               >
-                <Text className="text-base font-bold text-black mr-2">
+                <Text className="text-base font-medium text-black mr-2">
                   {formatWeekRange(monday)}
                 </Text>
                 <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
@@ -388,7 +388,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                     <Ionicons name="chevron-back" size={20} color="black" />
                   </TouchableOpacity>
-                  <Text className="text-base font-extrabold text-black uppercase">
+                  <Text className="text-base font-semibold text-black uppercase">
                     {monthsNames[currentCalendarMonth]} {currentCalendarYear}
                   </Text>
                   <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
@@ -444,7 +444,7 @@ export default function ClassesSelectorScreen() {
               {timeBlocks.length === 0 || timeBlocks.every(tb => !tb.class) ? (
                 <View className="py-12 items-center justify-center bg-white">
                   <Ionicons name="calendar-outline" size={40} color="lightgray" />
-                  <Text className="text-gray-400 font-bold text-sm mt-3">No hay clases programadas para hoy</Text>
+                  <Text className="text-gray-400 font-medium text-sm mt-3">No hay clases programadas para hoy</Text>
                 </View>
               ) : (
                 timeBlocks.map((block, idx) => (
@@ -476,7 +476,7 @@ export default function ClassesSelectorScreen() {
 
             <View className="flex-row items-center justify-center py-2">
               <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-bold ml-1">Las reservas deben ser realizadas al menos 3 horas antes.</Text>
+              <Text className="text-xs text-gray-500 font-medium ml-1">Las reservas deben ser realizadas al menos 3 horas antes.</Text>
             </View>
           </View>
         </Animated.View>
@@ -534,7 +534,7 @@ export default function ClassesSelectorScreen() {
                     key={day}
                     onPress={() => handleFilterDay(day)}
                     hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
-                    className={`px-4 py-2 rounded-full border ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                    className={`px-4 py-2 rounded-full border ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                   >
                     <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
                   </TouchableOpacity>
@@ -552,7 +552,7 @@ export default function ClassesSelectorScreen() {
                     key={theme}
                     onPress={() => handleFilterTheme(theme)}
                     hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
-                    className={`px-4 py-2 rounded-full border ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                    className={`px-4 py-2 rounded-full border ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                   >
                     <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
                   </TouchableOpacity>
@@ -706,7 +706,7 @@ export default function ClassesSelectorScreen() {
               {timeBlocks.length === 0 || timeBlocks.every(tb => !tb.class) ? (
                 <View className="py-12 items-center justify-center bg-white">
                   <Ionicons name="calendar-outline" size={40} color="lightgray" />
-                  <Text className="text-gray-400 font-bold text-sm mt-3">No hay clases programadas para hoy</Text>
+                  <Text className="text-gray-400 font-medium text-sm mt-3">No hay clases programadas para hoy</Text>
                 </View>
               ) : (
                 timeBlocks.map((block, idx) => (
@@ -739,7 +739,7 @@ export default function ClassesSelectorScreen() {
             {/* Footer warning */}
             <View className="flex-row items-center justify-center py-2 mb-4">
               <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-bold ml-1">Las reservas deben ser 3 horas antes</Text>
+              <Text className="text-xs text-gray-500 font-medium ml-1">Las reservas deben ser 3 horas antes</Text>
             </View>
           </Animated.View>
         )}

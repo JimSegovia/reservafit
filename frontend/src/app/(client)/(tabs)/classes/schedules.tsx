@@ -210,15 +210,15 @@ export default function HorariosDisponiblesScreen() {
             if (slot.status === 'Disponible') {
               badgeBg = 'bg-green-50';
               badgeText = 'text-green-700';
-              badgeBorder = 'border-green-300';
+              badgeBorder = 'border-green-200';
             } else if (slot.status === 'Lleno') {
               badgeBg = 'bg-red-50';
               badgeText = 'text-red-700';
-              badgeBorder = 'border-red-300';
+              badgeBorder = 'border-red-200';
             } else if (slot.status === 'Cancelada') {
               badgeBg = 'bg-blue-50';
               badgeText = 'text-blue-700';
-              badgeBorder = 'border-blue-300';
+              badgeBorder = 'border-blue-200';
             }
 
             return (

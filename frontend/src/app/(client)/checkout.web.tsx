@@ -144,7 +144,7 @@ export default function CheckoutScreen() {
 
       <Modal transparent visible={showPopup} animationType="fade">
         <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center shadow-2xl border border-gray-150">
+          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center shadow-2xl border border-gray-200">
             <View className="w-16 h-16 rounded-full bg-green-500 items-center justify-center mb-5">
               <Ionicons name="checkmark" size={40} color="white" />
             </View>

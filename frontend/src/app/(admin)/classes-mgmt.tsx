@@ -144,7 +144,7 @@ export default function AdminClassesScreen() {
         </Animated.View>
 
         {/* Search Bar */}
-        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-300 rounded-xl bg-white px-3 py-3 mb-6">
+        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="flex-row items-center border border-gray-200 rounded-2xl bg-white px-3 py-3 mb-6 shadow-sm">
           <Ionicons name="search-outline" size={20} color="gray" />
           <TextInput
             placeholder="Buscar clase por nombre..."
@@ -171,7 +171,7 @@ export default function AdminClassesScreen() {
                 key={cls.id}
                 entering={FadeInDown.duration(200)}
                 layout={LinearTransition}
-                className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm"
+                className="bg-white p-5 rounded-2xl shadow-md"
                 style={isMobile ? { width: '100%' as any } : { width: '48%' as any }}
               >
                 <View className="flex-row justify-between items-start mb-3">
@@ -193,7 +193,7 @@ export default function AdminClassesScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}`)}
-                  className="flex-row items-center justify-center bg-primary/10 rounded-xl py-2.5"
+                  className="flex-row items-center justify-center bg-primary/10 rounded-2xl py-2.5"
                 >
                   <Ionicons name="calendar-outline" size={16} color="#FF7A00" />
                   <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-xs ml-1.5`}>Gestionar Horarios</Text>
@@ -224,7 +224,7 @@ export default function AdminClassesScreen() {
                 onChangeText={setTitle}
                 placeholder="Salsa Básica"
                 placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
+                className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
@@ -238,13 +238,13 @@ export default function AdminClassesScreen() {
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
-                className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm min-h-[80px]"
+                className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm min-h-[80px]"
               />
             </View>
 
             <TouchableOpacity
               onPress={handleSave}
-              className="w-full bg-primary py-4 rounded-xl items-center shadow-lg shadow-orange-500/20"
+              className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20"
             >
               <Text className="text-white text-base font-bold">Guardar</Text>
             </TouchableOpacity>

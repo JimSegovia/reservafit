@@ -98,7 +98,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
         <View className="flex-1 px-8 pb-8 pt-3">
           {(headerTitle || headerSubtitle) ? (
             <View className="mb-6">
-              {headerTitle ? <Text className="text-[24px] font-bold text-black leading-7">{headerTitle}</Text> : null}
+              {headerTitle ? <Text className="text-[24px] font-medium text-black leading-7">{headerTitle}</Text> : null}
               {headerSubtitle ? <Text className="text-[13px] text-gray-500 font-medium mt-2">{headerSubtitle}</Text> : null}
             </View>
           ) : null}

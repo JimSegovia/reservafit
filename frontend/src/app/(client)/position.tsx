@@ -214,7 +214,7 @@ export default function PositionSelectorScreen() {
           <Text className="text-[14px] text-gray-600">Capacidad: 30 espacios</Text>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5">
-          <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full border border-black mr-4" /><Text className="text-[15px]">Disponible</Text></View>
+          <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full border border-gray-300 mr-4" /><Text className="text-[15px]">Disponible</Text></View>
           <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full bg-primary mr-4" /><Text className={`text-[15px] ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>Seleccionado</Text></View>
           <View className="flex-row items-center"><View className="w-5 h-5 rounded-full bg-gray-300 mr-4" /><Text className={`text-[15px] ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Ocupado</Text></View>
         </View>

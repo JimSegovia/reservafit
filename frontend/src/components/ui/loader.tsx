@@ -21,7 +21,7 @@ export function Loader({
   if (variant === 'fullscreen') {
     return (
       <View className="absolute inset-0 bg-black/40 justify-center items-center z-50">
-        <ThemedView className="p-6 rounded-2xl items-center justify-center bg-white dark:bg-zinc-900 shadow-xl border border-gray-150">
+        <ThemedView className="p-6 rounded-2xl items-center justify-center bg-white dark:bg-zinc-900 shadow-xl border border-gray-200">
           <ActivityIndicator size={size} color={color} />
           {label && (
             <ThemedText className="mt-3 text-sm font-bold text-center">

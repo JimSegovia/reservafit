@@ -7,9 +7,9 @@ import { parseDateTime } from '@/utils/date';
 import api from '@/api/api';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-  Disponible: { bg: 'bg-green-50 border-green-300', text: 'text-green-700' },
-  Lleno:     { bg: 'bg-red-50 border-red-300',     text: 'text-red-700' },
-  Cancelada: { bg: 'bg-blue-50 border-blue-300',    text: 'text-blue-700' },
+  Disponible: { bg: 'bg-green-50 border-green-200', text: 'text-green-700' },
+  Lleno:     { bg: 'bg-red-50 border-red-200',     text: 'text-red-700' },
+  Cancelada: { bg: 'bg-blue-50 border-blue-200',    text: 'text-blue-700' },
 };
 
 export default function ClassDetailsScreen() {
@@ -175,7 +175,7 @@ export default function ClassDetailsScreen() {
             return (
               <View
                 key={schedule.id_detalle_clase}
-                className={`bg-white rounded-2xl p-5 mb-4 border border-gray-100 shadow-sm ${isMobile ? '' : 'flex-row justify-between items-center'}`}
+                className={`bg-white rounded-2xl p-5 mb-4 shadow-md ${isMobile ? '' : 'flex-row justify-between items-center'}`}
               >
                 <View className={`${isMobile ? 'mb-3' : 'flex-1 mr-3'}`}>
                   {diaSemana ? (
@@ -254,7 +254,7 @@ export default function ClassDetailsScreen() {
                     onChangeText={setFecha}
                     placeholder="DD/MM/YYYY"
                     placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-secondary text-sm"
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
                   />
                 </View>
                 <View className={isMobile ? '' : 'flex-1'}>
@@ -264,7 +264,7 @@ export default function ClassDetailsScreen() {
                     onChangeText={setHoraInicio}
                     placeholder="18:00"
                     placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-secondary text-sm"
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
                   />
                 </View>
                 <View className={isMobile ? '' : 'flex-1'}>
@@ -274,7 +274,7 @@ export default function ClassDetailsScreen() {
                     onChangeText={setHoraFin}
                     placeholder="19:00"
                     placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-secondary text-sm"
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
                   />
                 </View>
               </View>
@@ -287,12 +287,12 @@ export default function ClassDetailsScreen() {
                     onChangeText={setTematica}
                     placeholder="Ej. Ropa negra"
                     placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 text-secondary text-sm"
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
                   />
                 </View>
                 <View style={isMobile ? {} : { flex: 1 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Cupos</Text>
-                  <View className="w-full border border-gray-300 rounded-xl bg-gray-100 px-4 py-3">
+                  <View className="w-full border border-gray-200 rounded-2xl bg-gray-50 px-4 py-3">
                     <Text className="text-secondary text-sm">
                       {editingScheduleId
                         ? `${schedules.find(s => s.id_detalle_clase === editingScheduleId)?._count?.detalles_reserva || 0} / ${schedules.find(s => s.id_detalle_clase === editingScheduleId)?.cupos || 30}`
@@ -306,7 +306,7 @@ export default function ClassDetailsScreen() {
                 <Text className="text-gray-500 font-bold text-xs mb-1.5">Instructor</Text>
                 <TouchableOpacity
                   onPress={() => setShowInstructorMenu(!showInstructorMenu)}
-                  className="w-full border border-gray-300 rounded-xl bg-white px-4 py-3 flex-row justify-between items-center"
+                  className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 flex-row justify-between items-center"
                 >
                   <Text className={selectedInstructorName ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
                     {selectedInstructorName || 'Selecciona un instructor'}
@@ -314,7 +314,7 @@ export default function ClassDetailsScreen() {
                   <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
                 </TouchableOpacity>
                 {showInstructorMenu && (
-                  <View className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 z-50 overflow-hidden">
+                  <View className="absolute top-full mt-1 w-full bg-white border border-gray-100 rounded-2xl shadow-lg max-h-48 z-50 overflow-hidden">
                     <ScrollView>
                       {instructors
                         .filter((i) => i.status === 'Activo' && i.specialty.toLowerCase().includes(className.toLowerCase()))
@@ -352,8 +352,8 @@ export default function ClassDetailsScreen() {
                         <TouchableOpacity
                           key={option}
                           onPress={() => setEstado(option)}
-                          className={`flex-1 py-3 border rounded-xl items-center ${
-                            isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300'
+                          className={`flex-1 py-3 border rounded-2xl items-center ${
+                            isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-200'
                           }`}
                         >
                           <Text
@@ -373,7 +373,7 @@ export default function ClassDetailsScreen() {
 
             <TouchableOpacity
               onPress={handleSave}
-              className="w-full bg-primary py-4 rounded-xl items-center shadow-lg shadow-orange-500/20"
+              className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20"
             >
               <Text className="text-white text-base font-bold">
                 {editingScheduleId ? 'Actualizar' : 'Guardar'}

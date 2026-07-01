@@ -29,7 +29,7 @@ export function ConfirmDialog({
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View className="flex-1 bg-black/60 items-center justify-center px-6">
-        <View className="w-full max-w-[380px] bg-white dark:bg-zinc-900 rounded-[28px] p-6 items-center shadow-2xl border border-gray-150">
+        <View className="w-full max-w-[380px] bg-white dark:bg-zinc-900 rounded-[28px] p-6 items-center shadow-2xl border border-gray-200">
           {/* Icon header */}
           <View
             className={`w-16 h-16 rounded-full items-center justify-center mb-5 ${

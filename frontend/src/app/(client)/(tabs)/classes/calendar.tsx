@@ -153,7 +153,7 @@ export default function CalendarScreen() {
           <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(client)/(tabs)/classes')}>
             <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
           </TouchableOpacity>
-          <Text className="text-2xl font-extrabold text-black">Calendario</Text>
+          <Text className="text-2xl font-medium text-black">Calendario</Text>
         </Animated.View>
 
         {/* Week Heading (Actúa como toggle para el calendario anual) */}
@@ -315,7 +315,7 @@ export default function CalendarScreen() {
         {/* Footer Warning Info */}
         <Animated.View entering={FadeInDown.duration(200).delay(200)} className="flex-row items-center justify-center py-2 mb-4">
           <Ionicons name="time-outline" size={16} color="gray" />
-          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium ml-1`}>
             Las reservas deben ser 3 horas antes
           </Text>
         </Animated.View>

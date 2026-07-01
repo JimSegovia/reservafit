@@ -233,7 +233,7 @@ export default function ClientHomeScreen() {
         </Text>
       </Animated.View>
 
-      <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold text-center text-sm tracking-wide mb-4`}>
+      <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium text-center text-sm tracking-wide mb-4`}>
         Estas son tus Clases Reservadas
       </Animated.Text>
 
@@ -293,15 +293,16 @@ export default function ClientHomeScreen() {
   );
 
   const desktopContent = (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
+    <View className="flex-1">
         {loading ? (
              <View className="flex-1 justify-center items-center">
                 <Loader variant="inline" label="Cargando tu panel de control..." />
              </View>
         ) : (
             <>
-                <View className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden">
-                <View className="flex-row border-b border-gray-200">
+                {/* Fixed Tab Header */}
+                <View className="bg-white border-b border-gray-200 shadow-sm z-10">
+                <View className="flex-row">
                     {[
                     { key: 'mis-clases', label: 'Mis clases' },
                     { key: 'clases-hoy', label: 'Clases de hoy' },
@@ -312,19 +313,23 @@ export default function ClientHomeScreen() {
                         <TouchableOpacity
                         key={tab.key}
                         onPress={() => setActiveTab(tab.key as DesktopTab)}
-                        className={`flex-1 py-5 items-center ${idx !== 2 ? 'border-r border-gray-300' : ''}`}
+                        className={`flex-1 py-5 items-center ${idx !== 2 ? 'border-r border-gray-200' : ''}`}
                         >
                         <Text className={`text-[16px] font-semibold ${active ? (isNative ? 'text-primary-text-strong' : 'text-primary') : 'text-black'}`}>{tab.label}</Text>
                         </TouchableOpacity>
                     );
                     })}
                 </View>
+                </View>
+
+                {/* Scrollable Tab Content */}
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
 
                 {activeTab === 'mis-clases' && (
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
                     <View className="flex-row items-center mb-4">
                         <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Estas son tus Clases Reservadas</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Estas son tus Clases Reservadas</Text>
                     </View>
                     {clientReservations.length === 0 ? (
                         <EmptyState
@@ -390,7 +395,7 @@ export default function ClientHomeScreen() {
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
                     <View className="flex-row items-center mb-6">
                         <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Clases de hoy</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Clases de hoy</Text>
                     </View>
 
                     {todayReservations.length === 0 ? (
@@ -449,7 +454,7 @@ export default function ClientHomeScreen() {
                     <View className={`mb-5 px-2 ${isCompactDesktop ? 'flex-col items-start gap-y-3' : 'flex-row justify-between items-center'}`}>
                         <View className="flex-row items-center">
                         <Ionicons name="calendar-outline" size={26} color="#666" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Mi semana</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Mi semana</Text>
                         </View>
                         <View className={`flex-row items-center ${isCompactDesktop ? 'gap-x-3' : 'gap-x-4'}`}>
                         <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[20px]'} font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>{weeklyCalendarData.weekRangeLabel}</Text>
@@ -508,10 +513,10 @@ export default function ClientHomeScreen() {
                     </ScrollView>
                     </Animated.View>
                 )}
-                </View>
+                </ScrollView>
             </>
         )}
-    </ScrollView>
+    </View>
   );
   
   return (
