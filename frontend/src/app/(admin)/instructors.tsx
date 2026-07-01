@@ -106,11 +106,11 @@ export default function AdminInstructorsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
+    <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 100 : 80 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
-        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        className="flex-1"
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -120,8 +120,8 @@ export default function AdminInstructorsScreen() {
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
             <View>
-              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
-              <Text className="text-2xl font-bold text-secondary mt-0.5">Instructores</Text>
+              <Text className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
+              <Text className="text-2xl font-semibold text-secondary mt-0.5">Instructores</Text>
             </View>
           </View>
 

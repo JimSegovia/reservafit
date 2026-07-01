@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, useWindowDimensions, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -17,20 +17,23 @@ export default function AdminBookingsHistoryScreen() {
   const [activeTab, setActiveTab] = useState<'Reservas' | 'Pagos'>('Reservas');
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
-        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        className="flex-1"
+        style={{ flex: 1 }}
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
-            <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
-            <Text className="text-2xl font-extrabold text-black mt-0.5">Historial</Text>
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
+          <View className="flex-row items-center flex-1 mr-2">
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
+              <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
+            </TouchableOpacity>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
+              <Text className="text-2xl font-semibold text-secondary mt-0.5">Historial</Text>
+            </View>
           </View>
         </Animated.View>
 
@@ -122,6 +125,6 @@ export default function AdminBookingsHistoryScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

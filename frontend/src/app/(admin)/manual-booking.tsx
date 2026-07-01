@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
@@ -167,25 +166,29 @@ export default function AdminManualBookingScreen() {
   const enrolledStr = `${occupiedList.length}/30`;
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: isMobile ? 16 : 24, paddingVertical: 16, paddingBottom: isMobile ? 80 : 30 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
+        className="flex-1"
+        style={{ flex: 1 }}
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
-            <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Reserva Manual</Text>
-            <Text className="text-2xl font-extrabold text-black mt-0.5 font-sans">Reserva manual</Text>
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
+          <View className="flex-row items-center flex-1 mr-2">
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
+              <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
+            </TouchableOpacity>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Panel Admin &gt; Reserva Manual</Text>
+              <Text className="text-2xl font-semibold text-secondary mt-0.5">Reserva manual</Text>
+            </View>
           </View>
         </Animated.View>
 
         {/* Section: Datos del cliente */}
         <Animated.View entering={FadeInDown.duration(200).delay(50)}>
-          <Text className="text-base font-extrabold text-black mb-3">Datos del cliente</Text>
+          <Text className="text-base font-semibold text-black mb-3">Datos del cliente</Text>
           
           <View className="gap-y-3 mb-6">
             <View className={isMobile ? 'flex-col gap-y-3' : 'flex-row justify-between'}>
@@ -194,14 +197,14 @@ export default function AdminManualBookingScreen() {
                 value={clientName}
                 onChangeText={setClientName}
                 placeholderTextColor="#9CA3AF"
-                className={`border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm ${isMobile ? 'w-full' : 'w-[48%]'}`}
+                className={`border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm ${isMobile ? 'w-full' : 'w-[48%]'}`}
               />
               <TextInput
                 placeholder="Apellido"
                 value={clientLastName}
                 onChangeText={setClientLastName}
                 placeholderTextColor="#9CA3AF"
-                className={`border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm ${isMobile ? 'w-full' : 'w-[48%]'}`}
+                className={`border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm ${isMobile ? 'w-full' : 'w-[48%]'}`}
               />
             </View>
 
@@ -212,7 +215,7 @@ export default function AdminManualBookingScreen() {
               autoCapitalize="none"
               keyboardType="email-address"
               placeholderTextColor="#9CA3AF"
-              className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm"
+              className="w-full border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm"
             />
 
             <TextInput
@@ -221,14 +224,14 @@ export default function AdminManualBookingScreen() {
               onChangeText={setClientPhone}
               keyboardType="phone-pad"
               placeholderTextColor="#9CA3AF"
-              className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm"
+              className="w-full border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm"
             />
           </View>
         </Animated.View>
 
         {/* Section: Clase y horario */}
         <Animated.View entering={FadeInDown.duration(200).delay(100)}>
-          <Text className="text-base font-extrabold text-black mb-3">Clase y horario</Text>
+          <Text className="text-base font-semibold text-black mb-3">Clase y horario</Text>
 
           <View className="gap-y-3 mb-6">
             {/* Mock select for Class */}
@@ -241,7 +244,7 @@ export default function AdminManualBookingScreen() {
                     key={c.id}
                     onPress={() => setSelectedClassId(c.id)}
                     className={`px-4 py-2.5 rounded-xl border ${
-                      isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300'
+                      isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-200'
                     }`}
                   >
                     <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
@@ -262,7 +265,7 @@ export default function AdminManualBookingScreen() {
                     key={index}
                     onPress={() => setSelectedSchedule(slot)}
                     className={`px-4 py-2.5 rounded-xl border ${
-                      isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300'
+                      isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-200'
                     }`}
                   >
                     <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
@@ -271,7 +274,7 @@ export default function AdminManualBookingScreen() {
                   </TouchableOpacity>
                 );
               }) || (
-                <View className="border border-gray-300 rounded-xl bg-white px-4 py-3 flex-1">
+                <View className="border border-gray-200 rounded-xl bg-white px-4 py-3 flex-1">
                   <Text className="text-black text-sm">{selectedSchedule}</Text>
                 </View>
               )}
@@ -281,7 +284,7 @@ export default function AdminManualBookingScreen() {
 
         {/* Section: Cupos */}
         <Animated.View entering={FadeInDown.duration(200).delay(120)}>
-          <Text className="text-base font-extrabold text-black mb-3">Selección de cupo(s)</Text>
+          <Text className="text-base font-semibold text-black mb-3">Selección de cupo(s)</Text>
 
           <TouchableOpacity
             onPress={openSeatModal}
@@ -301,7 +304,7 @@ export default function AdminManualBookingScreen() {
 
         {/* Section: Pago */}
         <Animated.View entering={FadeInDown.duration(200).delay(150)}>
-          <Text className="text-base font-extrabold text-black mb-3">Pago</Text>
+          <Text className="text-base font-semibold text-black mb-3">Pago</Text>
 
           <View className="gap-y-3 mb-6">
             <Text className="text-gray-500 font-bold text-xs ml-1">Tipo de pago</Text>
@@ -338,7 +341,7 @@ export default function AdminManualBookingScreen() {
               keyboardType="numeric"
               placeholder="40.00"
               placeholderTextColor="#9CA3AF"
-              className="w-full border border-gray-300 rounded-xl bg-white px-3 py-3 text-black text-sm"
+              className="w-full border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm"
             />
           </View>
         </Animated.View>
@@ -384,11 +387,11 @@ export default function AdminManualBookingScreen() {
                   const isOccupied = occupiedList.includes(seatNum);
                   const isSelected = tempSeats.includes(seatNum);
 
-                  let bgStyle = 'bg-white border-gray-300';
+                  let bgStyle = 'bg-white border-gray-200';
                   let textStyle = 'text-black';
 
                   if (isOccupied) {
-                    bgStyle = 'bg-gray-300 border-gray-300';
+                    bgStyle = 'bg-gray-300 border-gray-200';
                     textStyle = 'text-gray-500';
                   } else if (isSelected) {
                     bgStyle = 'bg-primary border-primary';
@@ -416,7 +419,7 @@ export default function AdminManualBookingScreen() {
 
               <View className="flex-row justify-around mt-6 mb-4">
                 <View className="flex-row items-center">
-                  <View className="w-4 h-4 rounded-full border border-gray-300 bg-white mr-1.5" />
+                  <View className="w-4 h-4 rounded-full border border-gray-200 bg-white mr-1.5" />
                   <Text className="text-xs font-bold text-gray-500">Disponible</Text>
                 </View>
                 <View className="flex-row items-center">
@@ -446,6 +449,6 @@ export default function AdminManualBookingScreen() {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
