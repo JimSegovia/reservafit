@@ -100,26 +100,21 @@ export default function CheckoutNative() {
             </View>
           </View>
 
-          <Animated.View entering={ZoomIn.duration(200).delay(50)} className="items-center mb-6">
-            <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 64, height: 64, borderRadius: 32 }} />
-            <Text className="text-gray-600 text-xs font-semibold text-center mt-2.5 px-6">Paga de forma segura con Mercado Pago.</Text>
-          </Animated.View>
-
           {error ? <Animated.Text entering={FadeIn.duration(150)} className="text-red-600 text-sm text-center mb-4 font-semibold">{error}</Animated.Text> : null}
           
           <Animated.View entering={FadeInDown.duration(200).delay(100)} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm mb-6">
-            <Text className="text-base font-extrabold text-black mb-4">Resumen del pedido</Text>
+            <Text className="text-base font-semibold text-black mb-4">Resumen del pedido</Text>
             <View className="gap-y-2.5 mb-4 border-b border-gray-100 pb-4">
-              <View className="flex-row justify-between"><Text className="text-gray-600 font-bold text-sm">Clase</Text><Text className="text-black font-extrabold text-sm">{currentBooking.className}</Text></View>
-              <View className="flex-row justify-between"><Text className="text-gray-600 font-bold text-sm">Horario</Text><Text className="text-black font-extrabold text-sm">{currentBooking.time}</Text></View>
-              <View className="flex-row justify-between"><Text className="text-gray-600 font-bold text-sm">Asientos</Text><Text className="text-black font-extrabold text-sm">{currentBooking.selectedSeats.join(', ')}</Text></View>
-              <View className="flex-row justify-between"><Text className="text-gray-600 font-bold text-sm">Fecha</Text><Text className="text-black font-extrabold text-sm">{currentBooking.day}</Text></View>
-              <View className="flex-row justify-between"><Text className="text-gray-600 font-bold text-sm">Instructor</Text><Text className="text-black font-extrabold text-sm">{currentBooking.instructorName}</Text></View>
+              <View className="flex-row justify-between"><Text className="text-gray-500 font-medium text-sm">Clase</Text><Text className="text-gray-900 font-medium text-sm">{currentBooking.className}</Text></View>
+              <View className="flex-row justify-between"><Text className="text-gray-500 font-medium text-sm">Horario</Text><Text className="text-gray-900 font-medium text-sm">{currentBooking.time}</Text></View>
+              <View className="flex-row justify-between"><Text className="text-gray-500 font-medium text-sm">Asientos</Text><Text className="text-gray-900 font-medium text-sm">{currentBooking.selectedSeats.join(', ')}</Text></View>
+              <View className="flex-row justify-between"><Text className="text-gray-500 font-medium text-sm">Fecha</Text><Text className="text-gray-900 font-medium text-sm">{currentBooking.day.charAt(0).toUpperCase() + currentBooking.day.slice(1).toLowerCase()}</Text></View>
+              <View className="flex-row justify-between"><Text className="text-gray-500 font-medium text-sm">Instructor</Text><Text className="text-gray-900 font-medium text-sm">{currentBooking.instructorName}</Text></View>
             </View>
             <View className="flex-row justify-between items-center">
               <View>
-                <Text className="text-xs font-bold text-gray-600">Monto a pagar</Text>
-                <Text className="text-2xl font-extrabold text-primary-text-strong mt-0.5">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
+                <Text className="text-xs font-medium text-gray-500">Monto a pagar</Text>
+                <Text className="text-2xl font-semibold text-primary mt-0.5">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
               </View>
             </View>
           </Animated.View>
@@ -135,7 +130,10 @@ export default function CheckoutNative() {
               {isProcessing ? (
                 <Loader variant="button" label="Procesando..." />
               ) : (
-                <Text className="text-secondary text-base font-bold">Pagar</Text>
+                <View className="flex-row items-center gap-x-2">
+                  <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 24, height: 24, borderRadius: 12 }} />
+                  <Text className="text-secondary text-base font-bold">Pagar S/ {currentBooking.totalPrice.toFixed(2)} con Mercado Pago</Text>
+                </View>
               )}
             </TouchableOpacity>
           </Animated.View>
