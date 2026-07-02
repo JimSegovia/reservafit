@@ -89,9 +89,9 @@ export default function PositionSelectorScreen() {
         }}>
           <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
         </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="text-xl font-extrabold text-black uppercase">{currentBooking.className}</Text>
-          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold mt-0.5`}>
+        <View className="flex-1 ml-4">
+          <Text className="text-lg font-semibold text-black">{currentBooking.className}</Text>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium mt-0.5`}>
             {currentBooking.day.split(' ')[0]}, {currentBooking.time} • Instructor: {currentBooking.instructorName} • S/ {currentBooking.pricePerSeat.toFixed(2)} c/u
           </Text>
         </View>
@@ -116,22 +116,22 @@ export default function PositionSelectorScreen() {
       </View>
 
       {/* Sala Unique Card */}
-      <Animated.View entering={FadeInDown.duration(200).delay(50)} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm mb-6">
+      <Animated.View entering={FadeInDown.duration(200).delay(50)} className="bg-white border border-gray-200 rounded-3xl px-5 py-4 shadow-sm mb-6">
         <View className="mb-4">
           <View className="flex-row items-center">
-            <Text className="text-base font-extrabold text-black mr-1">Sala Única</Text>
+            <Text className="text-base font-semibold text-black mr-1">Sala Única</Text>
             <Tooltip content="Presiona un número de asiento libre (blanco) para seleccionarlo. Los ocupados (gris) no se pueden elegir." />
           </View>
-          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-400'} font-bold mt-1`}>Cupos: 30 alumnos</Text>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-400'} font-normal mt-1`}>Cupos: 30 alumnos</Text>
         </View>
 
-        {/* Seat Grid Map 6x5 - flexbox with calculated widths */}
-        <View className="flex-row flex-wrap gap-2" style={{ gap: 8 }}>
+        {/* Seat Grid Map - 5 cols */}
+        <View className="flex-row flex-wrap justify-center gap-2">
           {seatNumbers.map((seatNum, idx) => {
             const isOccupied = occupiedList.includes(seatNum);
             const isSelected = currentBooking.selectedSeats.includes(seatNum);
 
-            let bgStyle = 'bg-white border-gray-300';
+            let bgStyle = 'bg-white border-gray-200';
             let textStyle = 'text-black';
 
             if (isOccupied) {
@@ -146,15 +146,14 @@ export default function PositionSelectorScreen() {
               <Animated.View 
                 key={seatNum} 
                 entering={ZoomIn.duration(150).delay(50 + idx * 8)} 
-                className="aspect-square"
-                style={{ width: '14.5%' }}
+                className="w-[14%] aspect-square"
               >
                 <TouchableOpacity
                   onPress={() => handleSeatPress(seatNum)}
                   disabled={isOccupied}
-                  className={`w-full h-full border rounded-xl items-center justify-center ${bgStyle}`}
+                  className={`w-full h-full border rounded-lg items-center justify-center ${bgStyle}`}
                 >
-                  <Text className={`text-xs font-bold ${textStyle}`}>{seatNum}</Text>
+                  <Text className={`text-xs font-semibold ${textStyle}`}>{seatNum}</Text>
                 </TouchableOpacity>
               </Animated.View>
             );
@@ -205,13 +204,13 @@ export default function PositionSelectorScreen() {
           <Ionicons name="arrow-back" size={34} color="black" />
         </TouchableOpacity>
         <View className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
-          <Text className="text-[22px] font-bold text-black uppercase">{currentBooking.className}</Text>
-          <Text className="text-[16px] text-gray-600 mt-1">{currentBooking.day.split(' ')[0]}, {currentBooking.time}</Text>
-          <Text className={`text-[14px] ${isNative ? 'text-gray-600' : 'text-gray-500'} mt-2 font-bold`}>Precio por asiento: S/ {currentBooking.pricePerSeat.toFixed(2)}</Text>
+          <Text className="text-lg font-semibold text-black">{currentBooking.className}</Text>
+          <Text className="text-sm text-gray-500 font-medium mt-1">{currentBooking.day.split(' ')[0]}, {currentBooking.time}</Text>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} mt-2 font-medium`}>Precio por asiento: S/ {currentBooking.pricePerSeat.toFixed(2)}</Text>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
-          <Text className="text-[18px] font-bold text-black mb-2">Instructor: {currentBooking.instructorName}</Text>
-          <Text className="text-[14px] text-gray-600">Capacidad: 30 espacios</Text>
+          <Text className="text-base font-semibold text-black mb-1">Instructor: {currentBooking.instructorName}</Text>
+          <Text className="text-sm text-gray-500">Capacidad: 30 espacios</Text>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5">
           <View className="flex-row items-center mb-5"><View className="w-5 h-5 rounded-full border border-gray-300 mr-4" /><Text className="text-[15px]">Disponible</Text></View>
@@ -220,12 +219,9 @@ export default function PositionSelectorScreen() {
         </View>
       </View>
 
-      <View className="flex-1 bg-white rounded-2xl border border-gray-200 p-6">
-        <Text className="text-[30px] font-bold text-black text-center uppercase">{currentBooking.className}</Text>
-        <Text className="text-[18px] text-gray-600 text-center mt-1">De {currentBooking.time}</Text>
-        
+      <View className="flex-1 bg-white rounded-2xl border border-gray-200 px-6 py-4">
         {/* Step Indicator Desktop */}
-        <View className="flex-row items-center justify-center my-6 gap-x-2 px-2">
+        <View className="flex-row items-center justify-center mb-4 gap-x-2 px-2">
           <View className="flex-row items-center">
             <View className="w-6 h-6 rounded-full bg-orange-200 items-center justify-center"><Text className="text-xs font-bold text-orange-800">1</Text></View>
             <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>Clase</Text>
@@ -242,16 +238,16 @@ export default function PositionSelectorScreen() {
           </View>
         </View>
 
-        <View className="flex-row flex-wrap gap-3 mt-4" style={{ gap: 12 }}>
+        <View className="flex-row flex-wrap justify-center gap-2 mt-2">
           {seatNumbers.map((seatNum, idx) => {
             const isOccupied = occupiedList.includes(seatNum);
             const isSelected = currentBooking.selectedSeats.includes(seatNum);
-            const bgStyle = isOccupied ? 'bg-gray-300 border-gray-300' : isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-300';
+            const bgStyle = isOccupied ? 'bg-gray-300 border-gray-300' : isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-200';
             const textStyle = isOccupied ? (isNative ? 'text-gray-600' : 'text-gray-500') : isSelected ? (isNative ? 'text-secondary' : 'text-white') : 'text-black';
             return (
-              <Animated.View key={seatNum} entering={ZoomIn.duration(120).delay(20 + idx * 5)} className="aspect-square" style={{ width: '14.5%' }}>
-                <TouchableOpacity onPress={() => handleSeatPress(seatNum)} disabled={isOccupied} className={`w-full h-full border rounded-xl items-center justify-center ${bgStyle}`}>
-                  <Text className={`text-lg font-bold ${textStyle}`}>{seatNum}</Text>
+              <Animated.View key={seatNum} entering={ZoomIn.duration(120).delay(20 + idx * 5)} className="w-[14%] aspect-square">
+                <TouchableOpacity onPress={() => handleSeatPress(seatNum)} disabled={isOccupied} className={`w-full h-full border rounded-lg items-center justify-center ${bgStyle}`}>
+                  <Text className={`text-sm font-semibold ${textStyle}`}>{seatNum}</Text>
                 </TouchableOpacity>
               </Animated.View>
             );
@@ -263,15 +259,15 @@ export default function PositionSelectorScreen() {
         <View className="bg-[#f7e1c7] rounded-2xl p-5 mb-6 border border-[#f1d0ae]">
           <View className="flex-row items-center gap-x-4">
             <Ionicons name="time-outline" size={30} color="#333" />
-            <Text className="text-[20px] font-bold text-orange-950">Reserva bloqueada por {formatTime(currentBooking.timeLeft)}</Text>
+            <Text className="text-[18px] font-semibold text-orange-950">Reserva bloqueada por {formatTime(currentBooking.timeLeft)}</Text>
           </View>
         </View>
         <View className="bg-white rounded-2xl border border-gray-200 p-5">
           <View className="flex-row items-center mb-2">
-            <Text className="text-[20px] font-bold text-black mr-1">Asientos seleccionados</Text>
+            <Text className="text-base font-semibold text-black mr-1">Asientos seleccionados</Text>
             <Tooltip content="Selecciona tus asientos haciendo clic en los casilleros disponibles del mapa." />
           </View>
-          <Text className={`text-[22px] font-extrabold mb-6 ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>{currentBooking.selectedSeats.join(', ') || '-'}</Text>
+          <Text className={`text-3xl font-semibold mb-6 ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>{currentBooking.selectedSeats.join(', ') || '-'}</Text>
           <Button
             label="Pagar reserva"
             onPress={handleContinue}
