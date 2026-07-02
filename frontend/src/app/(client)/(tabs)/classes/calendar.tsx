@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown} from 'react-native-reanimated';
 
 export default function CalendarScreen() {
   const router = useRouter();
