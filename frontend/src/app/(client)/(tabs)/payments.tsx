@@ -59,7 +59,7 @@ export default function ClientPaymentsHistoryScreen() {
           paddingTop: isWeb ? 0 : 10,
           paddingBottom: 30,
         }} 
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
       >
         {isWeb ? (
           <>
@@ -69,7 +69,7 @@ export default function ClientPaymentsHistoryScreen() {
                 <Text className="flex-[1.2] text-left text-[16px] font-semibold text-gray-700">Clase</Text>
                 <Text className="flex-1 text-left text-[16px] font-semibold text-gray-700">Monto</Text>
                 <Text className="flex-1 text-left text-[16px] font-semibold text-gray-700">Estado</Text>
-                <Text className="w-[110px] text-center text-[16px] font-semibold text-gray-700">Acciones</Text>
+                <Text className="w-[70px] text-center text-[16px] font-semibold text-gray-700">Acciones</Text>
               </View>
 
               <View className="px-8 py-2">
@@ -90,12 +90,9 @@ export default function ClientPaymentsHistoryScreen() {
                         </View>
                       </View>
 
-                      <View className="w-[110px] flex-row justify-center gap-x-2">
+                      <View className="w-[70px] flex-row justify-center">
                         <TouchableOpacity onPress={() => setSelectedReceipt(res)} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
                           <Ionicons name="document-text-outline" size={17} color="#c2410c" />
-                        </TouchableOpacity>
-                        <TouchableOpacity hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
-                          <Ionicons name="print-outline" size={17} color="#c2410c" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -125,7 +122,7 @@ export default function ClientPaymentsHistoryScreen() {
               <Text className="text-[13px] text-gray-500 font-medium mt-1">Revisa el detalle de tus transacciones y pagos realizados.</Text>
             </Animated.View>
 
-            <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 8 }} showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}>
               {reservations.map((res, idx) => {
                 const statusStyle = getStatusStyles(res.status);
                 return (

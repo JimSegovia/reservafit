@@ -208,7 +208,7 @@ export default function ClientHomeScreen() {
   const mobileContent = (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
     >
       <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
         <View className="flex-row items-center">
@@ -323,7 +323,7 @@ export default function ClientHomeScreen() {
                 </View>
 
                 {/* Scrollable Tab Content */}
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
+                <ScrollView showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
 
                 {activeTab === 'mis-clases' && (
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">

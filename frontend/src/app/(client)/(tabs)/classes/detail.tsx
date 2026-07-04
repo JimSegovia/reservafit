@@ -12,6 +12,7 @@ export default function ClassDetailScreen() {
   const router = useRouter();
   const { id, day, time, id_detalle_clase } = useLocalSearchParams();
   const classes = useAppStore((state) => state.classes);
+  const agenda = useAppStore((state) => state.agenda);
   const startBooking = useAppStore((state) => state.startBooking);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
@@ -21,13 +22,31 @@ export default function ClassDetailScreen() {
   const classId = (id as string) || 'c10';
   const classItem = classes.find((c) => c.id === classId) || classes[0];
 
+  const sessionItem = agenda.find((a) => a.id_detalle_clase === id_detalle_clase);
+  const realTheme = sessionItem?.tematica || 'General';
+
+  const getFormattedDay = () => {
+    if (!sessionItem?.fecha_hora_inicio) {
+      return (day as string) || classItem?.days?.[0] || 'Lunes';
+    }
+    const d = new Date(sessionItem.fecha_hora_inicio);
+    if (isNaN(d.getTime())) {
+      return (day as string) || classItem?.days?.[0] || 'Lunes';
+    }
+    const labels = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    const dayNum = d.getDate().toString().padStart(2, '0');
+    const monthNum = (d.getMonth() + 1).toString().padStart(2, '0');
+    return `${labels[d.getDay()]} ${dayNum}/${monthNum}`;
+  };
+  const realDay = getFormattedDay();
+
   const handleEnroll = () => {
     // Start checkout booking process
     startBooking({
       classId: classItem.id,
       id_detalle_clase: (id_detalle_clase as string) || undefined,
       className: classItem.title,
-      day: (day as string) || classItem.days?.[0] || 'LUNES 12/05',
+      day: realDay,
       time: (time as string) || classItem.slots?.[0] || classItem.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM',
       instructorName: classItem.instructorName,
       pricePerSeat: classItem.price,
@@ -68,7 +87,7 @@ export default function ClassDetailScreen() {
                   </View>
                   <View>
                     <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Día</Text>
-                    <Text className="text-sm font-medium text-black">{(day as string) || classItem.days?.[0] || 'Lunes 09/05'}</Text>
+                    <Text className="text-sm font-medium text-black">{realDay}</Text>
                   </View>
                 </View>
 
@@ -95,17 +114,15 @@ export default function ClassDetailScreen() {
                 </View>
 
                 {/* Temática */}
-                {classItem.theme ? (
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
-                      <Ionicons name="color-palette-outline" size={20} color="#FF7A00" />
-                    </View>
-                    <View>
-                      <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Temática</Text>
-                      <Text className="text-sm font-medium text-black">{classItem.theme}</Text>
-                    </View>
+                <View className="flex-row items-center">
+                  <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
+                    <Ionicons name="color-palette-outline" size={20} color="#FF7A00" />
                   </View>
-                ) : null}
+                  <View>
+                    <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Temática</Text>
+                    <Text className="text-sm font-medium text-black">{realTheme}</Text>
+                  </View>
+                </View>
 
                 {/* Cupos */}
                 <View className="flex-row items-center">
@@ -147,15 +164,15 @@ export default function ClassDetailScreen() {
                 />
               </Animated.View>
 
-              <Text className="text-gray-600 text-base leading-relaxed mb-8">
-                Entrenamiento cardiovascular de alta intensidad guiado por un instructor. Mejora tu resistencia, quema calorías, fortalece tu cuerpo y pásala bien con una rutina de baile.
+               <Text className="text-gray-600 text-base leading-relaxed mb-8">
+                {classItem.theme || 'Sin descripción'}
               </Text>
             </View>
           </View>
         </View>
       ) : (
         /* ───── MOBILE SINGLE COLUMN ───── */
-        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }} showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768} className="flex-1 bg-cream">
           {/* Header Hero Image with Back Button */}
           <Animated.View entering={FadeIn.duration(200)} className="relative w-full h-64 bg-gray-200 rounded-xl overflow-hidden">
             <Image
@@ -189,7 +206,7 @@ export default function ClassDetailScreen() {
 
             {/* Description */}
             <Text className="text-gray-600 text-sm leading-relaxed mb-6">
-              Entrenamiento cardiovascular de alta intensidad guiado por un instructor. Mejora tu resistencia, quema calorías, fortalece tu cuerpo y pásala bien con una rutina de baile.
+              {classItem.theme || 'Sin descripción'}
             </Text>
 
             <View className="gap-y-4 mb-8">
@@ -217,7 +234,7 @@ export default function ClassDetailScreen() {
                 <View>
                   <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Día</Text>
                   <Text className="text-sm font-medium text-black">
-                    {(day as string) || classItem.days?.[0] || 'Lunes 09/05'}
+                    {realDay}
                   </Text>
                 </View>
               </Animated.View>
@@ -257,19 +274,17 @@ export default function ClassDetailScreen() {
               </Animated.View>
 
               {/* Temática */}
-              {classItem.theme ? (
-                <Animated.View entering={FadeInDown.duration(200).delay(220)} className="flex-row items-center">
-                  <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
-                    <Ionicons name="color-palette-outline" size={20} color="#FF7A00" />
+              <Animated.View entering={FadeInDown.duration(200).delay(220)} className="flex-row items-center">
+                <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center mr-3">
+                  <Ionicons name="color-palette-outline" size={20} color="#FF7A00" />
+                </View>
+                <View>
+                  <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Temática</Text>
+                  <View className="bg-orange-50 px-3 py-0.5 rounded-full border border-orange-200 mt-0.5">
+                    <Text className="text-orange-600 text-xs font-medium">{realTheme}</Text>
                   </View>
-                  <View>
-                    <Text className={`text-[10px] ${isNative ? 'text-gray-600' : 'text-gray-400'} font-medium uppercase`}>Temática</Text>
-                    <View className="bg-orange-50 px-3 py-0.5 rounded-full border border-orange-200 mt-0.5">
-                      <Text className="text-orange-600 text-xs font-medium">{classItem.theme}</Text>
-                    </View>
-                  </View>
-                </Animated.View>
-              ) : null}
+                </View>
+              </Animated.View>
             </View>
 
             {/* CTA */}

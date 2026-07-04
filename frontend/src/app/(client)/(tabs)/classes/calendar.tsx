@@ -146,7 +146,7 @@ export default function CalendarScreen() {
   const content = (
 <ScrollView 
          contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
-         showsVerticalScrollIndicator={false}
+         showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
        >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">

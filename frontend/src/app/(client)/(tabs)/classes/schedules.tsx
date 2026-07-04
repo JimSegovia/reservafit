@@ -139,7 +139,7 @@ export default function HorariosDisponiblesScreen() {
   const content = (
     <ScrollView 
       contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: isWeb ? 0 : 24, paddingVertical: isWeb ? 0 : 16, paddingBottom: 30 }} 
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
     >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
