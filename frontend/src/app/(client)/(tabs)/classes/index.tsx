@@ -328,7 +328,7 @@ export default function ClassesSelectorScreen() {
         return sessionDate.getFullYear() === targetYear &&
                sessionDate.getMonth() === targetMonth &&
                sessionDate.getDate() === targetDay &&
-               sessionDate.getTime() >= minStartTime;
+               sessionDate.getTime() >= minStartTime.getTime();
       });
 
       if (!hasSession) return false;

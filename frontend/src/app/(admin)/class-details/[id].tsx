@@ -149,6 +149,29 @@ export default function ClassDetailsScreen() {
     }
   };
 
+  const handleDeleteSchedule = (scheduleId: string) => {
+    Alert.alert(
+      'Eliminar horario',
+      '¿Estás seguro de que deseas eliminar este horario? Se cancelarán y reembolsarán todas las reservas asociadas a esta sesión.',
+      [
+        { text: 'Conservar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/agenda/${scheduleId}`);
+              Alert.alert('Éxito', 'El horario ha sido eliminado.');
+              fetchSchedules();
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.error || error.response?.data?.message || 'Hubo un error al eliminar el horario');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   useEffect(() => {
     fetchSchedules();
     fetchInstructors();
@@ -272,7 +295,11 @@ export default function ClassDetailsScreen() {
                       <Ionicons name="pencil-outline" size={20} color="black" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => { /* TODO: eliminar horario */ }} className="p-1">
+                    <TouchableOpacity
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      onPress={() => handleDeleteSchedule(schedule.id_detalle_clase)}
+                      className="p-1"
+                    >
                       <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
