@@ -138,19 +138,50 @@ export class ClaseService {
     
     const idsDetalleClase = detallesClase.map(d => d.id_detalle_clase);
 
-    // 2. Cascade delete Details and Reservations
-    await prisma.detalleReserva.deleteMany({
+    // Find all reservations for these schedules
+    const reservas = await prisma.reserva.findMany({
       where: { id_detalle_clase: { in: idsDetalleClase } }
     });
-    
-    await prisma.reserva.deleteMany({
-      where: { id_detalle_clase: { in: idsDetalleClase } }
+    const idsReservas = reservas.map(r => r.id_reserva);
+
+    // Find all payments for these reservations
+    const pagos = await prisma.pago.findMany({
+      where: { id_reserva: { in: idsReservas } }
     });
-    
+    const idsPagos = pagos.map(p => p.id_pago);
+
+    // Delete related refunds (reembolsos)
+    if (idsPagos.length > 0) {
+      await prisma.reembolso.deleteMany({
+        where: { id_pago: { in: idsPagos } }
+      });
+      // Delete webhook processed entries referencing the payments
+      await prisma.webHookProcesado.deleteMany({
+        where: { id_pago: { in: idsPagos } }
+      });
+      // Delete payments
+      await prisma.pago.deleteMany({
+        where: { id_reserva: { in: idsReservas } }
+      });
+    }
+
+    // Delete details of reservations
+    if (idsReservas.length > 0) {
+      await prisma.detalleReserva.deleteMany({
+        where: { id_reserva: { in: idsReservas } }
+      });
+      // Delete reservations
+      await prisma.reserva.deleteMany({
+        where: { id_reserva: { in: idsReservas } }
+      });
+    }
+
+    // Delete details of class (schedules)
     await prisma.detalleClase.deleteMany({
       where: { id_clase: id }
     });
 
+    // Delete class itself
     return await ClaseRepository.eliminar(id);
   }
 }
