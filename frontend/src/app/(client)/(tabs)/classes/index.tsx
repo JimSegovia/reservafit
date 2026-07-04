@@ -258,6 +258,9 @@ export default function ClassesSelectorScreen() {
     for (let i = 1; i <= numDays; i++) {
       cells.push(new Date(currentCalendarYear, currentCalendarMonth, i));
     }
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
+    }
     return cells;
   }, [currentCalendarMonth, currentCalendarYear]);
 
@@ -560,16 +563,18 @@ export default function ClassesSelectorScreen() {
                 <View className="flex-row flex-wrap justify-between gap-y-2">
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
+                    const isSunday = cellDate.getDay() === 0;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
                     const isPast = isPastDate(cellDate);
+                    const isDisabled = isPast || isSunday;
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        onPress={() => { if (!isDisabled) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
                         hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isDisabled ? 'bg-gray-100 opacity-40' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -816,16 +821,18 @@ export default function ClassesSelectorScreen() {
                 <View className="flex-row flex-wrap justify-between gap-y-2">
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
+                    const isSunday = cellDate.getDay() === 0;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
                     const isPast = isPastDate(cellDate);
+                    const isDisabled = isPast || isSunday;
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        onPress={() => { if (!isDisabled) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
                         hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isDisabled ? 'bg-gray-100 opacity-40' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
