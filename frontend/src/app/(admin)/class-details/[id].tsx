@@ -36,6 +36,7 @@ export default function ClassDetailsScreen() {
   const [selectedInstructorName, setSelectedInstructorName] = useState('');
   const [estado, setEstado] = useState('Disponible');
   const [showInstructorMenu, setShowInstructorMenu] = useState(false);
+  const [cupos, setCupos] = useState('30');
 
   const ESTADOS = ['Disponible', 'Lleno', 'Cancelada'];
 
@@ -59,6 +60,7 @@ export default function ClassDetailsScreen() {
     setInstructorId('');
     setSelectedInstructorName('');
     setEstado('Disponible');
+    setCupos('30');
     setShowInstructorMenu(false);
     setModalVisible(true);
   };
@@ -74,13 +76,19 @@ export default function ClassDetailsScreen() {
     const fecha_hora_inicio = `${formattedDate} ${horaInicio}:00`;
     const fecha_hora_fin = `${formattedDate} ${horaFin}:00`;
 
+    const parsedCupos = parseInt(cupos, 10);
+    if (isNaN(parsedCupos) || parsedCupos <= 0) {
+      Alert.alert('Validación', 'El número de cupos debe ser un número entero mayor a 0.');
+      return;
+    }
+
     const payload = {
       id_clase: id,
       id_instructor: instructorId,
       fecha_hora_inicio,
       fecha_hora_fin,
       estado,
-      cupos: 30,
+      cupos: parsedCupos,
       tematica
     };
 
@@ -215,6 +223,7 @@ export default function ClassDetailsScreen() {
                         setSelectedInstructorName(schedule.instructor?.nombre || '');
                         setEstado(schedule.estado);
                         setTematica(schedule.tematica || '');
+                        setCupos(schedule.cupos ? schedule.cupos.toString() : '30');
                         setShowInstructorMenu(false);
                         setModalVisible(true);
                       }}
@@ -294,13 +303,19 @@ export default function ClassDetailsScreen() {
                 </View>
                 <View style={isMobile ? {} : { flex: 1 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Cupos</Text>
-                  <View className="w-full border border-gray-200 rounded-2xl bg-gray-50 px-4 py-3">
-                    <Text className="text-secondary text-sm">
-                      {editingScheduleId
-                        ? `${schedules.find(s => s.id_detalle_clase === editingScheduleId)?._count?.detalles_reserva || 0} / ${schedules.find(s => s.id_detalle_clase === editingScheduleId)?.cupos || 30}`
-                        : '0 / 30'}
+                  <TextInput
+                    value={cupos}
+                    onChangeText={setCupos}
+                    keyboardType="numeric"
+                    placeholder="30"
+                    placeholderTextColor="#9CA3AF"
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
+                  />
+                  {editingScheduleId && (
+                    <Text className="text-xs text-gray-400 mt-1.5 ml-1">
+                      Reservados: {schedules.find(s => s.id_detalle_clase === editingScheduleId)?._count?.detalles_reserva || 0}
                     </Text>
-                  </View>
+                  )}
                 </View>
               </View>
 
@@ -318,8 +333,8 @@ export default function ClassDetailsScreen() {
                 {showInstructorMenu && (
                   <View className="absolute top-full mt-1 w-full bg-white border border-gray-100 rounded-2xl shadow-lg max-h-48 z-50 overflow-hidden">
                     <ScrollView>
-                      {instructors
-                        .filter((i) => i.status === 'Activo' && i.specialty.toLowerCase().includes(className.toLowerCase()))
+                       {instructors
+                        .filter((i) => i.status === 'Activo')
                         .map((inst) => (
                           <TouchableOpacity
                             key={inst.id}
@@ -334,7 +349,7 @@ export default function ClassDetailsScreen() {
                             <Text className="text-xs text-gray-400">{inst.specialty}</Text>
                           </TouchableOpacity>
                         ))}
-                      {instructors.filter((i) => i.status === 'Activo' && i.specialty.toLowerCase().includes(className.toLowerCase())).length === 0 && (
+                      {instructors.filter((i) => i.status === 'Activo').length === 0 && (
                         <View className="p-3">
                           <Text className="text-gray-400 text-sm text-center">No hay instructores activos</Text>
                         </View>
