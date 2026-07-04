@@ -227,7 +227,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * 5,
             status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
@@ -243,7 +243,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: userObj.name,
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * 5,
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -292,7 +292,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         
         let instructorName = 'Sin asignar';
         let status: 'Activo' | 'Inactivo' = 'Activo';
-        let price = 40;
+        let price = 5;
         let descText = c.descripcion || '';
 
         try {
@@ -469,7 +469,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * 5,
             status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
@@ -485,7 +485,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: userObj.name,
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * 5,
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -752,7 +752,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         clientName: user.name,
         clientPhone: phoneYape || user.phone,
         seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-        price: r.cantidad_cupos * 40,
+        price: r.cantidad_cupos * 5,
         status: mapReservationStatus(r.estado)
       }));
       
@@ -849,7 +849,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * 5,
           status: mapReservationStatus(r.estado)
         }));
         set({ reservations: mappedReservations });
@@ -886,7 +886,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * 5,
           status: mapReservationStatus(r.estado)
         }));
       } else {
@@ -901,7 +901,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: user.name,
           clientPhone: user.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * 5,
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -932,7 +932,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * 5,
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
@@ -948,7 +948,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: user.name,
             clientPhone: user.phone,
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * 5,
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });

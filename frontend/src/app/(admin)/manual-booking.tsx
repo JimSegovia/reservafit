@@ -29,7 +29,7 @@ export default function AdminManualBookingScreen() {
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedSchedule, setSelectedSchedule] = useState('');
   const [paymentType, setPaymentType] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
-  const [price, setPrice] = useState('40.00');
+  const [price, setPrice] = useState('5.00');
   const [loading, setLoading] = useState(false);
 
   // Seat states
@@ -138,7 +138,7 @@ export default function AdminManualBookingScreen() {
         classId: selectedClassId,
         schedule: selectedSchedule,
         paymentType,
-        price: parseFloat(price) || 40.00,
+        price: parseFloat(price) || 5.00,
         selectedSeats
       });
 
@@ -339,7 +339,7 @@ export default function AdminManualBookingScreen() {
               value={price}
               onChangeText={setPrice}
               keyboardType="numeric"
-              placeholder="40.00"
+              placeholder="5.00"
               placeholderTextColor="#9CA3AF"
               className="w-full border border-gray-200 rounded-xl bg-white px-3 py-3 text-black text-sm"
             />
