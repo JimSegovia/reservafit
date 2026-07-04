@@ -4,11 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
+import { useAppStore } from '@/store/useStore';
+import { parseDateTime } from '@/utils/date';
 
 import Animated, { FadeIn, FadeInDown} from 'react-native-reanimated';
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const agenda = useAppStore((state) => state.agenda);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
@@ -70,33 +73,74 @@ export default function CalendarScreen() {
 
   // Grid hourly blocks
   const getTimeBlocks = (date: Date) => {
-    const day = date.getDay();
-    if (day === 1 || day === 3 || day === 5) {
-      return [
-        { start: '5 PM', end: '6 PM', class: { id: 'c7', title: 'Zumba', teacher: 'Con Profesor A', colorBg: 'bg-orange-100 border-l-4 border-orange-500', colorText: 'text-orange-800' } },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: { id: 'c9', title: 'Reggaeton', teacher: 'Con Profesor C', colorBg: 'bg-blue-100 border-l-4 border-blue-500', colorText: 'text-blue-800' } },
-      ];
-    } else if (day === 2 || day === 4 || day === 6) {
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: { id: 'c8', title: 'Salsa', teacher: 'Con Profesor B', colorBg: 'bg-green-100 border-l-4 border-green-500', colorText: 'text-green-800' } },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
-    } else {
-      // Sunday: No classes
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+    const targetDay = date.getDate();
+    const nowTs = Date.now();
+    const minStartTs = nowTs + 3 * 60 * 60 * 1000;
+
+    const matchingSessions = agenda.filter((session: any) => {
+      const sessionDate = parseDateTime(session.fecha_hora_inicio);
+      return sessionDate.getFullYear() === targetYear &&
+             sessionDate.getMonth() === targetMonth &&
+             sessionDate.getDate() === targetDay &&
+             sessionDate.getTime() >= minStartTs;
+    });
+
+    if (matchingSessions.length === 0) {
+      return [];
     }
+
+    matchingSessions.sort((a: any, b: any) => new Date(a.fecha_hora_inicio).getTime() - new Date(b.fecha_hora_inicio).getTime());
+
+    return matchingSessions.map((session: any) => {
+      const startTime = parseDateTime(session.fecha_hora_inicio);
+      const endTime = parseDateTime(session.fecha_hora_fin);
+
+      const ampmStart = startTime.getHours() >= 12 ? 'PM' : 'AM';
+      const ampmEnd = endTime.getHours() >= 12 ? 'PM' : 'AM';
+
+      const formatHour = (d: Date) => {
+        let hours = d.getHours() % 12;
+        hours = hours ? hours : 12;
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const startStr = `${formatHour(startTime)}${ampmStart !== ampmEnd ? ' ' + ampmStart : ''}`;
+      const endStr = `${formatHour(endTime)} ${ampmEnd}`;
+
+      const titleLower = (session.clase?.nombre || '').toLowerCase();
+      let colorBg = 'bg-orange-50 border-l-4 border-orange-500';
+      let colorText = 'text-orange-950';
+
+      if (titleLower.includes('zumba')) {
+        colorBg = 'bg-orange-100 border-l-4 border-orange-500';
+        colorText = 'text-orange-800';
+      } else if (titleLower.includes('salsa')) {
+        colorBg = 'bg-green-100 border-l-4 border-green-500';
+        colorText = 'text-green-800';
+      } else if (titleLower.includes('bachata') || titleLower.includes('funcional')) {
+        colorBg = 'bg-blue-100 border-l-4 border-blue-500';
+        colorText = 'text-blue-800';
+      } else {
+        colorBg = 'bg-purple-100 border-l-4 border-purple-500';
+        colorText = 'text-purple-800';
+      }
+
+      return {
+        start: startStr,
+        end: endStr,
+        class: {
+          id: session.id_clase,
+          id_detalle_clase: session.id_detalle_clase,
+          title: session.clase?.nombre || 'Clase',
+          teacher: session.instructor ? `Con ${session.instructor.nombre} ${session.instructor.apellidos}` : 'Sin profesor asignado',
+          colorBg,
+          colorText
+        }
+      };
+    });
   };
 
   const timeBlocks = getTimeBlocks(selectedDate);
@@ -136,10 +180,10 @@ export default function CalendarScreen() {
     }
   };
 
-  const handleClassClick = (classId: string) => {
+  const handleClassClick = (classId: string, idDetalleClase: string) => {
     router.push({
       pathname: '/(client)/(tabs)/classes/detail',
-      params: { id: classId }
+      params: { id: classId, id_detalle_clase: idDetalleClase }
     });
   };
 
@@ -289,7 +333,7 @@ export default function CalendarScreen() {
                 <View className="flex-1 p-2 justify-center">
                   {block.class ? (
                     <TouchableOpacity
-                      onPress={() => handleClassClick(block.class!.id)}
+                      onPress={() => handleClassClick(block.class!.id, block.class!.id_detalle_clase)}
                       className={`rounded-xl p-3 flex-row justify-between items-center ${block.class.colorBg}`}
                     >
                       <View>

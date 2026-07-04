@@ -289,7 +289,16 @@ export default function ClassesSelectorScreen() {
 
   // Filter logic
   const categoryClasses = classes.filter((cls) => {
-    // Filter by day of the current week based on database schedules
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
+    const hasAnyFutureSession = agenda.some((session: any) => {
+      if (session.id_clase !== cls.id) return false;
+      const sessionDate = parseDateTime(session.fecha_hora_inicio);
+      return sessionDate >= minStartTime;
+    });
+    if (!hasAnyFutureSession) return false;
+
     if (selectedDay !== 'Todos') {
       const dayIndices: Record<string, number> = {
         'Lunes': 1,
@@ -304,7 +313,6 @@ export default function ClassesSelectorScreen() {
       const dayIndex = dayIndices[selectedDay];
       if (dayIndex === undefined) return false;
       
-      const now = new Date();
       const currentMonday = getMonday(now);
       const targetDate = new Date(currentMonday);
       const offset = dayIndex === 0 ? 6 : dayIndex - 1;
@@ -319,13 +327,13 @@ export default function ClassesSelectorScreen() {
         const sessionDate = parseDateTime(session.fecha_hora_inicio);
         return sessionDate.getFullYear() === targetYear &&
                sessionDate.getMonth() === targetMonth &&
-               sessionDate.getDate() === targetDay;
+               sessionDate.getDate() === targetDay &&
+               sessionDate.getTime() >= minStartTime;
       });
 
       if (!hasSession) return false;
     }
 
-    // Filter by theme/title category
     if (selectedTheme !== 'Todos') {
       const titleLower = cls.title.toLowerCase();
       const themeLower = selectedTheme.toLowerCase();
