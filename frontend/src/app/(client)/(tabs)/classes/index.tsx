@@ -166,17 +166,18 @@ export default function ClassesSelectorScreen() {
       const startTime = parseDateTime(session.fecha_hora_inicio);
       const endTime = parseDateTime(session.fecha_hora_fin);
 
-      const formatTime12 = (d: Date) => {
-        let hours = d.getHours();
-        const minutes = d.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
+      const ampmStart = startTime.getHours() >= 12 ? 'PM' : 'AM';
+      const ampmEnd = endTime.getHours() >= 12 ? 'PM' : 'AM';
+
+      const formatHour = (d: Date) => {
+        let hours = d.getHours() % 12;
         hours = hours ? hours : 12;
-        return `${hours}:${minutes} ${ampm}`;
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
       };
 
-      const startStr = formatTime12(startTime);
-      const endStr = formatTime12(endTime);
+      const startStr = `${formatHour(startTime)}${ampmStart !== ampmEnd ? ' ' + ampmStart : ''}`;
+      const endStr = `${formatHour(endTime)} ${ampmEnd}`;
 
       const titleLower = (session.clase?.nombre || '').toLowerCase();
       let colorBg = 'bg-orange-50 border-l-4 border-orange-500';
@@ -257,13 +258,40 @@ export default function ClassesSelectorScreen() {
 
   // Filter logic
   const categoryClasses = classes.filter((cls) => {
-    // Filter by day
+    // Filter by day of the current week based on database schedules
     if (selectedDay !== 'Todos') {
-      const scheduleLower = cls.schedule.toLowerCase();
-      const dayLower = selectedDay.toLowerCase();
-      const normalizedSchedule = scheduleLower.replace('miércoles', 'miercoles').replace('sábado', 'sabado');
-      const normalizedDay = dayLower.replace('miércoles', 'miercoles').replace('sábado', 'sabado');
-      if (!normalizedSchedule.includes(normalizedDay)) return false;
+      const dayIndices: Record<string, number> = {
+        'Lunes': 1,
+        'Martes': 2,
+        'Miércoles': 3,
+        'Jueves': 4,
+        'Viernes': 5,
+        'Sábado': 6,
+        'Domingo': 0
+      };
+      
+      const dayIndex = dayIndices[selectedDay];
+      if (dayIndex === undefined) return false;
+      
+      const now = new Date();
+      const currentMonday = getMonday(now);
+      const targetDate = new Date(currentMonday);
+      const offset = dayIndex === 0 ? 6 : dayIndex - 1;
+      targetDate.setDate(currentMonday.getDate() + offset);
+      
+      const targetYear = targetDate.getFullYear();
+      const targetMonth = targetDate.getMonth();
+      const targetDay = targetDate.getDate();
+
+      const hasSession = agenda.some((session: any) => {
+        if (session.id_clase !== cls.id) return false;
+        const sessionDate = parseDateTime(session.fecha_hora_inicio);
+        return sessionDate.getFullYear() === targetYear &&
+               sessionDate.getMonth() === targetMonth &&
+               sessionDate.getDate() === targetDay;
+      });
+
+      if (!hasSession) return false;
     }
 
     // Filter by theme/title category
@@ -439,7 +467,18 @@ export default function ClassesSelectorScreen() {
         <Animated.View entering={FadeIn.duration(200)}>
           <View className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             {/* Week Heading */}
-            <View className="items-center mb-6">
+            <View className="flex-row justify-center items-center mb-6 gap-x-4">
+              <TouchableOpacity
+                onPress={() => {
+                  const prevWeek = new Date(selectedDate);
+                  prevWeek.setDate(selectedDate.getDate() - 7);
+                  setSelectedDate(prevWeek);
+                }}
+                className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-back" size={18} color="black" />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={() => {
                   setCurrentCalendarMonth(selectedDate.getMonth());
@@ -452,6 +491,17 @@ export default function ClassesSelectorScreen() {
                   {formatWeekRange(monday)}
                 </Text>
                 <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  const nextWeek = new Date(selectedDate);
+                  nextWeek.setDate(selectedDate.getDate() + 7);
+                  setSelectedDate(nextWeek);
+                }}
+                className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-forward" size={18} color="black" />
               </TouchableOpacity>
             </View>
 
@@ -523,8 +573,8 @@ export default function ClassesSelectorScreen() {
               ) : (
                 timeBlocks.map((block, idx) => (
                   <View key={idx} className="flex-row min-h-[80px] border-b border-gray-200 last:border-b-0">
-                    <View className="w-32 border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
-                      <Text className="text-sm font-bold text-black">{block.start} - {block.end}</Text>
+                    <View className="w-[155px] border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
+                      <Text className="text-[13px] font-bold text-black text-center whitespace-nowrap" numberOfLines={1}>{block.start} - {block.end}</Text>
                     </View>
                     <View className="flex-1 p-2.5 justify-center">
                       {block.class ? (
@@ -679,7 +729,18 @@ export default function ClassesSelectorScreen() {
           /* Calendario View Mobile */
           <Animated.View entering={FadeIn.duration(200)}>
             {/* Week Range heading */}
-            <View className="items-center mb-4 mt-2">
+            <View className="flex-row justify-between items-center mb-4 mt-2 px-1 max-w-sm mx-auto w-full">
+              <TouchableOpacity
+                onPress={() => {
+                  const prevWeek = new Date(selectedDate);
+                  prevWeek.setDate(selectedDate.getDate() - 7);
+                  setSelectedDate(prevWeek);
+                }}
+                className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-back" size={16} color="black" />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={() => {
                   setCurrentCalendarMonth(selectedDate.getMonth());
@@ -691,7 +752,18 @@ export default function ClassesSelectorScreen() {
                 <Text className="text-sm font-bold text-black mr-2">
                   {formatWeekRange(monday)}
                 </Text>
-                <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
+                <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={16} color="#FF7A00" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  const nextWeek = new Date(selectedDate);
+                  nextWeek.setDate(selectedDate.getDate() + 7);
+                  setSelectedDate(nextWeek);
+                }}
+                className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-forward" size={16} color="black" />
               </TouchableOpacity>
             </View>
 
@@ -763,8 +835,8 @@ export default function ClassesSelectorScreen() {
               ) : (
                 timeBlocks.map((block, idx) => (
                   <View key={idx} className="flex-row min-h-[70px] border-b border-gray-200 last:border-b-0">
-                    <View className="w-24 border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
-                      <Text className="text-xs font-bold text-black">{block.start} - {block.end}</Text>
+                    <View className="w-[125px] border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
+                      <Text className="text-[11px] font-bold text-black text-center whitespace-nowrap" numberOfLines={1}>{block.start} - {block.end}</Text>
                     </View>
                     <View className="flex-1 p-2 justify-center">
                       {block.class ? (
