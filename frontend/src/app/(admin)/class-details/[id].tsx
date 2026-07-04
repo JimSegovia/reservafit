@@ -23,7 +23,15 @@ export default function ClassDetailsScreen() {
   const classData = classes.find((c) => c.id === id || c.id_clase === id);
   const className = classData?.title || '';
 
-  const fechaHoy = new Date().toLocaleDateString('es-ES');
+  const getTodayString = () => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
+  const fechaHoy = getTodayString();
 
   const [schedules, setSchedules] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -66,15 +74,42 @@ export default function ClassDetailsScreen() {
   };
 
   const handleSave = async () => {
+    if (!fecha.trim()) {
+      Alert.alert('Validación', 'Debes ingresar la fecha.');
+      return;
+    }
+
+    const dateParts = fecha.split('/');
+    if (dateParts.length !== 3) {
+      Alert.alert('Validación', 'La fecha debe tener el formato DD/MM/YYYY.');
+      return;
+    }
+    const dayPart = dateParts[0].trim();
+    const monthPart = dateParts[1].trim();
+    const yearPart = dateParts[2].trim();
+    if (dayPart.length !== 2 || monthPart.length !== 2 || yearPart.length !== 4) {
+      Alert.alert('Validación', 'La fecha debe tener el formato DD/MM/YYYY.');
+      return;
+    }
+
     if (!horaInicio.trim() || !horaFin.trim()) {
       Alert.alert('Validación', 'Debes ingresar la hora de inicio y fin.');
       return;
     }
 
-    const dateParts = fecha.split('/');
-    const formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-    const fecha_hora_inicio = `${formattedDate} ${horaInicio}:00`;
-    const fecha_hora_fin = `${formattedDate} ${horaFin}:00`;
+    if (!/^\d{2}:\d{2}$/.test(horaInicio.trim()) || !/^\d{2}:\d{2}$/.test(horaFin.trim())) {
+      Alert.alert('Validación', 'Las horas deben tener el formato HH:MM (por ejemplo, 18:00).');
+      return;
+    }
+
+    if (!instructorId) {
+      Alert.alert('Validación', 'Debes seleccionar un instructor.');
+      return;
+    }
+
+    const formattedDate = `${yearPart}-${monthPart}-${dayPart}`;
+    const fecha_hora_inicio = `${formattedDate}T${horaInicio.trim()}:00`;
+    const fecha_hora_fin = `${formattedDate}T${horaFin.trim()}:00`;
 
     const parsedCupos = parseInt(cupos, 10);
     if (isNaN(parsedCupos) || parsedCupos <= 0) {
@@ -167,8 +202,13 @@ export default function ClassDetailsScreen() {
 
             const fmtTime = (d: Date) =>
               isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const fmtDate = (d: Date) =>
-              isNaN(d.getTime()) ? '--/--/--' : d.toLocaleDateString('es-ES');
+            const fmtDate = (d: Date) => {
+              if (isNaN(d.getTime())) return '--/--/--';
+              const dd = String(d.getDate()).padStart(2, '0');
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              return `${dd}/${mm}/${yyyy}`;
+            };
             const fmtTime24 = (d: Date) =>
               isNaN(d.getTime()) ? '00:00' : d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
             const startTimeStr = fmtTime(startDate);
@@ -331,8 +371,8 @@ export default function ClassDetailsScreen() {
                   <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
                 </TouchableOpacity>
                 {showInstructorMenu && (
-                  <View className="absolute top-full mt-1 w-full bg-white border border-gray-100 rounded-2xl shadow-lg max-h-48 z-50 overflow-hidden">
-                    <ScrollView>
+                  <View className="mt-1 w-full bg-white border border-gray-200 rounded-2xl shadow-sm max-h-48 overflow-hidden">
+                    <ScrollView nestedScrollEnabled>
                        {instructors
                         .filter((i) => i.status === 'Activo')
                         .map((inst) => (

@@ -67,45 +67,55 @@ export default function AdminClassesScreen() {
     setModalVisible(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       showToast('Por favor ingresa el nombre de la clase.', 'warning');
       return;
     }
     
-    if (editingId) {
-      if (!editingId || editingId === 'undefined') {
-        showToast('No se encontró el ID de la clase a editar.', 'error');
-        return;
+    try {
+      if (editingId) {
+        if (!editingId || editingId === 'undefined') {
+          showToast('No se encontró el ID de la clase a editar.', 'error');
+          return;
+        }
+        await updateClass(editingId, { title, theme: description.trim() });
+        showToast('Clase actualizada con éxito.', 'success');
+      } else {
+        await addClass({
+          title,
+          schedule: '',
+          instructorName: '',
+          price: 0,
+          status: 'Activo',
+          capacity: 30,
+          enrolled: 0,
+          theme: description.trim()
+        });
+        showToast('Clase creada con éxito.', 'success');
       }
-      updateClass(editingId, { title, theme: description.trim() });
-      showToast('Clase actualizada con éxito.', 'success');
-    } else {
-      addClass({
-        title,
-        schedule: '',
-        instructorName: '',
-        price: 0,
-        status: 'Activo',
-        capacity: 30,
-        enrolled: 0,
-        theme: description.trim()
-      });
-      showToast('Clase creada con éxito.', 'success');
+      setModalVisible(false);
+    } catch (e) {
+      console.error(e);
+      showToast('Error al guardar la clase.', 'error');
     }
-    
-    setModalVisible(false);
   };
 
   const promptDeleteClass = (id: string) => {
     setClassToDelete(id);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (classToDelete) {
-      deleteClass(classToDelete);
-      setClassToDelete(null);
-      showToast('La clase ha sido eliminada.', 'success');
+      try {
+        await deleteClass(classToDelete);
+        showToast('La clase ha sido eliminada.', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Error al eliminar la clase.', 'error');
+      } finally {
+        setClassToDelete(null);
+      }
     }
   };
 

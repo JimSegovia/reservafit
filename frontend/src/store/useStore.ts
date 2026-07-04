@@ -493,6 +493,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await get().fetchClasses();
     } catch (error) {
       console.error('Add class error:', error);
+      throw error;
     }
   },
 
@@ -516,6 +517,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await get().fetchClasses();
     } catch (error) {
       console.error('Update class error:', error);
+      throw error;
     }
   },
 
@@ -525,6 +527,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await get().fetchClasses();
     } catch (error) {
       console.error('Delete class error:', error);
+      throw error;
     }
   },
 
