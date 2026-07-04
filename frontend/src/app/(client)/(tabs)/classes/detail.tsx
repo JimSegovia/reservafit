@@ -174,7 +174,15 @@ export default function ClassDetailScreen() {
             <View style={{ flex: 60 }}>
               <Animated.View entering={FadeIn.duration(200)} className="h-80 rounded-2xl overflow-hidden mb-6">
                 <Image
-                  source={classItem.title.toLowerCase().includes('zumba') ? require('../../../../../assets/images/zumba.jpg') : classItem.title.toLowerCase().includes('salsa') ? require('../../../../../assets/images/Salsa.jpeg') : require('../../../../../assets/images/bachata.jpg')}
+                  source={
+                    classItem.image
+                      ? { uri: classItem.image }
+                      : classItem.title.toLowerCase().includes('zumba')
+                      ? require('../../../../../assets/images/zumba.jpg')
+                      : classItem.title.toLowerCase().includes('salsa')
+                      ? require('../../../../../assets/images/Salsa.jpeg')
+                      : require('../../../../../assets/images/bachata.jpg')
+                  }
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -193,7 +201,9 @@ export default function ClassDetailScreen() {
           <Animated.View entering={FadeIn.duration(200)} className="relative w-full h-64 bg-gray-200 rounded-xl overflow-hidden">
             <Image
               source={
-                classItem.title.toLowerCase().includes('zumba')
+                classItem.image
+                  ? { uri: classItem.image }
+                  : classItem.title.toLowerCase().includes('zumba')
                   ? require('../../../../../assets/images/zumba.jpg')
                   : classItem.title.toLowerCase().includes('salsa')
                   ? require('../../../../../assets/images/Salsa.jpeg')

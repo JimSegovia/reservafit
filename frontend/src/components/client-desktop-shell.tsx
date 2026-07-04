@@ -61,13 +61,17 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
     <View className="flex-1 flex-row bg-cream">
       <View className="w-60 bg-[#1f0f08] py-8 justify-between">
         <View>
-          <View className="flex-row justify-center items-center mb-10 mt-2 px-4">
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.replace('/(client)/(tabs)')}
+            className="flex-row justify-center items-center mb-10 mt-2 px-4 cursor-pointer"
+          >
             <ExpoImage
               source={require('../../assets/images/logoblanco.svg')}
               style={{ width: 190, height: 64 }}
               contentFit="contain"
             />
-          </View>
+          </TouchableOpacity>
 
           {nav.map((item) => (
             <TouchableOpacity

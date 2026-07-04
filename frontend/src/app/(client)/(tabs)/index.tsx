@@ -211,13 +211,17 @@ export default function ClientHomeScreen() {
       showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
     >
       <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
-        <View className="flex-row items-center">
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.replace('/(client)/(tabs)')}
+          className="flex-row items-center cursor-pointer"
+        >
           <ExpoImage
             source={require('../../../../assets/images/logo.svg')}
             style={{ width: 150, height: 50 }}
             contentFit="contain"
           />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity 
           onPress={() => router.push('/profile')}
           className="flex-row items-center bg-gray-100 px-3 py-2 rounded-full border border-gray-200"

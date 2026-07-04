@@ -62,6 +62,32 @@ export default function ClassesSelectorScreen() {
     return date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
   };
 
+  const handlePrevDay = () => {
+    const prevDate = new Date(selectedDate);
+    const day = prevDate.getDay();
+    if (day === 1) { // Monday -> Saturday
+      prevDate.setDate(prevDate.getDate() - 2);
+    } else if (day === 0) { // Sunday -> Saturday
+      prevDate.setDate(prevDate.getDate() - 1);
+    } else {
+      prevDate.setDate(prevDate.getDate() - 1);
+    }
+    setSelectedDate(prevDate);
+  };
+
+  const handleNextDay = () => {
+    const nextDate = new Date(selectedDate);
+    const day = nextDate.getDay();
+    if (day === 6) { // Saturday -> Monday
+      nextDate.setDate(nextDate.getDate() + 2);
+    } else if (day === 0) { // Sunday -> Monday
+      nextDate.setDate(nextDate.getDate() + 1);
+    } else {
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+    setSelectedDate(nextDate);
+  };
+
   const monday = getMonday(selectedDate);
 
   const getClassScheduleDescription = (classId: string) => {
@@ -430,7 +456,9 @@ export default function ClassesSelectorScreen() {
                   >
                     <Image
                       source={
-                        cls.title.toLowerCase().includes('zumba')
+                        cls.image
+                          ? { uri: cls.image }
+                          : cls.title.toLowerCase().includes('zumba')
                           ? require('../../../../../assets/images/zumba.jpg')
                           : cls.title.toLowerCase().includes('salsa')
                           ? require('../../../../../assets/images/Salsa.jpeg')
@@ -474,11 +502,7 @@ export default function ClassesSelectorScreen() {
             {/* Week Heading */}
             <View className="flex-row justify-center items-center mb-6 gap-x-4">
               <TouchableOpacity
-                onPress={() => {
-                  const prevWeek = new Date(selectedDate);
-                  prevWeek.setDate(selectedDate.getDate() - 7);
-                  setSelectedDate(prevWeek);
-                }}
+                onPress={handlePrevDay}
                 className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
               >
                 <Ionicons name="chevron-back" size={18} color="black" />
@@ -499,11 +523,7 @@ export default function ClassesSelectorScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
-                  const nextWeek = new Date(selectedDate);
-                  nextWeek.setDate(selectedDate.getDate() + 7);
-                  setSelectedDate(nextWeek);
-                }}
+                onPress={handleNextDay}
                 className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
               >
                 <Ionicons name="chevron-forward" size={18} color="black" />
@@ -695,7 +715,9 @@ export default function ClassesSelectorScreen() {
                     >
                       <Image
                         source={
-                          cls.title.toLowerCase().includes('zumba')
+                          cls.image
+                            ? { uri: cls.image }
+                            : cls.title.toLowerCase().includes('zumba')
                             ? require('../../../../../assets/images/zumba.jpg')
                             : cls.title.toLowerCase().includes('salsa')
                             ? require('../../../../../assets/images/Salsa.jpeg')
@@ -736,11 +758,7 @@ export default function ClassesSelectorScreen() {
             {/* Week Range heading */}
             <View className="flex-row justify-between items-center mb-4 mt-2 px-1 max-w-sm mx-auto w-full">
               <TouchableOpacity
-                onPress={() => {
-                  const prevWeek = new Date(selectedDate);
-                  prevWeek.setDate(selectedDate.getDate() - 7);
-                  setSelectedDate(prevWeek);
-                }}
+                onPress={handlePrevDay}
                 className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
               >
                 <Ionicons name="chevron-back" size={16} color="black" />
@@ -761,11 +779,7 @@ export default function ClassesSelectorScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
-                  const nextWeek = new Date(selectedDate);
-                  nextWeek.setDate(selectedDate.getDate() + 7);
-                  setSelectedDate(nextWeek);
-                }}
+                onPress={handleNextDay}
                 className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
               >
                 <Ionicons name="chevron-forward" size={16} color="black" />

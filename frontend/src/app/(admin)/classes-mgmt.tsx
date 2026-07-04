@@ -40,6 +40,7 @@ export default function AdminClassesScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
@@ -56,6 +57,7 @@ export default function AdminClassesScreen() {
     setEditingId(null);
     setTitle('');
     setDescription('');
+    setImageUrl('');
     setModalVisible(true);
   };
 
@@ -64,6 +66,7 @@ export default function AdminClassesScreen() {
     setEditingId(classId);
     setTitle(cls.title);
     setDescription(cls.theme || '');
+    setImageUrl(cls.image || '');
     setModalVisible(true);
   };
 
@@ -79,7 +82,7 @@ export default function AdminClassesScreen() {
           showToast('No se encontró el ID de la clase a editar.', 'error');
           return;
         }
-        await updateClass(editingId, { title, theme: description.trim() });
+        await updateClass(editingId, { title, theme: description.trim(), image: imageUrl.trim() });
         showToast('Clase actualizada con éxito.', 'success');
       } else {
         await addClass({
@@ -90,7 +93,8 @@ export default function AdminClassesScreen() {
           status: 'Activo',
           capacity: 30,
           enrolled: 0,
-          theme: description.trim()
+          theme: description.trim(),
+          image: imageUrl.trim()
         });
         showToast('Clase creada con éxito.', 'success');
       }
@@ -249,6 +253,17 @@ export default function AdminClassesScreen() {
                 numberOfLines={3}
                 textAlignVertical="top"
                 className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm min-h-[80px]"
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">URL de Imagen</Text>
+              <TextInput
+                value={imageUrl}
+                onChangeText={setImageUrl}
+                placeholder="https://cloudinary.com/mi-imagen.jpg"
+                placeholderTextColor="#9CA3AF"
+                className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 
