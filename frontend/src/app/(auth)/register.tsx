@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,6 +17,13 @@ export default function RegisterScreen() {
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
+
+  const nameRef = useRef<TextInput>(null);
+  const lastNameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -212,12 +219,15 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${nameError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="person-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={nameRef}
                     placeholder="Tu nombre"
                     value={name}
                     onChangeText={validateName}
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="next"
+                    onSubmitEditing={() => lastNameRef.current?.focus()}
                   />
                 </View>
                 {nameError ? (
@@ -234,12 +244,15 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${lastNameError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="person-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={lastNameRef}
                     placeholder="Tu apellido"
                     value={lastName}
                     onChangeText={validateLastName}
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="next"
+                    onSubmitEditing={() => emailRef.current?.focus()}
                   />
                 </View>
                 {lastNameError ? (
@@ -256,6 +269,7 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${emailError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={emailRef}
                     placeholder="correo@ejemplo.com"
                     value={email}
                     onChangeText={validateEmail}
@@ -264,6 +278,8 @@ export default function RegisterScreen() {
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="next"
+                    onSubmitEditing={() => phoneRef.current?.focus()}
                   />
                 </View>
                 {emailError ? (
@@ -280,6 +296,7 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${phoneError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="call-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={phoneRef}
                     placeholder="9XX XXX XXX"
                     value={phone}
                     onChangeText={validatePhone}
@@ -288,6 +305,8 @@ export default function RegisterScreen() {
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="next"
+                    onSubmitEditing={() => passwordRef.current?.focus()}
                   />
                 </View>
                 {phoneError ? (
@@ -304,6 +323,7 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${passwordError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={passwordRef}
                     placeholder="Crea tu contraseña (mín. 6 caracteres)"
                     value={password}
                     onChangeText={validatePassword}
@@ -311,6 +331,8 @@ export default function RegisterScreen() {
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="next"
+                    onSubmitEditing={() => confirmPasswordRef.current?.focus()}
                   />
                   <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                     <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
@@ -330,6 +352,7 @@ export default function RegisterScreen() {
                 <View className={`flex-row items-center border rounded-xl bg-white px-3 py-3 ${confirmPasswordError ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                   <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
                   <TextInput
+                    ref={confirmPasswordRef}
                     placeholder="Repite tu contraseña"
                     value={confirmPassword}
                     onChangeText={validateConfirmPassword}
@@ -337,6 +360,8 @@ export default function RegisterScreen() {
                     placeholderTextColor="#9CA3AF"
                     className="flex-1 ml-2 text-black text-sm p-0"
                     editable={!loading}
+                    returnKeyType="done"
+                    onSubmitEditing={handleRegister}
                   />
                   <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowConfirmPassword(!showConfirmPassword)} disabled={loading}>
                     <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />

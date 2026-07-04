@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ImageBackground, useWindowDimensions, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -22,6 +22,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
+  const passwordRef = useRef<TextInput>(null);
+
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
@@ -169,6 +171,8 @@ export default function LoginScreen() {
                         placeholderTextColor="#9CA3AF"
                         className="flex-1 text-black text-base p-0"
                         editable={!loading}
+                        returnKeyType="next"
+                        onSubmitEditing={() => passwordRef.current?.focus()}
                       />
                     </View>
                     {emailError ? (
@@ -179,6 +183,7 @@ export default function LoginScreen() {
                   <View>
                     <View className={`flex-row items-center border rounded-xl bg-white px-4 py-4 border-gray-300 ${passwordError ? 'border-red-500' : 'border-gray-200'}`}>
                       <TextInput
+                        ref={passwordRef}
                         placeholder="Contraseña"
                         value={password}
                         onChangeText={validatePassword}
@@ -186,6 +191,8 @@ export default function LoginScreen() {
                         placeholderTextColor="#9CA3AF"
                         className="flex-1 text-black text-base p-0"
                         editable={!loading}
+                        returnKeyType="done"
+                        onSubmitEditing={handleLogin}
                       />
                       <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                         <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
