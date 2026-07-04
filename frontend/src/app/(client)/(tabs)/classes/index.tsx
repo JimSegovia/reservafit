@@ -472,7 +472,7 @@ export default function ClassesSelectorScreen() {
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
-                      style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 260 }}
+                      style={{ width: '100%', aspectRatio: 4 / 3 }}
                       resizeMode="cover"
                     />
                     <View className="p-4">
@@ -731,7 +731,7 @@ export default function ClassesSelectorScreen() {
                             ? require('../../../../../assets/images/Salsa.jpeg')
                             : require('../../../../../assets/images/bachata.jpg')
                         }
-                        style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 180 }}
+                        style={{ width: '100%', aspectRatio: 4 / 3 }}
                         resizeMode="cover"
                       />
 
