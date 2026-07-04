@@ -19,6 +19,7 @@ export default function ClassDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const instructors = useAppStore((state) => state.instructors);
   const classes = useAppStore((state) => state.classes);
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
   const classData = classes.find((c) => c.id === id || c.id_clase === id);
   const className = classData?.title || '';
 
@@ -107,7 +108,8 @@ export default function ClassDetailsScreen() {
 
   useEffect(() => {
     fetchSchedules();
-  }, []);
+    fetchInstructors();
+  }, [fetchInstructors]);
 
   return (
     <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>

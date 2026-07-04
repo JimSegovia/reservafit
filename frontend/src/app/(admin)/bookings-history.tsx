@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Loader } from '@/components/ui/loader';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -13,8 +14,40 @@ export default function AdminBookingsHistoryScreen() {
   const isMobile = width < 768;
   const isNative = Platform.OS !== 'web';
   const reservations = useAppStore((state) => state.reservations);
+  const fetchReservations = useAppStore((state) => state.fetchReservations);
 
   const [activeTab, setActiveTab] = useState<'Reservas' | 'Pagos'>('Reservas');
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadReservations = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
+    try {
+      await fetchReservations();
+    } catch (err) {
+      console.error('Error fetching reservations:', err);
+    } finally {
+      if (showLoadingIndicator) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReservations(true);
+  }, [fetchReservations]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadReservations(false);
+    setRefreshing(false);
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-cream">
+        <Loader variant="inline" label="Cargando historial..." />
+      </View>
+    );
+  }
 
   return (
     <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
@@ -23,6 +56,7 @@ export default function AdminBookingsHistoryScreen() {
         showsVerticalScrollIndicator={false}
         className="flex-1"
         style={{ flex: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
