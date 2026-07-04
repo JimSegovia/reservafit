@@ -12,6 +12,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const currentBooking = useAppStore((state) => state.currentBooking);
   const confirmBooking = useAppStore((state) => state.confirmBooking);
+  const clearBooking = useAppStore((state) => state.clearBooking);
   const decrementTimer = useAppStore((state) => state.decrementTimer);
   const showToast = useAppStore((state) => state.showToast);
   
@@ -19,10 +20,10 @@ export default function CheckoutScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!currentBooking) {
+    if (!currentBooking && !isProcessing) {
       router.replace('/(client)/(tabs)/classes');
     }
-  }, [currentBooking, router]);
+  }, [currentBooking, isProcessing, router]);
 
   useEffect(() => {
     const interval = setInterval(() => decrementTimer(), 1000);
@@ -61,8 +62,7 @@ export default function CheckoutScreen() {
 
       if (checkoutResponse.status === 200 && result.success && result.data?.initPoint) {
         setShowPopup(false);
-        
-        // Direct redirect to Mercado Pago Checkout Pro
+        clearBooking();
         window.location.href = result.data.initPoint; 
       } else {
         showToast(result.error || 'No se pudo generar el enlace de Mercado Pago.', 'error');

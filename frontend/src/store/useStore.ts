@@ -756,7 +756,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         status: mapReservationStatus(r.estado)
       }));
       
-      set({ reservations: mappedReservations, currentBooking: null });
+      set({ reservations: mappedReservations });
       return lastReservation;
     } catch (err: any) {
       console.error('Confirm booking error:', err);
