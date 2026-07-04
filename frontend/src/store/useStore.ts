@@ -169,7 +169,14 @@ const formatDate = (dateStr: string) => {
 };
 
 // Create Zustand store
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set, get) => {
+  const getClassPrice = (id_clase?: string): number => {
+    if (!id_clase) return 5;
+    const cls = get().classes.find(c => c.id === id_clase);
+    return cls?.price || 5;
+  };
+
+  return {
   user: null,
   otpCode: null,
   tempRegisterData: null,
@@ -227,7 +234,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 5,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
@@ -243,7 +250,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: userObj.name,
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 5,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -292,14 +299,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         
         let instructorName = 'Sin asignar';
         let status: 'Activo' | 'Inactivo' = 'Activo';
-        let price = 5;
+        let price = Number(c.precio) || 5;
         let descText = c.descripcion || '';
 
         try {
           if (descText.startsWith('{')) {
             const parsed = JSON.parse(descText);
             instructorName = parsed.instructorName || instructorName;
-            price = parsed.price || price;
             status = parsed.status || status;
             descText = parsed.description || descText;
           }
@@ -469,7 +475,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 5,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
@@ -485,7 +491,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: userObj.name,
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 5,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -568,7 +574,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       await classesService.create({
         nombre: classItem.title,
         descripcion: classItem.theme || '',
-        imagen_url: classItem.image || ''
+        imagen_url: classItem.image || '',
+        precio: Number(classItem.price) || 5
       });
 
       await get().fetchClasses();
@@ -589,11 +596,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       const merged = { ...existing, ...updatedFields };
 
-      await classesService.update(id, {
+      const updateData: any = {
         nombre: merged.title,
         descripcion: merged.theme || '',
         imagen_url: merged.image || ''
-      });
+      };
+
+      if (updatedFields.price !== undefined) {
+        updateData.precio = Number(updatedFields.price) || 5;
+      }
+
+      await classesService.update(id, updateData);
 
       await get().fetchClasses();
     } catch (error) {
@@ -752,7 +765,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         clientName: user.name,
         clientPhone: phoneYape || user.phone,
         seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-        price: r.cantidad_cupos * 5,
+        price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
         status: mapReservationStatus(r.estado)
       }));
       
@@ -849,7 +862,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 5,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
         set({ reservations: mappedReservations });
@@ -886,7 +899,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 5,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       } else {
@@ -901,7 +914,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           clientName: user.name,
           clientPhone: user.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 5,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -932,7 +945,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 5,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
@@ -948,7 +961,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             clientName: user.name,
             clientPhone: user.phone,
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 5,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
@@ -973,4 +986,4 @@ export const useAppStore = create<AppState>((set, get) => ({
       return false;
     }
   }
-}));
+}; });

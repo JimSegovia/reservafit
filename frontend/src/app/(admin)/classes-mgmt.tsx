@@ -41,6 +41,7 @@ export default function AdminClassesScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [price, setPrice] = useState('5');
 
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
@@ -58,6 +59,7 @@ export default function AdminClassesScreen() {
     setTitle('');
     setDescription('');
     setImageUrl('');
+    setPrice('5');
     setModalVisible(true);
   };
 
@@ -67,6 +69,7 @@ export default function AdminClassesScreen() {
     setTitle(cls.title);
     setDescription(cls.theme || '');
     setImageUrl(cls.image || '');
+    setPrice(cls.price?.toString() || '5');
     setModalVisible(true);
   };
 
@@ -82,14 +85,14 @@ export default function AdminClassesScreen() {
           showToast('No se encontró el ID de la clase a editar.', 'error');
           return;
         }
-        await updateClass(editingId, { title, theme: description.trim(), image: imageUrl.trim() });
+        await updateClass(editingId, { title, theme: description.trim(), image: imageUrl.trim(), price: Number(price) || 5 });
         showToast('Clase actualizada con éxito.', 'success');
       } else {
         await addClass({
           title,
           schedule: '',
           instructorName: '',
-          price: 0,
+          price: Number(price) || 5,
           status: 'Activo',
           capacity: 30,
           enrolled: 0,
@@ -253,6 +256,18 @@ export default function AdminClassesScreen() {
                 numberOfLines={3}
                 textAlignVertical="top"
                 className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm min-h-[80px]"
+              />
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Precio (S/)</Text>
+              <TextInput
+                value={price}
+                onChangeText={setPrice}
+                placeholder="5.00"
+                keyboardType="numeric"
+                placeholderTextColor="#9CA3AF"
+                className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
               />
             </View>
 

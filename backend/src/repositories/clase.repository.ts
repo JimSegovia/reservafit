@@ -8,14 +8,15 @@ export class ClaseRepository {
       data: {
         nombre: data.nombre,
         descripcion: data.descripcion,
-        imagen_url: data.imagen_url
+        imagen_url: data.imagen_url,
+        precio: data.precio
       }
     });
   }
 
   static async obtenerTodas() {
     return prisma.clase.findMany({
-      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true },
+      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true, precio: true },
       orderBy: { nombre: 'asc' }
     });
   }
@@ -23,7 +24,7 @@ export class ClaseRepository {
   static async buscarPorId(id: string) {
     return prisma.clase.findUnique({
       where: { id_clase: id },
-      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true }
+      select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true, precio: true }
     });
   }
 
@@ -33,7 +34,8 @@ export class ClaseRepository {
       data: {
         ...(data.nombre !== undefined && { nombre: data.nombre }),
         ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
-        ...(data.imagen_url !== undefined && { imagen_url: data.imagen_url })
+        ...(data.imagen_url !== undefined && { imagen_url: data.imagen_url }),
+        ...(data.precio !== undefined && { precio: data.precio })
       }
     });
   }

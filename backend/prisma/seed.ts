@@ -38,6 +38,7 @@ async function main() {
       nombre: 'Yoga',
       descripcion: 'Clase de yoga para relajación y flexibilidad. Ideal para todos los niveles.',
       imagen_url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400',
+      precio: 10,
     },
   });
 
@@ -46,6 +47,7 @@ async function main() {
       nombre: 'Pilates',
       descripcion: 'Sistema de ejercicios de baja impacto que fortalece el core y mejora la postura.',
       imagen_url: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400',
+      precio: 10,
     },
   });
 
@@ -54,6 +56,7 @@ async function main() {
       nombre: 'Spinning',
       descripcion: 'Clase de ciclismo indoor de alta intensidad. Quema calorías y mejora tu resistencia.',
       imagen_url: 'https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=400',
+      precio: 8,
     },
   });
 
@@ -62,6 +65,7 @@ async function main() {
       nombre: 'CrossFit',
       descripcion: 'Entrenamiento funcional de alta intensidad combinando gimnasia, levantamiento olímpico y cardio.',
       imagen_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
+      precio: 12,
     },
   });
 

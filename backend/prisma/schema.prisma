@@ -33,6 +33,7 @@ model Clase {
   nombre         String         @db.VarChar(100)
   descripcion    String
   imagen_url     String?        @db.VarChar(300)
+  precio         Decimal        @default(5) @db.Decimal(10, 2)
   detalles_clase DetalleClase[]
 
   @@map("Clases")
