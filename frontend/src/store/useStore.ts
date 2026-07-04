@@ -102,6 +102,7 @@ interface AppState {
 
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
+  restoreSession: () => Promise<boolean>;
   registerUser: (data: any) => Promise<boolean>;
   fetchClasses: () => Promise<void>;
   fetchInstructors: () => Promise<void>;
@@ -421,6 +422,86 @@ export const useAppStore = create<AppState>((set, get) => ({
     authService.logout();
     set({ user: null, reservations: [] });
     get().clearBooking();
+  },
+
+  restoreSession: async () => {
+    try {
+      let token: string | null = null;
+      if (Platform.OS === 'web') {
+        token = localStorage.getItem('token_jwt');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        token = await SecureStore.getItemAsync('token_jwt');
+      }
+
+      if (!token) return false;
+
+      const payloadBase64 = token.split('.')[1];
+      const decoded = JSON.parse(atob(payloadBase64));
+      const { id_usuario, rol } = decoded;
+
+      if (!id_usuario) return false;
+
+      const profileResponse = await api.get(`/usuarios/${id_usuario}`);
+      const usuario = profileResponse.data.data;
+      const cuentas = usuario.cuentas || (usuario.cuenta ? [usuario.cuenta] : []);
+      const cuenta = cuentas[0] || {};
+      const role = rol === 'Administrador' ? 'admin' : 'client';
+
+      const userObj: User = {
+        id: usuario.id_usuario,
+        name: `${usuario.nombres} ${usuario.apellidos}`,
+        email: cuenta.correo_electronico || '',
+        phone: usuario.celular || '',
+        role
+      };
+
+      let mappedReservations: Reservation[] = [];
+      if (role === 'admin') {
+        try {
+          const resData = await reservationsService.getAll();
+          mappedReservations = (resData.data || []).map((r: any) => ({
+            id: r.id_reserva,
+            classId: r.detalle_clase?.id_clase || '',
+            className: r.detalle_clase?.clase?.nombre || 'Clase',
+            time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+            date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+            clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+            clientPhone: r.usuario?.celular || '',
+            seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+            price: r.cantidad_cupos * 40,
+            status: mapReservationStatus(r.estado)
+          }));
+        } catch (err) {
+          console.error('Restore session - fetch all reservations error:', err);
+        }
+      } else {
+        mappedReservations = (usuario.reservas || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: userObj.name,
+          clientPhone: userObj.phone,
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * 40,
+          status: mapReservationStatus(r.estado)
+        }));
+      }
+
+      set({ user: userObj, reservations: mappedReservations });
+      return true;
+    } catch (error) {
+      console.error('Restore session error:', error);
+      if (Platform.OS === 'web') {
+        localStorage.removeItem('token_jwt');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        await SecureStore.deleteItemAsync('token_jwt');
+      }
+      return false;
+    }
   },
 
   // Instructor CRUD
