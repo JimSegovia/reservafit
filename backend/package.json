@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "prisma generate",
+    "prestart": "prisma migrate deploy",
     "build": "rimraf dist && tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
