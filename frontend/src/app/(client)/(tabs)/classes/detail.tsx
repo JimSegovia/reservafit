@@ -6,7 +6,7 @@ import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
 
 import Animated, { FadeIn, FadeInDown,useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export default function ClassDetailScreen() {
   const router = useRouter();
@@ -24,6 +24,15 @@ export default function ClassDetailScreen() {
 
   const sessionItem = agenda.find((a) => a.id_detalle_clase === id_detalle_clase);
   const realTheme = sessionItem?.tematica || 'General';
+
+  const isAvailable = useMemo(() => {
+    if (!sessionItem?.fecha_hora_inicio) return false;
+    const startDate = new Date(sessionItem.fecha_hora_inicio);
+    if (isNaN(startDate.getTime())) return false;
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    return startDate >= minStartTime;
+  }, [sessionItem]);
 
   const getFormattedDay = () => {
     if (!sessionItem?.fecha_hora_inicio) {
@@ -144,8 +153,15 @@ export default function ClassDetailScreen() {
                 </View>
 
                 {/* CTA */}
-                <TouchableOpacity onPress={handleEnroll} activeOpacity={0.7} className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mt-2">
-                  <Text className="text-white text-base font-bold">Inscribirse</Text>
+                <TouchableOpacity
+                  onPress={handleEnroll}
+                  disabled={!isAvailable}
+                  activeOpacity={0.7}
+                  className={`w-full py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mt-2 ${!isAvailable ? 'bg-gray-300' : 'bg-primary'}`}
+                >
+                  <Text className={`text-base font-bold ${!isAvailable ? 'text-gray-500' : 'text-white'}`}>
+                    {isAvailable ? 'Inscribirse' : 'Inscripción cerrada'}
+                  </Text>
                 </TouchableOpacity>
 
                 <Text className={`${isNative ? 'text-gray-600' : 'text-gray-500'} text-xs text-center leading-relaxed mt-4`}>
@@ -199,8 +215,10 @@ export default function ClassDetailScreen() {
             {/* Title + Status */}
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-semibold text-black flex-1 mr-2">{classItem.title}</Text>
-              <View className="bg-green-100 px-3 py-1 rounded-full border border-green-200">
-                <Text className="text-green-700 text-xs font-medium">Disponible</Text>
+              <View className={`px-3 py-1 rounded-full border ${isAvailable ? 'bg-green-100 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
+                <Text className={`text-xs font-medium ${isAvailable ? 'text-green-700' : 'text-gray-500'}`}>
+                  {isAvailable ? 'Disponible' : 'No disponible'}
+                </Text>
               </View>
             </View>
 
@@ -291,10 +309,13 @@ export default function ClassDetailScreen() {
             <Animated.View entering={FadeInDown.duration(200).delay(250)}>
               <TouchableOpacity
                 onPress={handleEnroll}
+                disabled={!isAvailable}
                 activeOpacity={0.7}
-                className="w-full bg-primary py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mb-3"
+                className={`w-full py-4 rounded-2xl items-center shadow-lg shadow-orange-500/20 mb-3 ${!isAvailable ? 'bg-gray-300' : 'bg-primary'}`}
               >
-                <Text className="text-white text-base font-bold">Inscribirse</Text>
+                <Text className={`text-base font-bold ${!isAvailable ? 'text-gray-500' : 'text-white'}`}>
+                  {isAvailable ? 'Inscribirse' : 'Inscripción cerrada'}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
 

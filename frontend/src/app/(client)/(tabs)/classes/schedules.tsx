@@ -36,13 +36,12 @@ export default function HorariosDisponiblesScreen() {
   };
 
   const futureSessions = useMemo(() => {
-    const today = new Date();
-    // Start of today (00:00:00) to allow booking classes that are later today
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
     return classSessions.filter((s: any) => {
       const sDate = parseDateTime(s.fecha_hora_inicio);
-      return sDate >= startOfToday;
+      return sDate >= minStartTime;
     });
   }, [classSessions]);
 
@@ -78,6 +77,7 @@ export default function HorariosDisponiblesScreen() {
       return {
         id_detalle_clase: s.id_detalle_clase,
         id_clase: s.id_clase,
+        fecha_hora_inicio: s.fecha_hora_inicio,
         dateLabel: getFormattedSessionDay(s.fecha_hora_inicio),
         time: timeStr,
         teacher: teacher,
@@ -89,7 +89,14 @@ export default function HorariosDisponiblesScreen() {
 
   const handleSlotSelect = (slot: typeof slots[0]) => {
     if (slot.status === 'Lleno' || slot.status === 'Cancelada') return;
-    
+
+    const slotDate = parseDateTime(slot.fecha_hora_inicio);
+    if (!slotDate || isNaN(slotDate.getTime())) return;
+
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    if (slotDate < minStartTime) return;
+
     router.push({
       pathname: '/(client)/(tabs)/classes/detail',
       params: { 

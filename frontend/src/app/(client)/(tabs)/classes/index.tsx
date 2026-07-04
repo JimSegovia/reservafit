@@ -67,6 +67,7 @@ export default function ClassesSelectorScreen() {
   const getClassScheduleDescription = (classId: string) => {
     const now = new Date();
     const currentMonday = getMonday(now);
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
     
     const startOfWeek = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate(), 0, 0, 0);
     const endOfWeek = new Date(startOfWeek);
@@ -75,7 +76,7 @@ export default function ClassesSelectorScreen() {
     const classSessionsThisWeek = agenda.filter((a: any) => {
       if (a.id_clase !== classId) return false;
       const sessionDate = parseDateTime(a.fecha_hora_inicio);
-      return sessionDate >= startOfWeek && sessionDate < endOfWeek;
+      return sessionDate >= startOfWeek && sessionDate < endOfWeek && sessionDate >= minStartTime;
     });
 
     if (classSessionsThisWeek.length === 0) {
@@ -149,11 +150,15 @@ export default function ClassesSelectorScreen() {
     const targetMonth = date.getMonth();
     const targetDay = date.getDate();
 
+    const nowTs = Date.now();
+    const minStartTs = nowTs + 3 * 60 * 60 * 1000;
+
     const matchingSessions = agenda.filter((session: any) => {
       const sessionDate = parseDateTime(session.fecha_hora_inicio);
       return sessionDate.getFullYear() === targetYear &&
              sessionDate.getMonth() === targetMonth &&
-             sessionDate.getDate() === targetDay;
+             sessionDate.getDate() === targetDay &&
+             sessionDate.getTime() >= minStartTs;
     });
 
     if (matchingSessions.length === 0) {
