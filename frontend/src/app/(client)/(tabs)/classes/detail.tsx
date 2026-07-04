@@ -172,7 +172,7 @@ export default function ClassDetailScreen() {
 
             {/* RIGHT – Image + Description */}
             <View style={{ flex: 60 }}>
-              <Animated.View entering={FadeIn.duration(200)} className="h-80 rounded-2xl overflow-hidden mb-6">
+              <Animated.View entering={FadeIn.duration(200)} className="h-80 rounded-2xl overflow-hidden mb-6 bg-gray-200">
                 <Image
                   source={
                     classItem.image

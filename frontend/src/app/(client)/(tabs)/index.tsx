@@ -265,7 +265,7 @@ export default function ClientHomeScreen() {
                     ? require('../../../../assets/images/Salsa.jpeg')
                     : require('../../../../assets/images/bachata.jpg')
                 }
-                style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 200 }}
+                style={{ width: '100%', height: 180 }}
                 resizeMode="cover"
               />
               <View className="p-4 items-center">
@@ -365,7 +365,7 @@ export default function ClientHomeScreen() {
                                   ? require('../../../../assets/images/Salsa.jpeg')
                                   : require('../../../../assets/images/bachata.jpg')
                               }
-                              style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
+                              style={{ width: 88, height: 88 }}
                               resizeMode="cover"
                             />
                             <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), status: 'Pagado' })}>
@@ -424,7 +424,7 @@ export default function ClientHomeScreen() {
                                   ? require('../../../../assets/images/Salsa.jpeg')
                                   : require('../../../../assets/images/bachata.jpg')
                               }
-                              style={{ width: 240, height: '100%', aspectRatio: 16 / 9 }}
+                              style={{ width: 240, height: 200 }}
                               resizeMode="cover"
                             />
                             <View className="flex-1 px-5 py-4 justify-between">

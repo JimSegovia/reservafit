@@ -370,7 +370,7 @@ export default function ClassesSelectorScreen() {
 
   const SkeletonCard = () => (
     <View className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm mb-6 animate-pulse">
-      <View className="w-full h-32 bg-gray-250" />
+      <View className="w-full h-48 bg-gray-250" />
       <View className="p-4 items-center">
         <View className="w-28 h-5 bg-gray-200 rounded-full mb-3" />
         <View className="w-40 h-3 bg-gray-200 rounded-full mb-4" />
@@ -475,7 +475,7 @@ export default function ClassesSelectorScreen() {
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
-                      style={{ width: '100%', aspectRatio: 4 / 3 }}
+                      style={{ width: '100%', height: 200 }}
                       resizeMode="cover"
                     />
                     <View className="p-4">
@@ -736,7 +736,7 @@ export default function ClassesSelectorScreen() {
                             ? require('../../../../../assets/images/Salsa.jpeg')
                             : require('../../../../../assets/images/bachata.jpg')
                         }
-                        style={{ width: '100%', aspectRatio: 4 / 3 }}
+                        style={{ width: '100%', height: 180 }}
                         resizeMode="cover"
                       />
 
