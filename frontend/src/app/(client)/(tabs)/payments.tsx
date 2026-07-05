@@ -52,7 +52,7 @@ export default function ClientPaymentsHistoryScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const sortedReservations = [...reservations].reverse();
+  const sortedReservations = [...reservations];
   const totalPages = Math.max(1, Math.ceil(sortedReservations.length / itemsPerPage));
   const paginatedReservations = sortedReservations.slice(
     (currentPage - 1) * itemsPerPage,
