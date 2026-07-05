@@ -15,6 +15,9 @@ export default function CheckoutScreen() {
   const clearBooking = useAppStore((state) => state.clearBooking);
   const decrementTimer = useAppStore((state) => state.decrementTimer);
   const showToast = useAppStore((state) => state.showToast);
+  const monedasSaldo = useAppStore((state) => state.monedasSaldo);
+  const pagarConMonedas = useAppStore((state) => state.pagarConMonedas);
+  const user = useAppStore((state) => state.user);
   
   const [showPopup, setShowPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,6 +41,30 @@ export default function CheckoutScreen() {
   const handlePay = () => {
     setShowPopup(true);
   };
+
+  const handleMonedasPay = async () => {
+    if (!currentBooking) return;
+    setIsProcessing(true);
+    try {
+      const res = await confirmBooking('');
+      if (!res) {
+        showToast('No se pudo registrar la reserva.', 'error');
+        setIsProcessing(false);
+        return;
+      }
+      const success = await pagarConMonedas(res.id_reserva);
+      if (success) {
+        clearBooking();
+        router.replace('/(client)/(tabs)');
+      }
+    } catch (error: any) {
+      showToast('Error al procesar el pago.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const hasMonedas = monedasSaldo >= 5;
 
   const handleConfirm = async () => {
     setIsProcessing(true);
@@ -135,6 +162,21 @@ export default function CheckoutScreen() {
           <Text className="text-white text-base font-bold">Pagar S/ {currentBooking.totalPrice.toFixed(2)} con Mercado Pago</Text>
         </View>
       </TouchableOpacity>
+
+      {/* MonedasFit Payment Button */}
+      {hasMonedas && (
+        <TouchableOpacity
+          onPress={handleMonedasPay}
+          disabled={isSubmitDisabled}
+          className={`bg-amber-500 rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''}`}
+          style={{ minHeight: 56 }}
+        >
+          <View className="flex-row items-center gap-x-3">
+            <Ionicons name="star" size={24} color="white" />
+            <Text className="text-white text-base font-bold">Pagar con MonedasFit (5 🪙)</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Countdown Timer */}
       <View className="flex-row items-center justify-center mb-2 gap-x-2">

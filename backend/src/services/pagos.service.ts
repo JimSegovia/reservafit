@@ -2,6 +2,7 @@ import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { envs } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { PagoRepository } from '../repositories/pagos.repository.js';
+import { MonedasService } from './monedas.service.js';
 import { PreferencePayload } from '../types/pagos.dto.js';
 import { EstadoPago } from '@prisma/client';
 
@@ -83,8 +84,11 @@ export class PagoService {
           if (mpPayment && mpPayment.status === 'approved') {
             await PagoRepository.actualizarEstadoPago(pago.id_pago, EstadoPago.Exitoso, String(mpPayment.id));
             await PagoRepository.confirmarReserva(id_reserva);
+            const reservaDetalle = await PagoRepository.obtenerReservaYDetalle(id_reserva);
+            if (reservaDetalle?.id_usuario) {
+              await MonedasService.verificarBonoFidelidad(reservaDetalle.id_usuario);
+            }
             logger.info(`Pago verificado y confirmado para reserva ${id_reserva}`);
-            return { status: 'approved', message: 'Pago verificado y confirmado' };
           }
         }
 
@@ -128,6 +132,10 @@ export class PagoService {
       if (mpPayment.status === 'approved') {
         await PagoRepository.actualizarEstadoPago(pago.id_pago, EstadoPago.Exitoso, String(mpPayment.id));
         await PagoRepository.confirmarReserva(id_reserva);
+        const reservaDetalle = await PagoRepository.obtenerReservaYDetalle(id_reserva);
+        if (reservaDetalle?.id_usuario) {
+          await MonedasService.verificarBonoFidelidad(reservaDetalle.id_usuario);
+        }
         logger.info(`Webhook: pago ${id} aprobado. Reserva ${id_reserva} confirmada.`);
       } else if (mpPayment.status === 'rejected' || mpPayment.status === 'cancelled') {
         await PagoRepository.actualizarEstadoPago(pago.id_pago, EstadoPago.Fallido, String(mpPayment.id));

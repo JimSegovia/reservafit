@@ -100,6 +100,10 @@ interface AppState {
   currentBooking: CurrentBooking | null;
   timerIntervalId: any | null;
 
+  // MonedasFit
+  monedasSaldo: number;
+  monedasHistorial: any[];
+
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
   restoreSession: () => Promise<boolean>;
@@ -144,7 +148,12 @@ interface AppState {
   hideToast: () => void;
   fetchReservations: () => Promise<void>;
   cancelReservation: (id: string) => Promise<void>;
+  cancelReservationWithMonedas: (id: string) => Promise<void>;
   updateProfile: (data: { nombres: string; apellidos: string; celular: string }) => Promise<boolean>;
+
+  // MonedasFit actions
+  fetchMonedas: () => Promise<void>;
+  pagarConMonedas: (id_reserva: string) => Promise<boolean>;
 }
 
 // Helpers to format date/time slots
@@ -191,6 +200,9 @@ export const useAppStore = create<AppState>((set, get) => {
   currentBooking: null,
   timerIntervalId: null,
   toast: null,
+
+  monedasSaldo: 0,
+  monedasHistorial: [],
 
   login: async (email, password) => {
     try {
@@ -985,5 +997,44 @@ export const useAppStore = create<AppState>((set, get) => {
       get().showToast('Error al actualizar el perfil', 'error');
       return false;
     }
-  }
+  },
+
+  cancelReservationWithMonedas: async (id) => {
+    try {
+      await api.patch(`/monedas/cancelar/${id}`, { motivo: 'cliente' });
+      get().showToast('Reserva cancelada. Recibiste 5 monedas.', 'success');
+      await get().fetchReservations();
+      await get().fetchMonedas();
+    } catch (error) {
+      console.error('Cancel reservation with monedas error:', error);
+      get().showToast('Error al cancelar la reserva.', 'error');
+    }
+  },
+
+  fetchMonedas: async () => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const response = await api.get(`/monedas/${user.id}`);
+      set({ monedasSaldo: response.data.saldo, monedasHistorial: response.data.historial || [] });
+    } catch (error) {
+      console.error('Fetch monedas error:', error);
+    }
+  },
+
+  pagarConMonedas: async (id_reserva) => {
+    const { user } = get();
+    if (!user) return false;
+    try {
+      await api.post('/monedas/pagar', { id_reserva, id_usuario: user.id });
+      get().showToast('¡Pago con monedas exitoso!', 'success');
+      await get().fetchMonedas();
+      await get().fetchReservations();
+      return true;
+    } catch (error: any) {
+      const msg = error?.response?.data?.error || 'Error al pagar con monedas';
+      get().showToast(msg, 'error');
+      return false;
+    }
+  },
 }; });

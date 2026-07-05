@@ -70,10 +70,13 @@ export default function ClientHomeScreen() {
   const reservations = useAppStore((state) => state.reservations);
   const classes = useAppStore((state) => state.classes);
   const cancelReservation = useAppStore((state) => state.cancelReservation);
+  const cancelReservationWithMonedas = useAppStore((state) => state.cancelReservationWithMonedas);
   const showToast = useAppStore((state) => state.showToast);
   const fetchClasses = useAppStore((state) => state.fetchClasses);
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
   const fetchReservations = useAppStore((state) => state.fetchReservations);
+  const monedasSaldo = useAppStore((state) => state.monedasSaldo);
+  const fetchMonedas = useAppStore((state) => state.fetchMonedas);
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
@@ -128,9 +131,8 @@ export default function ClientHomeScreen() {
 
   const handleCancelReservationConfirm = async () => {
     if (reservationToCancel) {
-      await cancelReservation(reservationToCancel);
+      await cancelReservationWithMonedas(reservationToCancel);
       setReservationToCancel(null);
-      showToast('Tu reserva ha sido cancelada y reembolsada.', 'success');
     }
   };
 
@@ -235,6 +237,12 @@ export default function ClientHomeScreen() {
         <Text className="text-2xl font-normal text-black">
           ¡Hola, {user?.name || 'Ana Pérez'}! 👋
         </Text>
+        <View className="flex-row items-center mt-2">
+          <View className="bg-amber-100 rounded-full px-3 py-1 flex-row items-center">
+            <Ionicons name="star" size={14} color="#D97706" />
+            <Text className="text-amber-700 font-bold text-sm ml-1">{monedasSaldo} 🪙</Text>
+          </View>
+        </View>
       </Animated.View>
 
       <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium text-center text-sm tracking-wide mb-4`}>
@@ -555,7 +563,7 @@ export default function ClientHomeScreen() {
         <ConfirmDialog
             visible={!!reservationToCancel}
             title="Cancelar Reserva"
-            message="¿Estás seguro de que deseas cancelar esta reserva? Se realizará un reembolso automático."
+            message="¿Estás seguro de que deseas cancelar esta reserva? Recibirás 5 monedas de reembolso."
             confirmLabel="Cancelar Reserva"
             cancelLabel="Mantener"
             onConfirm={handleCancelReservationConfirm}

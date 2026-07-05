@@ -11,6 +11,23 @@ async function bootstrap() {
     await prisma.$executeRawUnsafe(
       `ALTER TABLE "Clases" ADD COLUMN IF NOT EXISTS "precio" DECIMAL(10,2) NOT NULL DEFAULT 5`
     );
+    await prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS "Monedas_Cliente" (
+        "id_monedas_cliente" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "id_usuario" UUID UNIQUE NOT NULL REFERENCES "Usuarios"("id_usuario") ON DELETE CASCADE,
+        "saldo_monedas" INTEGER NOT NULL DEFAULT 0
+      )`
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS "Historial_Monedas" (
+        "id_historial" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "id_usuario" UUID NOT NULL,
+        "cantidad" INTEGER NOT NULL,
+        "tipo" VARCHAR(50) NOT NULL,
+        "id_reserva" UUID,
+        "fecha" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+      )`
+    );
     logger.info('Schema verificado.');
 
     await prisma.$queryRaw`SELECT 1`;

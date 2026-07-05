@@ -7,12 +7,13 @@ datasource db {
 }
 
 model Usuario {
-  id_usuario String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombres    String    @db.VarChar(100)
-  apellidos  String    @db.VarChar(100)
-  celular    String?   @db.VarChar(20)
-  cuentas    Cuenta[]
-  reservas   Reserva[]
+  id_usuario      String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombres         String          @db.VarChar(100)
+  apellidos       String          @db.VarChar(100)
+  celular         String?         @db.VarChar(20)
+  cuentas         Cuenta[]
+  reservas        Reserva[]
+  monedas_cliente MonedasCliente?
 
   @@map("Usuarios")
 }
@@ -138,6 +139,26 @@ model WebHookProcesado {
   pago            Pago?    @relation(fields: [id_pago], references: [id_pago])
 
   @@map("WebHooks_Procesados")
+}
+
+model MonedasCliente {
+  id_monedas_cliente String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_usuario         String  @unique @db.Uuid
+  saldo_monedas      Int     @default(0)
+  usuario            Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@map("Monedas_Cliente")
+}
+
+model HistorialMonedas {
+  id_historial String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_usuario   String   @db.Uuid
+  cantidad     Int
+  tipo         String   @db.VarChar(50)
+  id_reserva   String?  @db.Uuid
+  fecha        DateTime @default(now()) @db.Timestamp(6)
+
+  @@map("Historial_Monedas")
 }
 
 enum Rol {

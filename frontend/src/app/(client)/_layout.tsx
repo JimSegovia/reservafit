@@ -12,6 +12,7 @@ export default function ClientLayout() {
       <Stack.Screen name="pago-exitoso" />
       <Stack.Screen name="pago-fallido" />
       <Stack.Screen name="pago-pendiente" />
+      <Stack.Screen name="monedas" />
       <Stack.Screen name="profile" />
     </Stack>
   );

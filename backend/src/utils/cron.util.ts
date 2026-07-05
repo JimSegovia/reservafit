@@ -1,10 +1,10 @@
 import cron from 'node-cron';
-import { EstadoReserva, EstadoPago, Prisma } from '@prisma/client'; 
+import { EstadoReserva, EstadoPago, EstadoClase, Prisma } from '@prisma/client'; 
 import prisma from '../config/prisma.js';
+import { MonedasService } from '../services/monedas.service.js';
 import { logger } from '../config/logger.js'; 
 
 export function iniciarCronJobs() {
-  // Se ejecuta cada minuto
   cron.schedule('* * * * *', async () => {
     const ahora = new Date();
     
@@ -20,7 +20,6 @@ export function iniciarCronJobs() {
 
       for (const { id_reserva } of reservasVencidas) {
         try {
-          // Verificar si hay un pago exitoso asociado (pudo haberse pagado justo a tiempo)
           const pagoExitoso = await prisma.pago.findFirst({
             where: {
               id_reserva,
@@ -29,7 +28,6 @@ export function iniciarCronJobs() {
           });
 
           if (pagoExitoso) {
-            // El pago ya se completó, confirmar la reserva en lugar de cancelarla
             await prisma.reserva.update({
               where: { id_reserva },
               data: { estado: EstadoReserva.Confirmada },
@@ -38,15 +36,11 @@ export function iniciarCronJobs() {
             continue;
           }
 
-          // Tipamos (tx) explícitamente para que el build en Railway no falle
           await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            // 2a. Actualizar reserva a Cancelada_Timeout
             await tx.reserva.update({
               where: { id_reserva },
               data: { estado: EstadoReserva.Cancelada_Timeout },
             });
-            
-            // 2b. Eliminar detalles vinculados para liberar cupo físico
             await tx.detalleReserva.deleteMany({
               where: { id_reserva },
             });
@@ -55,6 +49,35 @@ export function iniciarCronJobs() {
           logger.info(`[CRON] Reserva ${id_reserva} cancelada por timeout. Cupos liberados.`);
         } catch (err) {
           logger.error(`[CRON] Error al cancelar reserva ${id_reserva}:`, err);
+        }
+      }
+
+      // 2. Cancelar clases que no alcanzaron el minimo de 7 personas (3 horas antes)
+      const tresHorasFuturo = new Date(ahora.getTime() + 3 * 60 * 60 * 1000);
+      const rangoInicio = new Date(tresHorasFuturo.getTime() - 30000);
+      const rangoFin = new Date(tresHorasFuturo.getTime() + 30000);
+
+      const clasesPorEmpezar = await prisma.detalleClase.findMany({
+        where: {
+          estado: EstadoClase.Disponible,
+          fecha_hora_inicio: { gte: rangoInicio, lte: rangoFin },
+        },
+      });
+
+      for (const clase of clasesPorEmpezar) {
+        const count = await prisma.reserva.count({
+          where: {
+            id_detalle_clase: clase.id_detalle_clase,
+            estado: EstadoReserva.Confirmada,
+          },
+        });
+
+        if (count < 7) {
+          try {
+            await MonedasService.cancelarClasePorMinimo(clase.id_detalle_clase);
+          } catch (err) {
+            logger.error(`[CRON] Error al cancelar clase por minimo ${clase.id_detalle_clase}:`, err);
+          }
         }
       }
     } catch (err) {
