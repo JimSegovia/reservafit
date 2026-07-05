@@ -53,7 +53,8 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    if (error.response && error.response.status === 401) {
+    const isAuthRequest = error.config?.url?.includes('/auth/');
+    if (error.response && error.response.status === 401 && !isAuthRequest) {
       console.warn('Token expirado o inválido. Cerrando sesión.');
       if (Platform.OS === 'web') {
         localStorage.removeItem('token_jwt');
