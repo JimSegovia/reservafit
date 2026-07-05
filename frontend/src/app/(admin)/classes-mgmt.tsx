@@ -6,6 +6,7 @@ import { useAppStore, ClassItem } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Image as ExpoImage } from 'expo-image';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -188,33 +189,47 @@ export default function AdminClassesScreen() {
                 key={cls.id}
                 entering={FadeInDown.duration(200)}
                 layout={LinearTransition}
-                className="bg-white p-5 rounded-2xl shadow-md"
+                className="bg-white rounded-2xl shadow-md overflow-hidden"
                 style={isMobile ? { width: '100%' as any } : { width: '48%' as any }}
               >
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="w-10 h-10 rounded-xl bg-orange-50 items-center justify-center">
-                    <Ionicons name="fitness-outline" size={20} color="#FF7A00" />
+                {cls.image ? (
+                  <ExpoImage
+                    source={{ uri: cls.image }}
+                    style={{ width: '100%', height: 140 }}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View className="h-4 w-full bg-primary/10" />
+                )}
+
+                <View className="p-5">
+                  <View className="flex-row justify-between items-start mb-2">
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <Text className="text-lg font-bold text-secondary" numberOfLines={1}>{cls.title}</Text>
+                      <Text className="text-sm font-bold text-primary mt-0.5">S/ {cls.price?.toFixed(2)}</Text>
+                    </View>
+                    <View className="flex-row gap-x-1 mt-1">
+                      <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => openEditModal(cls)} className="p-1 bg-gray-50 rounded-full">
+                        <Ionicons name="pencil-outline" size={16} color="#9CA3AF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => promptDeleteClass(cls.id_clase || cls.id)} className="p-1 bg-red-50 rounded-full">
+                        <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View className="flex-row gap-x-1">
-                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => openEditModal(cls)} className="p-1">
-                      <Ionicons name="pencil-outline" size={16} color="#9CA3AF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => promptDeleteClass(cls.id_clase || cls.id)} className="p-1">
-                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                    </TouchableOpacity>
-                  </View>
+
+                  <Text className="text-xs text-gray-400 mb-4" numberOfLines={2}>
+                    {cls.theme || 'Sin descripción'}
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}`)}
+                    className="flex-row items-center justify-center bg-primary/10 rounded-2xl py-2.5"
+                  >
+                    <Ionicons name="calendar-outline" size={16} color="#FF7A00" />
+                    <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-xs ml-1.5`}>Gestionar Horarios</Text>
+                  </TouchableOpacity>
                 </View>
-                <Text className="text-lg font-bold text-secondary mb-1" numberOfLines={1}>{cls.title}</Text>
-                <Text className="text-xs text-gray-400 mb-4" numberOfLines={2}>
-                  {cls.theme || 'Sin descripción'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => router.push(`/(admin)/class-details/${cls.id_clase || cls.id}`)}
-                  className="flex-row items-center justify-center bg-primary/10 rounded-2xl py-2.5"
-                >
-                  <Ionicons name="calendar-outline" size={16} color="#FF7A00" />
-                  <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-xs ml-1.5`}>Gestionar Horarios</Text>
-                </TouchableOpacity>
               </Animated.View>
             ))
           )}

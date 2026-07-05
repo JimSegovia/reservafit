@@ -12,6 +12,12 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   Cancelada: { bg: 'bg-blue-50 border-blue-200',    text: 'text-blue-700' },
 };
 
+const MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+const WEEKDAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+
 export default function ClassDetailsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -46,6 +52,12 @@ export default function ClassDetailsScreen() {
   const [showInstructorMenu, setShowInstructorMenu] = useState(false);
   const [cupos, setCupos] = useState('30');
 
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showHoraInicioPicker, setShowHoraInicioPicker] = useState(false);
+  const [showHoraFinPicker, setShowHoraFinPicker] = useState(false);
+
   const ESTADOS = ['Disponible', 'Lleno', 'Cancelada'];
 
   const fetchSchedules = async () => {
@@ -70,6 +82,15 @@ export default function ClassDetailsScreen() {
     setEstado('Disponible');
     setCupos('30');
     setShowInstructorMenu(false);
+
+    // Reset pickers
+    const today = new Date();
+    setCalendarYear(today.getFullYear());
+    setCalendarMonth(today.getMonth());
+    setShowCalendar(false);
+    setShowHoraInicioPicker(false);
+    setShowHoraFinPicker(false);
+
     setModalVisible(true);
   };
 
@@ -111,19 +132,15 @@ export default function ClassDetailsScreen() {
     const fecha_hora_inicio = `${formattedDate}T${horaInicio.trim()}:00`;
     const fecha_hora_fin = `${formattedDate}T${horaFin.trim()}:00`;
 
-    const parsedCupos = parseInt(cupos, 10);
-    if (isNaN(parsedCupos) || parsedCupos <= 0) {
-      Alert.alert('Validación', 'El número de cupos debe ser un número entero mayor a 0.');
-      return;
-    }
-
     const payload = {
       id_clase: id,
       id_instructor: instructorId,
       fecha_hora_inicio,
       fecha_hora_fin,
       estado,
-      cupos: parsedCupos,
+      cupos: 30,
+      filas: 6,
+      columnas: 5,
       tematica
     };
 
@@ -176,6 +193,49 @@ export default function ClassDetailsScreen() {
     fetchSchedules();
     fetchInstructors();
   }, [fetchInstructors]);
+
+  const prevMonth = () => {
+    if (calendarMonth === 0) {
+      setCalendarMonth(11);
+      setCalendarYear(calendarYear - 1);
+    } else {
+      setCalendarMonth(calendarMonth - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (calendarMonth === 11) {
+      setCalendarMonth(0);
+      setCalendarYear(calendarYear + 1);
+    } else {
+      setCalendarMonth(calendarMonth + 1);
+    }
+  };
+
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+  const startPadding = (firstDayIndex + 6) % 7;
+
+  const daysArray = [];
+  for (let i = 0; i < startPadding; i++) {
+    daysArray.push(null);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    daysArray.push(i);
+  }
+
+  const calendarRows = [];
+  let tempRow = [];
+  for (let i = 0; i < daysArray.length; i++) {
+    tempRow.push(daysArray[i]);
+    if (tempRow.length === 7 || i === daysArray.length - 1) {
+      while (tempRow.length < 7) {
+        tempRow.push(null);
+      }
+      calendarRows.push(tempRow);
+      tempRow = [];
+    }
+  }
 
   return (
     <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
@@ -288,6 +348,23 @@ export default function ClassDetailsScreen() {
                         setTematica(schedule.tematica || '');
                         setCupos(schedule.cupos ? schedule.cupos.toString() : '30');
                         setShowInstructorMenu(false);
+
+                        // Parse date for calendar
+                        if (fechaStr) {
+                          const parts = fechaStr.split('/');
+                          if (parts.length === 3) {
+                            const m = parseInt(parts[1], 10) - 1;
+                            const y = parseInt(parts[2], 10);
+                            if (!isNaN(y) && !isNaN(m)) {
+                              setCalendarYear(y);
+                              setCalendarMonth(m);
+                            }
+                          }
+                        }
+
+                        setShowCalendar(false);
+                        setShowHoraInicioPicker(false);
+                        setShowHoraFinPicker(false);
                         setModalVisible(true);
                       }}
                       className="p-1"
@@ -327,35 +404,240 @@ export default function ClassDetailsScreen() {
               <View className={`${isMobile ? 'flex-col' : 'flex-row'} gap-3 mb-4`}>
                 <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Fecha</Text>
-                  <TextInput
-                    value={fecha}
-                    onChangeText={setFecha}
-                    placeholder="DD/MM/YYYY"
-                    placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
-                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowCalendar(!showCalendar);
+                      setShowHoraInicioPicker(false);
+                      setShowHoraFinPicker(false);
+                    }}
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 flex-row justify-between items-center"
+                  >
+                    <Text className={fecha ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
+                      {fecha || 'DD/MM/YYYY'}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />
+                  </TouchableOpacity>
                 </View>
+
                 <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Hora Inicio</Text>
-                  <TextInput
-                    value={horaInicio}
-                    onChangeText={setHoraInicio}
-                    placeholder="18:00"
-                    placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
-                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowHoraInicioPicker(!showHoraInicioPicker);
+                      setShowCalendar(false);
+                      setShowHoraFinPicker(false);
+                    }}
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 flex-row justify-between items-center"
+                  >
+                    <Text className={horaInicio ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
+                      {horaInicio || '18:00'}
+                    </Text>
+                    <Ionicons name="time-outline" size={16} color="#9CA3AF" />
+                  </TouchableOpacity>
                 </View>
+
                 <View className={isMobile ? '' : 'flex-1'}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Hora Fin</Text>
-                  <TextInput
-                    value={horaFin}
-                    onChangeText={setHoraFin}
-                    placeholder="19:00"
-                    placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 text-secondary text-sm"
-                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowHoraFinPicker(!showHoraFinPicker);
+                      setShowCalendar(false);
+                      setShowHoraInicioPicker(false);
+                    }}
+                    className="w-full border border-gray-200 rounded-2xl bg-white px-3 py-3 flex-row justify-between items-center"
+                  >
+                    <Text className={horaFin ? 'text-secondary text-sm' : 'text-gray-400 text-sm'}>
+                      {horaFin || '19:00'}
+                    </Text>
+                    <Ionicons name="time-outline" size={16} color="#9CA3AF" />
+                  </TouchableOpacity>
                 </View>
               </View>
+
+              {/* Active Picker Area */}
+              {showCalendar && (
+                <View className="border border-gray-200 rounded-2xl bg-white p-4 mb-4 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-4">
+                    <TouchableOpacity onPress={prevMonth} className="p-1" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Ionicons name="chevron-back" size={20} color="#FF7A00" />
+                    </TouchableOpacity>
+                    <Text className="font-bold text-sm text-secondary">
+                      {MONTH_NAMES[calendarMonth]} {calendarYear}
+                    </Text>
+                    <TouchableOpacity onPress={nextMonth} className="p-1" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Ionicons name="chevron-forward" size={20} color="#FF7A00" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Weekdays header */}
+                  <View className="flex-row mb-2">
+                    {WEEKDAYS.map((day, idx) => (
+                      <Text key={idx} className="flex-1 text-center text-xs font-bold text-gray-400">
+                        {day}
+                      </Text>
+                    ))}
+                  </View>
+
+                  {/* Days grid */}
+                  {calendarRows.map((row, rowIdx) => (
+                    <View key={rowIdx} className="flex-row mb-1">
+                      {row.map((day, dayIdx) => {
+                        if (day === null) {
+                          return <View key={dayIdx} className="flex-1 aspect-square" />;
+                        }
+
+                        const dayStr = String(day).padStart(2, '0');
+                        const monthStr = String(calendarMonth + 1).padStart(2, '0');
+                        const dateStr = `${dayStr}/${monthStr}/${calendarYear}`;
+                        const isSelected = fecha === dateStr;
+
+                        return (
+                          <TouchableOpacity
+                            key={dayIdx}
+                            onPress={() => {
+                              setFecha(dateStr);
+                              setShowCalendar(false);
+                            }}
+                            className={`flex-1 aspect-square justify-center items-center rounded-full ${
+                              isSelected ? 'bg-primary' : 'hover:bg-gray-100'
+                            }`}
+                          >
+                            <Text className={`text-xs ${isSelected ? 'text-white font-bold' : 'text-secondary'}`}>
+                              {day}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {showHoraInicioPicker && (
+                <View className="border border-gray-200 rounded-2xl bg-white p-4 mb-4 shadow-sm">
+                  <Text className="text-xs font-bold text-gray-500 mb-3">Seleccionar Hora de Inicio</Text>
+                  <View className="flex-row justify-center items-center" style={{ gap: 20 }}>
+                    {/* Hours Column */}
+                    <View className="flex-1">
+                      <Text className="text-[10px] text-gray-400 font-bold text-center mb-2">HORA</Text>
+                      <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {Array.from({ length: 24 }).map((_, h) => {
+                          const hStr = String(h).padStart(2, '0');
+                          const currentHour = (horaInicio || '18:00').split(':')[0];
+                          const isSelected = currentHour === hStr;
+                          return (
+                            <TouchableOpacity
+                              key={h}
+                              onPress={() => {
+                                const currentMin = (horaInicio || '18:00').split(':')[1] || '00';
+                                setHoraInicio(`${hStr}:${currentMin}`);
+                              }}
+                              className={`py-2 px-3 items-center rounded-xl mb-1 ${
+                                isSelected ? 'bg-primary' : 'bg-gray-50'
+                              }`}
+                            >
+                              <Text className={`text-sm ${isSelected ? 'text-white font-bold' : 'text-secondary'}`}>
+                                {hStr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+
+                    {/* Minutes Column */}
+                    <View className="flex-1">
+                      <Text className="text-[10px] text-gray-400 font-bold text-center mb-2">MINUTOS</Text>
+                      <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((mStr) => {
+                          const currentMin = (horaInicio || '18:00').split(':')[1];
+                          const isSelected = currentMin === mStr;
+                          return (
+                            <TouchableOpacity
+                              key={mStr}
+                              onPress={() => {
+                                const currentHour = (horaInicio || '18:00').split(':')[0] || '18';
+                                setHoraInicio(`${currentHour}:${mStr}`);
+                                setShowHoraInicioPicker(false);
+                              }}
+                              className={`py-2 px-3 items-center rounded-xl mb-1 ${
+                                isSelected ? 'bg-primary' : 'bg-gray-50'
+                              }`}
+                            >
+                              <Text className={`text-sm ${isSelected ? 'text-white font-bold' : 'text-secondary'}`}>
+                                {mStr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {showHoraFinPicker && (
+                <View className="border border-gray-200 rounded-2xl bg-white p-4 mb-4 shadow-sm">
+                  <Text className="text-xs font-bold text-gray-500 mb-3">Seleccionar Hora de Fin</Text>
+                  <View className="flex-row justify-center items-center" style={{ gap: 20 }}>
+                    {/* Hours Column */}
+                    <View className="flex-1">
+                      <Text className="text-[10px] text-gray-400 font-bold text-center mb-2">HORA</Text>
+                      <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {Array.from({ length: 24 }).map((_, h) => {
+                          const hStr = String(h).padStart(2, '0');
+                          const currentHour = (horaFin || '19:00').split(':')[0];
+                          const isSelected = currentHour === hStr;
+                          return (
+                            <TouchableOpacity
+                              key={h}
+                              onPress={() => {
+                                const currentMin = (horaFin || '19:00').split(':')[1] || '00';
+                                setHoraFin(`${hStr}:${currentMin}`);
+                              }}
+                              className={`py-2 px-3 items-center rounded-xl mb-1 ${
+                                isSelected ? 'bg-primary' : 'bg-gray-50'
+                              }`}
+                            >
+                              <Text className={`text-sm ${isSelected ? 'text-white font-bold' : 'text-secondary'}`}>
+                                {hStr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+
+                    {/* Minutes Column */}
+                    <View className="flex-1">
+                      <Text className="text-[10px] text-gray-400 font-bold text-center mb-2">MINUTOS</Text>
+                      <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((mStr) => {
+                          const currentMin = (horaFin || '19:00').split(':')[1];
+                          const isSelected = currentMin === mStr;
+                          return (
+                            <TouchableOpacity
+                              key={mStr}
+                              onPress={() => {
+                                const currentHour = (horaFin || '19:00').split(':')[0] || '19';
+                                setHoraFin(`${currentHour}:${mStr}`);
+                                setShowHoraFinPicker(false);
+                              }}
+                              className={`py-2 px-3 items-center rounded-xl mb-1 ${
+                                isSelected ? 'bg-primary' : 'bg-gray-50'
+                              }`}
+                            >
+                              <Text className={`text-sm ${isSelected ? 'text-white font-bold' : 'text-secondary'}`}>
+                                {mStr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  </View>
+                </View>
+              )}
 
               <View className={`${isMobile ? 'flex-col' : 'flex-row'} gap-3 mb-4`}>
                 <View style={isMobile ? {} : { flex: 2 }}>
@@ -370,14 +652,9 @@ export default function ClassDetailsScreen() {
                 </View>
                 <View style={isMobile ? {} : { flex: 1 }}>
                   <Text className="text-gray-500 font-bold text-xs mb-1.5">Cupos</Text>
-                  <TextInput
-                    value={cupos}
-                    onChangeText={setCupos}
-                    keyboardType="numeric"
-                    placeholder="30"
-                    placeholderTextColor="#9CA3AF"
-                    className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
-                  />
+                  <View className="w-full border border-gray-200 rounded-2xl bg-gray-50 px-4 py-3">
+                    <Text className="text-gray-500 text-sm">30 cupos (Fijo)</Text>
+                  </View>
                   {editingScheduleId && (
                     <Text className="text-xs text-gray-400 mt-1.5 ml-1">
                       Reservados: {schedules.find(s => s.id_detalle_clase === editingScheduleId)?._count?.detalles_reserva || 0}
