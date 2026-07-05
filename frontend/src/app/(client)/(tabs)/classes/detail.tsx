@@ -59,7 +59,8 @@ export default function ClassDetailScreen() {
       time: (time as string) || classItem.slots?.[0] || classItem.schedule.split(' ').slice(-2).join(' ') || '6:00 PM - 7:00 PM',
       instructorName: classItem.instructorName,
       pricePerSeat: classItem.price,
-      startedAt: Date.now()
+      startedAt: Date.now(),
+      totalSeats: 30
     });
 
     // Go to Seat Selector V10 (lies outside tabs to hide bottom bar!)

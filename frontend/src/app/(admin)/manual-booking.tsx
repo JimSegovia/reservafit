@@ -37,6 +37,7 @@ export default function AdminManualBookingScreen() {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [showSeatModal, setShowSeatModal] = useState(false);
   const [tempSeats, setTempSeats] = useState<number[]>([]);
+
   const seatNumbers = Array.from({ length: 30 }, (_, i) => i + 1);
 
   // Auto-fetch classes if not loaded yet

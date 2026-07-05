@@ -72,6 +72,7 @@ interface CurrentBooking {
   totalPrice: number;
   timeLeft: number; // in seconds
   startedAt: number; // timestamp when booking started
+  totalSeats?: number;
 }
 
 export interface ToastInfo {

@@ -17,7 +17,8 @@ export class DetalleClaseRepository {
         fecha_hora_inicio: inicio,
         fecha_hora_fin: new Date(data.fecha_hora_fin),
         Dia: obtenerDiaSemana(inicio),
-        tematica: data.tematica || null
+        tematica: data.tematica || null,
+        cupos: 30
       }
     });
   }
@@ -53,6 +54,8 @@ export class DetalleClaseRepository {
     if (data.fecha_hora_fin) {
       datosActualizar.fecha_hora_fin = new Date(data.fecha_hora_fin);
     }
+
+    datosActualizar.cupos = 30;
 
     return prisma.detalleClase.update({
       where: { id_detalle_clase: id },
