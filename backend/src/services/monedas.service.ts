@@ -11,29 +11,39 @@ export class MonedasService {
   }
 
   static async pagarConMonedas(id_reserva: string, id_usuario: string) {
-    const saldo = await MonedasRepository.obtenerSaldo(id_usuario);
+    return prisma.$transaction(async (tx) => {
+      const monedas = await tx.monedasCliente.findUnique({
+        where: { id_usuario },
+      });
 
-    const reserva = await prisma.reserva.findUnique({
-      where: { id_reserva },
-      select: { cantidad_cupos: true },
+      const reserva = await tx.reserva.findUnique({
+        where: { id_reserva },
+        select: { cantidad_cupos: true },
+      });
+
+      const totalMonedas = (reserva?.cantidad_cupos || 1) * 5;
+
+      if (!monedas || monedas.saldo_monedas < totalMonedas) {
+        throw new Error(`Saldo insuficiente. Necesitas ${totalMonedas} monedas para ${reserva?.cantidad_cupos || 1} cupos.`);
+      }
+
+      await tx.monedasCliente.update({
+        where: { id_usuario },
+        data: { saldo_monedas: { decrement: totalMonedas } },
+      });
+
+      await tx.historialMonedas.create({
+        data: { id_usuario, cantidad: -totalMonedas, tipo: 'gastada_clase', id_reserva },
+      });
+
+      await tx.reserva.update({
+        where: { id_reserva },
+        data: { estado: EstadoReserva.Confirmada },
+      });
+
+      logger.info(`Reserva ${id_reserva} pagada con monedas por usuario ${id_usuario} (${totalMonedas} monedas)`);
+      return { success: true, saldo_restante: monedas.saldo_monedas - totalMonedas };
     });
-
-    const totalMonedas = (reserva?.cantidad_cupos || 1) * 5;
-
-    if (saldo.saldo_monedas < totalMonedas) {
-      throw new Error(`Saldo insuficiente. Necesitas ${totalMonedas} monedas para ${reserva?.cantidad_cupos || 1} cupos.`);
-    }
-
-    await MonedasRepository.restarMonedas(id_usuario, totalMonedas);
-    await MonedasRepository.registrarHistorial(id_usuario, -totalMonedas, 'gastada_clase', id_reserva);
-
-    await prisma.reserva.update({
-      where: { id_reserva },
-      data: { estado: EstadoReserva.Confirmada },
-    });
-
-    logger.info(`Reserva ${id_reserva} pagada con monedas por usuario ${id_usuario} (${totalMonedas} monedas)`);
-    return { success: true, saldo_restante: saldo.saldo_monedas - totalMonedas };
   }
 
   static async devolverMonedas(id_reserva: string, motivo: 'cancelacion_cliente' | 'cancelacion_admin' | 'minimo_no_alcanzado') {
@@ -88,35 +98,45 @@ export class MonedasService {
   }
 
   static async cancelarClasePorMinimo(id_detalle_clase: string) {
-    const reservasConfirmadas = await prisma.reserva.findMany({
-      where: {
-        id_detalle_clase,
-        estado: EstadoReserva.Confirmada,
-      },
-    });
-
-    if (reservasConfirmadas.length === 0) return;
-
-    for (const res of reservasConfirmadas) {
-      const totalMonedas = 5 * res.cantidad_cupos;
-      await MonedasRepository.sumarMonedas(res.id_usuario, totalMonedas);
-      await MonedasRepository.registrarHistorial(res.id_usuario, totalMonedas, 'devuelta_minimo', res.id_reserva);
-
-      await prisma.reserva.update({
-        where: { id_reserva: res.id_reserva },
-        data: { estado: EstadoReserva.Cancelada_Por_Gimnasio },
+    await prisma.$transaction(async (tx) => {
+      const reservasConfirmadas = await tx.reserva.findMany({
+        where: {
+          id_detalle_clase,
+          estado: EstadoReserva.Confirmada,
+        },
       });
 
-      await prisma.detalleReserva.deleteMany({
-        where: { id_reserva: res.id_reserva },
+      if (reservasConfirmadas.length === 0) return;
+
+      for (const res of reservasConfirmadas) {
+        const totalMonedas = 5 * res.cantidad_cupos;
+
+        await tx.monedasCliente.upsert({
+          where: { id_usuario: res.id_usuario },
+          create: { id_usuario: res.id_usuario, saldo_monedas: totalMonedas },
+          update: { saldo_monedas: { increment: totalMonedas } },
+        });
+
+        await tx.historialMonedas.create({
+          data: { id_usuario: res.id_usuario, cantidad: totalMonedas, tipo: 'devuelta_minimo', id_reserva: res.id_reserva },
+        });
+
+        await tx.reserva.update({
+          where: { id_reserva: res.id_reserva },
+          data: { estado: EstadoReserva.Cancelada_Por_Gimnasio },
+        });
+
+        await tx.detalleReserva.deleteMany({
+          where: { id_reserva: res.id_reserva },
+        });
+      }
+
+      await tx.detalleClase.update({
+        where: { id_detalle_clase },
+        data: { estado: EstadoClase.Cancelada },
       });
-    }
 
-    await prisma.detalleClase.update({
-      where: { id_detalle_clase },
-      data: { estado: EstadoClase.Cancelada },
+      logger.info(`Clase ${id_detalle_clase} cancelada por mínimo no alcanzado. ${reservasConfirmadas.length} reservas reembolsadas en monedas.`);
     });
-
-    logger.info(`Clase ${id_detalle_clase} cancelada por mínimo no alcanzado. ${reservasConfirmadas.length} reservas reembolsadas en monedas.`);
   }
 }

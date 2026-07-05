@@ -1,6 +1,8 @@
 import { ClaseRepository } from '../repositories/clase.repository.js';
 import { CreateClaseDTO, UpdateClaseDTO } from '../types/clase.dto.js';
 import prisma from '../config/prisma.js';
+import { Prisma } from '@prisma/client';
+import { logger } from '../config/logger.js';
 
 export class ClaseService {
   
@@ -131,57 +133,40 @@ export class ClaseService {
       throw new Error('La clase que intentas eliminar no existe.');
     }
 
-    // 1. Find DetalleClase ids
-    const detallesClase = await prisma.detalleClase.findMany({
-      where: { id_clase: id }
-    });
-    
-    const idsDetalleClase = detallesClase.map(d => d.id_detalle_clase);
-
-    // Find all reservations for these schedules
-    const reservas = await prisma.reserva.findMany({
-      where: { id_detalle_clase: { in: idsDetalleClase } }
-    });
-    const idsReservas = reservas.map(r => r.id_reserva);
-
-    // Find all payments for these reservations
-    const pagos = await prisma.pago.findMany({
-      where: { id_reserva: { in: idsReservas } }
-    });
-    const idsPagos = pagos.map(p => p.id_pago);
-
-    // Delete related refunds (reembolsos)
-    if (idsPagos.length > 0) {
-      await prisma.reembolso.deleteMany({
-        where: { id_pago: { in: idsPagos } }
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const detallesClase = await tx.detalleClase.findMany({
+        where: { id_clase: id }
       });
-      // Delete webhook processed entries referencing the payments
-      await prisma.webHookProcesado.deleteMany({
-        where: { id_pago: { in: idsPagos } }
+      
+      const idsDetalleClase = detallesClase.map(d => d.id_detalle_clase);
+
+      const reservas = await tx.reserva.findMany({
+        where: { id_detalle_clase: { in: idsDetalleClase } }
       });
-      // Delete payments
-      await prisma.pago.deleteMany({
+      const idsReservas = reservas.map(r => r.id_reserva);
+
+      const pagos = await tx.pago.findMany({
         where: { id_reserva: { in: idsReservas } }
       });
-    }
+      const idsPagos = pagos.map(p => p.id_pago);
 
-    // Delete details of reservations
-    if (idsReservas.length > 0) {
-      await prisma.detalleReserva.deleteMany({
-        where: { id_reserva: { in: idsReservas } }
-      });
-      // Delete reservations
-      await prisma.reserva.deleteMany({
-        where: { id_reserva: { in: idsReservas } }
-      });
-    }
+      if (idsPagos.length > 0) {
+        await tx.reembolso.deleteMany({ where: { id_pago: { in: idsPagos } } });
+        await tx.webHookProcesado.deleteMany({ where: { id_pago: { in: idsPagos } } });
+        await tx.pago.deleteMany({ where: { id_reserva: { in: idsReservas } } });
+      }
 
-    // Delete details of class (schedules)
-    await prisma.detalleClase.deleteMany({
-      where: { id_clase: id }
+      if (idsReservas.length > 0) {
+        await tx.detalleReserva.deleteMany({ where: { id_reserva: { in: idsReservas } } });
+        await tx.reserva.deleteMany({ where: { id_reserva: { in: idsReservas } } });
+      }
+
+      await tx.detalleClase.deleteMany({ where: { id_clase: id } });
+
+      await tx.clase.delete({ where: { id_clase: id } });
     });
 
-    // Delete class itself
-    return await ClaseRepository.eliminar(id);
+    logger.info(`Clase ${id} eliminada exitosamente con cascada.`);
+    return true;
   }
 }
