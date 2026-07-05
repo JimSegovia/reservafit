@@ -31,6 +31,7 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [codigoReferido, setCodigoReferido] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -135,6 +136,7 @@ export default function RegisterScreen() {
         email: email,
         phone: phone,
         password: password,
+        codigo_referido: codigoReferido,
       });
 
       if (result.success) {
@@ -370,6 +372,26 @@ export default function RegisterScreen() {
                 {confirmPasswordError ? (
                   <Text className={`${isNative ? 'text-red-600' : 'text-red-500'} text-xs mt-1 ml-1 font-semibold`}>{confirmPasswordError}</Text>
                 ) : null}
+              </Animated.View>
+
+              {/* Código de Referido (Opcional) */}
+              <Animated.View entering={FadeInDown.duration(200).delay(200)}>
+                <View className="flex-row items-center mb-1.5 ml-1">
+                  <Ionicons name="people-outline" size={16} color="#FF7A00" className="mr-1" />
+                  <Text className="text-gray-600 font-bold text-sm">Código de referido (opcional)</Text>
+                </View>
+                <View className="flex-row items-center border rounded-xl bg-white px-3 py-3 border-gray-300">
+                  <Ionicons name="people-outline" size={20} color="#9CA3AF" />
+                  <TextInput
+                    placeholder="ABCD1234"
+                    value={codigoReferido}
+                    onChangeText={(t) => setCodigoReferido(t.toUpperCase())}
+                    autoCapitalize="characters"
+                    placeholderTextColor="#9CA3AF"
+                    className="flex-1 ml-2 text-black text-sm p-0"
+                    editable={!loading}
+                  />
+                </View>
               </Animated.View>
             </View>
 

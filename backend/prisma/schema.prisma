@@ -11,6 +11,8 @@ model Usuario {
   nombres         String          @db.VarChar(100)
   apellidos       String          @db.VarChar(100)
   celular         String?         @db.VarChar(20)
+  codigo_referido String?         @unique @db.VarChar(10)
+  id_referidor    String?         @db.Uuid
   cuentas         Cuenta[]
   reservas        Reserva[]
   monedas_cliente MonedasCliente?

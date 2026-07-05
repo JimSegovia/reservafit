@@ -28,6 +28,12 @@ async function bootstrap() {
         "fecha" TIMESTAMP(6) NOT NULL DEFAULT NOW()
       )`
     );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "codigo_referido" VARCHAR(10)`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "id_referidor" UUID`
+    );
     logger.info('Schema verificado.');
 
     await prisma.$queryRaw`SELECT 1`;

@@ -9,6 +9,7 @@ export const registerSchema = z.object({
   correo_electronico: z.string().email('Debe ser un correo electrónico válido').max(150),
   contrasena: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(150),
   rol: z.nativeEnum(Rol).optional(),
+  codigo_referido: z.string().max(10).optional(),
 });
 
 // 2. Escudo Zod para el Login

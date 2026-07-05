@@ -13,6 +13,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  codigo_referido?: string;
   role: 'client' | 'admin';
 }
 
@@ -42,6 +43,7 @@ export interface ClassItem {
 export interface Reservation {
   id: string;
   classId: string;
+  scheduleId: string;
   className: string;
   time: string;
   date: string;
@@ -227,9 +229,10 @@ export const useAppStore = create<AppState>((set, get) => {
         name: `${usuario.nombres} ${usuario.apellidos}`,
         email: cuenta.correo_electronico,
         phone: usuario.celular || '',
+        codigo_referido: usuario.codigo_referido || undefined,
         role: role
       };
-      
+
       set({ user: userObj });
 
       // Map user's reservations or all reservations
@@ -240,6 +243,7 @@ export const useAppStore = create<AppState>((set, get) => {
           mappedReservations = (resData.data || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -256,6 +260,7 @@ export const useAppStore = create<AppState>((set, get) => {
         mappedReservations = (usuario.reservas || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -278,13 +283,17 @@ export const useAppStore = create<AppState>((set, get) => {
 
   registerUser: async (data) => {
     try {
-      await authService.register({
+      const payload: any = {
         nombres: data.name?.split(' ')[0] || 'Usuario',
         apellidos: data.name?.split(' ').slice(1).join(' ') || 'ReservaFit',
         correo_electronico: data.email,
         contrasena: data.password,
         celular: data.phone || ''
-      });
+      };
+      if (data.codigo_referido) {
+        payload.codigo_referido = data.codigo_referido.toUpperCase();
+      }
+      await authService.register(payload);
       set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client', id: data.password } });
       return { success: true };
     } catch (error: any) {
@@ -472,6 +481,7 @@ export const useAppStore = create<AppState>((set, get) => {
         name: `${usuario.nombres} ${usuario.apellidos}`,
         email: cuenta.correo_electronico || '',
         phone: usuario.celular || '',
+        codigo_referido: usuario.codigo_referido || undefined,
         role
       };
 
@@ -482,6 +492,7 @@ export const useAppStore = create<AppState>((set, get) => {
           mappedReservations = (resData.data || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -498,6 +509,7 @@ export const useAppStore = create<AppState>((set, get) => {
         mappedReservations = (usuario.reservas || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -773,6 +785,7 @@ export const useAppStore = create<AppState>((set, get) => {
       const mappedReservations = (updatedUser.reservas || []).map((r: any) => ({
         id: r.id_reserva,
         classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
         className: r.detalle_clase?.clase?.nombre || 'Clase',
         time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
         date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -870,6 +883,7 @@ export const useAppStore = create<AppState>((set, get) => {
         const mappedReservations = (resData.data || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -907,6 +921,7 @@ export const useAppStore = create<AppState>((set, get) => {
         mappedReservations = (resData.data || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -922,6 +937,7 @@ export const useAppStore = create<AppState>((set, get) => {
         mappedReservations = (usuario.reservas || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -953,6 +969,7 @@ export const useAppStore = create<AppState>((set, get) => {
           const mappedReservations = (resData.data || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
@@ -969,6 +986,7 @@ export const useAppStore = create<AppState>((set, get) => {
           const mappedReservations = (usuario.reservas || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',

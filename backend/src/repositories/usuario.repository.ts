@@ -21,7 +21,9 @@ export class UsuarioRepository {
     data: RegisterDTO, 
     contrasenaHasheada: string,
     codigoOtp: string,
-    expiracionOtp: Date
+    expiracionOtp: Date,
+    codigoReferidoPropio?: string,
+    idReferidor?: string
   ) {
     // Agregamos 'Prisma.TransactionClient' al parámetro 'tx' para que TypeScript y Railway no arrojen error
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -31,6 +33,8 @@ export class UsuarioRepository {
           nombres: data.nombres,
           apellidos: data.apellidos,
           celular: data.celular,
+          codigo_referido: codigoReferidoPropio,
+          id_referidor: idReferidor,
         }
       });
 

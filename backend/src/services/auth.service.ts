@@ -1,30 +1,53 @@
 import { UsuarioRepository } from '../repositories/usuario.repository.js';
+import { MonedasRepository } from '../repositories/monedas.repository.js';
 import { hashPassword, comparePassword } from '../utils/bcrypt.util.js';
 import { generateToken } from '../utils/jwt.util.js';
 import { RegisterDTO, LoginDTO } from '../types/auth.dto.js';
 import { MailService } from './mail.service.js';
+import prisma from '../config/prisma.js';
+
+function generateReferralCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
 
 export class AuthService {
   
   static async registrarUsuario(data: RegisterDTO) {
-    // 1. Verificamos que el correo no exista
     const cuentaExistente = await UsuarioRepository.buscarPorCorreo(data.correo_electronico);
     if (cuentaExistente) {
       throw new Error('El correo electrónico ya está registrado.');
     }
 
-    // 2. Encriptamos la contraseña
     const contrasenaHasheada = await hashPassword(data.contrasena);
 
-    // 3. Generamos código OTP (6 dígitos aleatorios)
     const codigoOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiracionOtp = new Date(Date.now() + 10 * 60 * 1000); // Válido por 10 minutos
+    const expiracionOtp = new Date(Date.now() + 10 * 60 * 1000);
 
-    // 4. Guardamos en base de datos (Usuario + Cuenta + OTP)
-    const result = await UsuarioRepository.crearUsuarioConCuenta(data, contrasenaHasheada, codigoOtp, expiracionOtp);
+    const codigoPropio = generateReferralCode();
 
-    // 5. Enviamos el correo de verificación de manera asíncrona
-    // No bloquea la respuesta del registro si falla el envío de mail
+    let idReferidor: string | undefined;
+
+    if (data.codigo_referido) {
+      const referidor = await prisma.usuario.findFirst({
+        where: { codigo_referido: data.codigo_referido.toUpperCase() },
+        select: { id_usuario: true },
+      });
+
+      if (referidor) {
+        idReferidor = referidor.id_usuario;
+        await MonedasRepository.sumarMonedas(referidor.id_usuario, 1);
+        await MonedasRepository.registrarHistorial(referidor.id_usuario, 1, 'ganada_referido');
+        console.log(`[AuthService] +1 moneda a referidor ${referidor.id_usuario} por código ${data.codigo_referido}`);
+      }
+    }
+
+    const result = await UsuarioRepository.crearUsuarioConCuenta(data, contrasenaHasheada, codigoOtp, expiracionOtp, codigoPropio, idReferidor);
+
     MailService.enviarCodigoVerificacion(data.correo_electronico, codigoOtp).catch((err) => {
       console.error('[AuthService] Error de envío de correo de registro en segundo plano:', err);
     });
