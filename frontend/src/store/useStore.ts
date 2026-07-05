@@ -759,24 +759,14 @@ export const useAppStore = create<AppState>((set, get) => {
 
     let lastReservation: any = null;
     try {
-      for (const seat of currentBooking.selectedSeats) {
-        const response = await api.post('/reservas/reservas', {
-          id_usuario: user.id,
-          id_detalle_clase,
-          numero_cupo: seat
-        });
-        
-        const reservationId = response.data.reserva.id_reserva;
-        lastReservation = response.data.reserva;
-        
-        if (Platform.OS !== 'web') {
-          await api.patch(`/reservas/${reservationId}`, {
-            estado: 'Confirmada'
-          });
-        }
-      }
+      const response = await api.post('/reservas/crear', {
+        id_usuario: user.id,
+        id_detalle_clase,
+        numeros_cupo: currentBooking.selectedSeats
+      });
+
+      lastReservation = response.data.reserva;
       
-      // Refresh classes and agenda to update enrolled counts
       await get().fetchClasses();
 
       // Refresh user profile reservations

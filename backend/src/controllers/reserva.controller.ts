@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ReservaService } from '../services/reserva.service';
-import { CrearReservaDto } from '../types/crear-reserva.dto';
+import { CrearReservaDto, CrearReservaBatchDto } from '../types/crear-reserva.dto';
 
 const reservaService = new ReservaService();
 
@@ -33,6 +33,25 @@ export class ReservaController {
         return;
       }
       
+      res.status(500).json({ error: 'Error interno al registrar la reserva.' });
+    }
+  }
+
+  async crearReservaBatch(req: Request, res: Response): Promise<void> {
+    const parseResult = CrearReservaBatchDto.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({ error: 'Datos inválidos', detalles: parseResult.error.flatten() });
+      return;
+    }
+
+    try {
+      const reserva = await reservaService.registrarReservaBatch(parseResult.data);
+      res.status(201).json({ reserva });
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('no disponible')) {
+        res.status(409).json({ error: err.message });
+        return;
+      }
       res.status(500).json({ error: 'Error interno al registrar la reserva.' });
     }
   }

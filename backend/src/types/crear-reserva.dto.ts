@@ -6,4 +6,11 @@ export const CrearReservaDto = z.object({
   numero_cupo: z.number().int().positive("El número de cupo debe ser un entero positivo"),
 });
 
+export const CrearReservaBatchDto = z.object({
+  id_usuario: z.string().uuid(),
+  id_detalle_clase: z.string().uuid(),
+  numeros_cupo: z.array(z.number().int().positive()).min(1, "Debe haber al menos un cupo"),
+});
+
 export type CrearReservaType = z.infer<typeof CrearReservaDto>;
+export type CrearReservaBatchType = z.infer<typeof CrearReservaBatchDto>;

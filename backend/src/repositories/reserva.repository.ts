@@ -68,4 +68,41 @@ export class ReservaRepository {
       data: { estado }
     });
   }
+
+  async crearReservaBatch(
+    id_usuario: string,
+    id_detalle_clase: string,
+    numeros_cupo: number[]
+  ): Promise<Reserva> {
+    return await prisma.$transaction(async (tx) => {
+      const reserva = await tx.reserva.create({
+        data: {
+          id_usuario,
+          id_detalle_clase,
+          cantidad_cupos: numeros_cupo.length,
+          estado: EstadoReserva.Pendiente_pago,
+          fecha_expiracion_pago: new Date(Date.now() + 10 * 60 * 1000)
+        }
+      });
+
+      for (const numero_cupo of numeros_cupo) {
+        try {
+          await tx.detalleReserva.create({
+            data: {
+              id_reserva: reserva.id_reserva,
+              id_detalle_clase,
+              numero_cupo,
+            }
+          });
+        } catch (err) {
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+            throw new Error(`Cupo ${numero_cupo} no disponible`);
+          }
+          throw err;
+        }
+      }
+
+      return reserva;
+    });
+  }
 }

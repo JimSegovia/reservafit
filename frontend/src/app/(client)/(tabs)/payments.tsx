@@ -49,6 +49,19 @@ export default function ClientPaymentsHistoryScreen() {
   };
 
   const [selectedReceipt, setSelectedReceipt] = useState<typeof reservations[0] | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const sortedReservations = [...reservations].reverse();
+  const totalPages = Math.max(1, Math.ceil(sortedReservations.length / itemsPerPage));
+  const paginatedReservations = sortedReservations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
 
   const content = (
     <View style={{ flex: 1 }}>
@@ -73,12 +86,12 @@ export default function ClientPaymentsHistoryScreen() {
               </View>
 
               <View className="px-8 py-2">
-                {reservations.map((res, idx) => {
+                {paginatedReservations.map((res, idx) => {
                   const statusStyle = getStatusStyles(res.status);
                   return (
                     <View
                       key={res.id}
-                      className={`flex-row items-center py-4 ${idx !== reservations.length - 1 ? 'border-b border-gray-200' : ''}`}
+                      className={`flex-row items-center py-4 ${idx !== paginatedReservations.length - 1 ? 'border-b border-gray-200' : ''}`}
                     >
                       <Text className="flex-[1.4] text-[14px] font-semibold text-black">{res.date} · {getShortTime(res.time)}</Text>
                       <Text className="flex-[1.2] text-[14px] font-semibold text-black">{res.className}</Text>
@@ -101,13 +114,21 @@ export default function ClientPaymentsHistoryScreen() {
               </View>
 
               <View className="flex-row items-center justify-between border-t border-gray-200 px-7 py-4 bg-[#fcfbf8]">
-                <Text className="text-sm text-gray-600 font-medium">Pagina 1 de {Math.max(1, Math.ceil(reservations.length / 10))}</Text>
+                <Text className="text-sm text-gray-600 font-medium">Página {currentPage} de {totalPages}</Text>
                 <View className="flex-row gap-x-2">
-                  <TouchableOpacity className="px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => goToPage(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className={`px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center ${currentPage <= 1 ? 'opacity-40' : ''}`}
+                  >
                     <Ionicons name="chevron-back" size={16} color="#374151" />
                     <Text className="text-sm font-semibold text-gray-700 ml-1">Previous</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity className="px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => goToPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className={`px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center ${currentPage >= totalPages ? 'opacity-40' : ''}`}
+                  >
                     <Text className="text-sm font-semibold text-gray-700 mr-1">Next</Text>
                     <Ionicons name="chevron-forward" size={16} color="#374151" />
                   </TouchableOpacity>
@@ -123,7 +144,7 @@ export default function ClientPaymentsHistoryScreen() {
             </Animated.View>
 
             <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 8 }} showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}>
-              {reservations.map((res, idx) => {
+              {paginatedReservations.map((res, idx) => {
                 const statusStyle = getStatusStyles(res.status);
                 return (
                   <Animated.View
