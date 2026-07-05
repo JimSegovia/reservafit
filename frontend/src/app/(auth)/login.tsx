@@ -73,9 +73,8 @@ export default function LoginScreen() {
       if (success) {
         showToast('¡Inicio de sesión exitoso!', 'success');
         
-        // Use user state from store after login or decode token, but here we assume logic
-        const role = email.toLowerCase().includes('admin') ? 'admin' : 'client';
-        if (role === 'admin') {
+        const user = useAppStore.getState().user;
+        if (user?.role === 'admin') {
           router.replace('/(admin)');
         } else {
           router.replace('/(client)/(tabs)');

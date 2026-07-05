@@ -65,14 +65,22 @@ export function iniciarCronJobs() {
       });
 
       for (const clase of clasesPorEmpezar) {
-        const count = await prisma.reserva.count({
-          where: {
-            id_detalle_clase: clase.id_detalle_clase,
-            estado: EstadoReserva.Confirmada,
-          },
-        });
+        const [countConfirmada, countPendiente] = await Promise.all([
+          prisma.reserva.count({
+            where: {
+              id_detalle_clase: clase.id_detalle_clase,
+              estado: EstadoReserva.Confirmada,
+            },
+          }),
+          prisma.reserva.count({
+            where: {
+              id_detalle_clase: clase.id_detalle_clase,
+              estado: EstadoReserva.Pendiente_pago,
+            },
+          }),
+        ]);
 
-        if (count < 7) {
+        if (countConfirmada < 7 && (countConfirmada + countPendiente) < 7) {
           try {
             await MonedasService.cancelarClasePorMinimo(clase.id_detalle_clase);
           } catch (err) {

@@ -10,8 +10,14 @@ const app: Application = express();
 // 2. Configuramos CORS para apuntar a tu Frontend en Vercel
 app.use(cors({
   origin: (origin, callback) => {
-    const allowed = ['http://localhost:8081', 'http://localhost:3000'];
-    if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+    const allowed = [
+      'http://localhost:8081',
+      'http://localhost:3000',
+      process.env.CLIENT_BASE_URL || 'https://reservafit-xi.vercel.app',
+      'https://reservafit-vi.vercel.app',
+      'https://reservafit-xi.vercel.app',
+    ].filter(Boolean);
+    if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

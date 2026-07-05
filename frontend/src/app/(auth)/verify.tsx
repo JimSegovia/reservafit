@@ -83,10 +83,19 @@ export default function VerifyScreen() {
   };
 
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (countdown > 0) return;
-    setCountdown(45);
-    showToast('Código OTP reenviado con éxito.', 'info');
+    const { tempRegisterData } = useAppStore.getState();
+    if (tempRegisterData?.email) {
+      try {
+        const { authService } = require('@/services/auth.service');
+        await authService.forgotPassword(tempRegisterData.email);
+        setCountdown(45);
+        showToast('Código OTP reenviado con éxito.', 'success');
+      } catch (e) {
+        showToast('Error al reenviar el código.', 'error');
+      }
+    }
   };
 
   const isSubmitDisabled = loading || code.join('').length < 6;

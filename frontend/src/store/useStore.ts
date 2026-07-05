@@ -734,22 +734,9 @@ export const useAppStore = create<AppState>((set, get) => {
         const match = agenda.find((a: any) => a.id_clase === currentBooking.classId);
         if (match) {
           id_detalle_clase = match.id_detalle_clase;
-        } else {
-          const instructorResponse = await api.get('/instructores');
-          const instructors = instructorResponse.data.data || [];
-          const instructorId = instructors[0]?.id_instructor;
-          if (instructorId) {
-            const newDetail = await api.post('/agenda', {
-              id_clase: currentBooking.classId,
-              id_instructor: instructorId,
-              fecha_hora_inicio: new Date().toISOString(),
-              fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
-            });
-            id_detalle_clase = newDetail.data.data.id_detalle_clase;
-          }
         }
       } catch (err) {
-        console.error('Error finding/creating agenda detail:', err);
+        console.error('Error finding agenda detail:', err);
       }
     }
 
@@ -822,18 +809,8 @@ export const useAppStore = create<AppState>((set, get) => {
       let match = agenda.find((a: any) => a.id_clase === bookingData.classId);
       
       if (!match) {
-        const instructorsResponse = await api.get('/instructores');
-        const instructors = instructorsResponse.data.data || [];
-        const instructorId = instructors[0]?.id_instructor;
-        if (!instructorId) return false;
-        
-        const newDetail = await api.post('/agenda', {
-          id_clase: bookingData.classId,
-          id_instructor: instructorId,
-          fecha_hora_inicio: new Date().toISOString(),
-          fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
-        });
-        match = newDetail.data.data;
+        get().showToast('No se encontró un horario disponible para esta clase.', 'error');
+        return false;
       }
       
       const seatsToBook = bookingData.selectedSeats && bookingData.selectedSeats.length > 0 
