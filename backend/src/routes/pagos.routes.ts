@@ -6,12 +6,15 @@ import { checkoutSchema } from '../types/pagos.dto.js';
 
 const router = Router();
 
-// Ruta protegida por JWT y validada por Zod
 router.post(
   '/checkout', 
   verificarToken, 
   validarEsquema(checkoutSchema), 
   PagoController.handlePaymentCheckout
 );
+
+router.post('/webhook', PagoController.handleWebhook);
+
+router.get('/verify/:id_reserva', verificarToken, PagoController.handleVerifyPayment);
 
 export default router;

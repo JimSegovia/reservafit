@@ -134,7 +134,7 @@ export default function ClientHomeScreen() {
     }
   };
 
-  const clientReservations = reservations.filter((res) => res.status === 'Pagado');
+  const clientReservations = reservations.filter((res) => res.status === 'Pagado' || res.status === 'Pendiente');
   const todayReservations = useMemo(() => {
     const today = new Date();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -368,7 +368,7 @@ export default function ClientHomeScreen() {
                               style={{ width: 88, height: 88 }}
                               resizeMode="cover"
                             />
-                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), status: 'Pagado' })}>
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), mySeats: res.seats, status: res.status })}>
                             <View>
                                 <Text className="text-[14px] font-bold text-black">{res.className}</Text>
                                 <Text className="text-[13px] font-semibold text-gray-600 mt-1">{res.time}</Text>
@@ -377,8 +377,8 @@ export default function ClientHomeScreen() {
                             </View>
                             </TouchableOpacity>
                             <View className="w-[124px] items-center justify-center pr-4">
-                            <View className="bg-green-100 rounded-lg px-4 py-2">
-                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
+                            <View className={`rounded-lg px-4 py-2 ${res.status === 'Pendiente' ? 'bg-amber-100' : 'bg-green-100'}`}>
+                                <Text className={`font-bold text-sm ${res.status === 'Pendiente' ? 'text-amber-700' : 'text-green-700'}`}>{res.status === 'Pendiente' ? 'Verificando...' : 'Pagado'}</Text>
                             </View>
                             <TouchableOpacity
                                 onPress={() => promptCancelReservation(res.id)}
@@ -440,8 +440,8 @@ export default function ClientHomeScreen() {
                                 <Text className={`text-[11px] font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'} uppercase`}>Instructor</Text>
                                 <Text className="text-[12px] font-semibold text-black">{classInfo?.instructorName || 'Profesor'}</Text>
                                 </View>
-                                <View className="bg-green-100 rounded-lg px-4 py-2">
-                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
+                                <View className={`rounded-lg px-4 py-2 ${res.status === 'Pendiente' ? 'bg-amber-100' : 'bg-green-100'}`}>
+                                <Text className={`font-bold text-sm ${res.status === 'Pendiente' ? 'text-amber-700' : 'text-green-700'}`}>{res.status === 'Pendiente' ? 'Verificando...' : 'Pagado'}</Text>
                                 </View>
                             </View>
                             </View>

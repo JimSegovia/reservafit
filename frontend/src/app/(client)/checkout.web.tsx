@@ -43,7 +43,6 @@ export default function CheckoutScreen() {
     setIsProcessing(true);
     
     try {
-      // 1. Create the reservation in the backend database
       const res = await confirmBooking('');
       if (!res) {
         showToast('No se pudo registrar la reserva. Inténtalo de nuevo.', 'error');
@@ -51,7 +50,8 @@ export default function CheckoutScreen() {
         return;
       }
 
-      // 2. Call the payment checkout preference generator
+      localStorage.setItem('pending_payment_reserva_id', res.id_reserva);
+
       const checkoutResponse = await api.post('/pagos/checkout', {
         id_reserva: res.id_reserva,
         amount: currentBooking.totalPrice,
@@ -63,7 +63,7 @@ export default function CheckoutScreen() {
       if (checkoutResponse.status === 200 && result.success && result.data?.initPoint) {
         setShowPopup(false);
         clearBooking();
-        window.location.href = result.data.initPoint; 
+        window.location.href = result.data.initPoint;
       } else {
         showToast(result.error || 'No se pudo generar el enlace de Mercado Pago.', 'error');
       }

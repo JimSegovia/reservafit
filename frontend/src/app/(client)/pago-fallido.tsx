@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
@@ -9,13 +9,23 @@ import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function PagoFallidoScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const currentBooking = useAppStore((state) => state.currentBooking);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
 
+  const externalReference = (params.external_reference as string) || '';
+
+  useEffect(() => {
+    if (externalReference) {
+      localStorage.setItem('pending_payment_reserva_id', externalReference);
+    }
+  }, [externalReference]);
+
   const handleRetry = () => {
-    if (currentBooking) {
+    const storedId = localStorage.getItem('pending_payment_reserva_id');
+    if (currentBooking || storedId) {
       router.replace('/(client)/checkout');
     } else {
       router.replace('/(client)/(tabs)/classes');
@@ -51,15 +61,13 @@ export default function PagoFallidoScreen() {
         </View>
 
         <Animated.View entering={FadeInDown.duration(200).delay(110)} className="gap-y-3 mb-10 mx-2">
-          {currentBooking ? (
-            <TouchableOpacity
-              onPress={handleRetry}
-              activeOpacity={0.7}
-              className="w-full bg-primary py-3 rounded-2xl items-center shadow-lg shadow-orange-500/20"
-            >
-              <Text className="text-white text-[15px] font-bold">Intentar de nuevo</Text>
-            </TouchableOpacity>
-          ) : null}
+          <TouchableOpacity
+            onPress={handleRetry}
+            activeOpacity={0.7}
+            className="w-full bg-primary py-3 rounded-2xl items-center shadow-lg shadow-orange-500/20"
+          >
+            <Text className="text-white text-[15px] font-bold">Intentar de nuevo</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleGoHome}
             activeOpacity={0.7}

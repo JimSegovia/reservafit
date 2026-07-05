@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { EstadoReserva, Prisma } from '@prisma/client'; 
+import { EstadoReserva, EstadoPago, Prisma } from '@prisma/client'; 
 import prisma from '../config/prisma.js';
 import { logger } from '../config/logger.js'; 
 
@@ -20,6 +20,24 @@ export function iniciarCronJobs() {
 
       for (const { id_reserva } of reservasVencidas) {
         try {
+          // Verificar si hay un pago exitoso asociado (pudo haberse pagado justo a tiempo)
+          const pagoExitoso = await prisma.pago.findFirst({
+            where: {
+              id_reserva,
+              estado_pago: EstadoPago.Exitoso,
+            },
+          });
+
+          if (pagoExitoso) {
+            // El pago ya se completó, confirmar la reserva en lugar de cancelarla
+            await prisma.reserva.update({
+              where: { id_reserva },
+              data: { estado: EstadoReserva.Confirmada },
+            });
+            logger.info(`[CRON] Reserva ${id_reserva} confirmada (pago exitoso encontrado post-timeout).`);
+            continue;
+          }
+
           // Tipamos (tx) explícitamente para que el build en Railway no falle
           await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 2a. Actualizar reserva a Cancelada_Timeout
