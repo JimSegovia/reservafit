@@ -16,10 +16,28 @@ export default function CalendarScreen() {
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
   
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d;
+  });
   const [showYearCalendar, setShowYearCalendar] = useState(false);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
-  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getMonth();
+  });
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getFullYear();
+  });
 
   const monthsNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -30,8 +48,13 @@ export default function CalendarScreen() {
   const getMonday = (d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
+    if (day === 0) {
+      const nextMon = new Date(date);
+      nextMon.setDate(date.getDate() + 1);
+      return nextMon;
+    }
     // Sun=0, Mon=1, Tue=2, ...
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = date.getDate() - day + 1;
     return new Date(date.setDate(diff));
   };
 
