@@ -18,7 +18,8 @@ export class UsuarioService {
         if (!existe) break;
       } while (intentos < 10);
 
-      usuario = await UsuarioRepository.asignarCodigoReferido(id, codigo);
+      await UsuarioRepository.asignarCodigoReferido(id, codigo);
+      return { ...usuario, codigo_referido: codigo };
     }
 
     return usuario;
