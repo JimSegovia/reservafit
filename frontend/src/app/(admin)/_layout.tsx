@@ -20,6 +20,7 @@ export default function AdminLayout() {
     { label: 'Clases', icon: 'calendar-outline', route: '/(admin)/classes-mgmt' },
     { label: 'Historial', icon: 'receipt-outline', route: '/(admin)/bookings-history' },
     { label: 'Reservar', icon: 'book-outline', route: '/(admin)/manual-booking' },
+    { label: 'Monedas', icon: 'star-outline', route: '/(admin)/clientes-monedas' },
   ];
 
   const isActive = (route: string) => {
