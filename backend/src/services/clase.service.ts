@@ -57,7 +57,7 @@ export class ClaseService {
         id_instructor: instructor.id_instructor,
         fecha_hora_inicio: baseDate,
         fecha_hora_fin: endDate,
-        dia: dayNames[baseDate.getDay()], // <-- Este es el campo clave que faltaba
+        Dia: dayNames[baseDate.getDay()], // <-- Este es el campo clave que faltaba
         estado: 'Disponible',
         cupos: 30
       }
