@@ -18,6 +18,10 @@ export class UsuarioService {
         if (!existe) break;
       } while (intentos < 10);
 
+      if (intentos >= 10) {
+        throw new Error('No se pudo generar un código de referido único después de 10 intentos.');
+      }
+
       await UsuarioRepository.asignarCodigoReferido(id, codigo);
       return { ...usuario, codigo_referido: codigo };
     }

@@ -17,10 +17,9 @@ export default function LoginScreen() {
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
 
-  const [email, setEmail] = useState('cliente@reservafit.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   
   const passwordRef = useRef<TextInput>(null);
 
@@ -204,21 +203,7 @@ export default function LoginScreen() {
                 </Animated.View>
 
                 {!isWeb && (
-                  <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-between items-center mb-8">
-                    <TouchableOpacity
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      onPress={() => setRememberMe(!rememberMe)}
-                      className="flex-row items-center"
-                      disabled={loading}
-                    >
-                      <Ionicons
-                        name={rememberMe ? "checkbox" : "square-outline"}
-                        size={22}
-                        color={rememberMe ? "#FF7A00" : "#4B5563"}
-                      />
-                      <Text className="text-gray-700 text-sm ml-2 font-medium">Recordarme</Text>
-                    </TouchableOpacity>
-                    
+                  <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-end items-center mb-8">
                     <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
                       <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>¿Olvidaste tu contraseña?</Text>
                     </TouchableOpacity>

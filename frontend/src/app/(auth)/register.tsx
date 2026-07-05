@@ -188,7 +188,7 @@ export default function RegisterScreen() {
             {/* Mobile Header with Back Button */}
             {!isWeb && (
               <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mt-2 mb-6">
-                <TouchableOpacity onPress={() => router.push('/(auth)/landing')} className="flex-row items-center py-1">
+                <TouchableOpacity onPress={() => router.push('/(auth)/login')} className="flex-row items-center py-1">
                   <Ionicons name="arrow-back" size={24} color="black" />
                   <Text className="text-sm font-semibold ml-1">Volver</Text>
                 </TouchableOpacity>

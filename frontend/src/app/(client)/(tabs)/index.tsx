@@ -287,7 +287,7 @@ export default function ClientHomeScreen() {
                   <View className="flex-1 mr-2">
                     <Text className={`text-xs font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Cupos: {res.seats.join(', ')}</Text>
                     <Text className={`text-xs font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'} mt-0.5 text-ellipsis overflow-hidden`}>
-                      Profesor: {res.className.toLowerCase().includes('salsa') ? 'Profesor B' : 'Profesor A'}
+                      Profesor: {classes.find(c => c.id === res.classId)?.instructorName || 'Profesor'}
                     </Text>
                   </View>
                   <TouchableOpacity

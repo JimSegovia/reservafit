@@ -109,6 +109,7 @@ export class AuthService {
   static async solicitarRestablecimiento(correo: string) {
     const cuenta = await UsuarioRepository.buscarPorCorreo(correo);
     if (!cuenta) {
+      await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
       return { mensaje: 'Si el correo existe, recibirás un código de restablecimiento.' };
     }
 

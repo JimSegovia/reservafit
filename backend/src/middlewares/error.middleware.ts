@@ -1,20 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/logger.js';
 
-// En Express, un middleware de error siempre debe tener exactamente estos 4 parámetros
+const ERROR_STATUS_MAP: Record<string, number> = {
+  'no existe': 404,
+  'no encontrad': 404,
+  'ya está registrado': 409,
+  'no disponible': 409,
+  'saldo insuficiente': 400,
+  'inválido': 400,
+  'obligatorio': 400,
+  'debe tener': 400,
+  'debe ser': 400,
+};
+
+function getErrorStatus(message: string): number {
+  const lower = message.toLowerCase();
+  for (const [pattern, status] of Object.entries(ERROR_STATUS_MAP)) {
+    if (lower.includes(pattern)) return status;
+  }
+  return 500;
+}
+
 export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
-  // 1. Registramos el error de forma profesional
-  logger.error(`Error en la ruta: ${req.method} ${req.url}`, err);
+  logger.error(`Error en la ruta: ${req.method} ${req.url}: ${err.message}`);
 
-  // 2. Respondemos al frontend
-  // Ocultamos los detalles técnicos si estamos en producción por seguridad
-  res.status(500).json({
-    error: 'Error interno del servidor',
-    detalle: process.env.NODE_ENV === 'development' ? err.message : 'Algo salió mal, intenta de nuevo.',
+  const status = getErrorStatus(err.message);
+
+  res.status(status).json({
+    error: process.env.NODE_ENV === 'production' && status === 500
+      ? 'Error interno del servidor'
+      : err.message,
   });
 };

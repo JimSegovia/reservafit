@@ -29,7 +29,7 @@ export default function LandingScreen() {
             />
           </View>
           <View className="flex-row items-center gap-x-4">
-            <TouchableOpacity onPress={() => router.push('/help' as any)}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/help' as any)}>
               <Text className="text-gray-650 font-bold text-sm">Ayuda / FAQ</Text>
             </TouchableOpacity>
             <Button
@@ -98,7 +98,7 @@ export default function LandingScreen() {
                     variant="primary"
                     className="min-h-0 h-12 shadow-md shadow-primary/30"
                   />
-                 <TouchableOpacity onPress={() => router.push('/help' as any)} className="items-center py-2 mt-1">
+                 <TouchableOpacity onPress={() => router.push('/(auth)/help' as any)} className="items-center py-2 mt-1">
                     <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Centro de Ayuda / FAQ</Text>
                  </TouchableOpacity>
                </Animated.View>

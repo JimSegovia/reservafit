@@ -5,7 +5,14 @@ export class DetalleReservaRepository {
   // Conocer qué asientos/cupos ya están tomados para una clase específica
   static async obtenerCuposOcupados(id_detalle_clase: string) {
     const detalles = await prisma.detalleReserva.findMany({
-      where: { id_detalle_clase },
+      where: {
+        id_detalle_clase,
+        reserva: {
+          NOT: {
+            estado: { in: ['Cancelada_Timeout', 'Cancelada_Por_Gimnasio'] },
+          },
+        },
+      },
       select: { numero_cupo: true }
     });
     return detalles.map(d => d.numero_cupo);

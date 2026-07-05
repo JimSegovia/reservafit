@@ -127,6 +127,12 @@ export default function AdminManualBookingScreen() {
       return;
     }
 
+    const cleanPhone = clientPhone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length !== 9 || !cleanPhone.startsWith('9')) {
+      showToast('El celular debe tener 9 dígitos y empezar con 9.', 'warning');
+      return;
+    }
+
     setLoading(true);
 
     try {
