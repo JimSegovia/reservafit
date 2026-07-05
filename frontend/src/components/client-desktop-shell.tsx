@@ -28,10 +28,14 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
     { label: 'Dashboard', icon: 'home-outline' as const, href: '/(client)/(tabs)' },
     { label: 'Clases', icon: 'calendar-outline' as const, href: '/(client)/(tabs)/classes' },
     { label: 'Pagos', icon: 'card-outline' as const, href: '/(client)/(tabs)/payments' },
+    { label: 'Monedas', icon: 'star-outline' as const, href: '/monedas' },
   ];
 
   const isActive = (href: string) => {
     const normalized = pathname.replace(/\/index$/, '').replace(/\/$/, '');
+    if (href === '/monedas') {
+      return normalized === href || normalized.includes('/monedas');
+    }
     if (href === '/(client)/(tabs)') {
       return normalized === '/(client)/(tabs)' || normalized === '/(client)' || normalized === '';
     }

@@ -17,7 +17,12 @@ export default function CheckoutScreen() {
   const showToast = useAppStore((state) => state.showToast);
   const monedasSaldo = useAppStore((state) => state.monedasSaldo);
   const pagarConMonedas = useAppStore((state) => state.pagarConMonedas);
+  const fetchMonedas = useAppStore((state) => state.fetchMonedas);
   const user = useAppStore((state) => state.user);
+
+  useEffect(() => {
+    fetchMonedas();
+  }, []);
   
   const [showPopup, setShowPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -164,19 +169,19 @@ export default function CheckoutScreen() {
       </TouchableOpacity>
 
       {/* MonedasFit Payment Button */}
-      {hasMonedas && (
-        <TouchableOpacity
-          onPress={handleMonedasPay}
-          disabled={isSubmitDisabled}
-          className={`bg-amber-500 rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''}`}
-          style={{ minHeight: 56 }}
-        >
-          <View className="flex-row items-center gap-x-3">
-            <Ionicons name="star" size={24} color="white" />
-            <Text className="text-white text-base font-bold">Pagar con MonedasFit (5 🪙)</Text>
-          </View>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        onPress={handleMonedasPay}
+        disabled={isSubmitDisabled || !hasMonedas}
+        className={`rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''} ${hasMonedas ? 'bg-amber-500' : 'bg-gray-300'}`}
+        style={{ minHeight: 56 }}
+      >
+        <View className="flex-row items-center gap-x-3">
+          <Ionicons name="star" size={24} color={hasMonedas ? 'white' : '#9CA3AF'} />
+          <Text className={`text-base font-bold ${hasMonedas ? 'text-white' : 'text-gray-500'}`}>
+            {hasMonedas ? 'Pagar con MonedasFit (5 🪙)' : `Sin monedas suficientes (${monedasSaldo} 🪙)`}
+          </Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Countdown Timer */}
       <View className="flex-row items-center justify-center mb-2 gap-x-2">

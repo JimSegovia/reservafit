@@ -105,7 +105,8 @@ export default function ClientHomeScreen() {
       await Promise.all([
         fetchClasses(),
         fetchInstructors(),
-        fetchReservations()
+        fetchReservations(),
+        fetchMonedas()
       ]);
       setLoading(false);
     };
@@ -237,12 +238,12 @@ export default function ClientHomeScreen() {
         <Text className="text-2xl font-normal text-black">
           ¡Hola, {user?.name || 'Ana Pérez'}! 👋
         </Text>
-        <View className="flex-row items-center mt-2">
+        <TouchableOpacity onPress={() => router.push('/monedas')} className="flex-row items-center mt-2">
           <View className="bg-amber-100 rounded-full px-3 py-1 flex-row items-center">
             <Ionicons name="star" size={14} color="#D97706" />
             <Text className="text-amber-700 font-bold text-sm ml-1">{monedasSaldo} 🪙</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </Animated.View>
 
       <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium text-center text-sm tracking-wide mb-4`}>
@@ -534,6 +535,14 @@ export default function ClientHomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
         <ClientDesktopShell title={`¡Hola, ${user?.name || 'Ana Pérez'}! 👋`} subtitle="Resumen general">
+            {isWeb && (
+              <TouchableOpacity onPress={() => router.push('/monedas')} className="mb-4">
+                <View className="bg-amber-100 rounded-full px-4 py-2 flex-row items-center self-start">
+                  <Ionicons name="star" size={16} color="#D97706" />
+                  <Text className="text-amber-700 font-bold text-sm ml-1.5">{monedasSaldo} 🪙 MonedasFit</Text>
+                </View>
+              </TouchableOpacity>
+            )}
             {isWeb ? desktopContent : mobileContent}
         </ClientDesktopShell>
 

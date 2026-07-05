@@ -268,6 +268,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }
 
       set({ reservations: mappedReservations });
+      await get().fetchMonedas();
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -509,6 +510,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }
 
       set({ user: userObj, reservations: mappedReservations });
+      await get().fetchMonedas();
       return true;
     } catch (error) {
       console.error('Restore session error:', error);
