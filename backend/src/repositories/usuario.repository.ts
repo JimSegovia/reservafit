@@ -63,15 +63,15 @@ export class UsuarioRepository {
           select: { correo_electronico: true, rol: true, estado_verificacion: true }
         },
         reservas: {
-          include: { 
-            detalle_clase: { 
-              include: { 
+          include: {
+            detalles_reserva: true,
+            detalle_clase: {
+              include: {
                 clase: {
-                  // Le decimos explícitamente qué columnas traer, sin tocar 'dia'
-                  select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true }
-                } 
-              } 
-            } 
+                  select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true, precio: true }
+                }
+              }
+            }
           }
         }
       }

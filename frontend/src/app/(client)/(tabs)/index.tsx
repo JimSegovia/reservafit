@@ -377,7 +377,7 @@ export default function ClientHomeScreen() {
                               style={{ width: 88, height: 88 }}
                               resizeMode="cover"
                             />
-                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), mySeats: res.seats, status: res.status })}>
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), mySeats: res.seats, classId: res.classId, status: res.status })}>
                             <View>
                                 <Text className="text-[14px] font-bold text-black">{res.className}</Text>
                                 <Text className="text-[13px] font-semibold text-gray-600 mt-1">{res.time}</Text>
@@ -556,7 +556,7 @@ export default function ClientHomeScreen() {
             seat={quickReservation?.seat}
             mySeats={quickReservation?.mySeats}
             status={quickReservation?.status}
-            onOpenFull={() => quickReservation && router.push('/(client)/(tabs)/classes/detail')}
+            onOpenFull={() => quickReservation ? (setQuickReservation(null), router.push(`/(client)/(tabs)/classes/detail?id=${quickReservation.classId || ''}`)) : null}
         />
 
         <ConfirmDialog
