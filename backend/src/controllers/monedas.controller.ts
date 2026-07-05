@@ -37,6 +37,18 @@ export class MonedasController {
       const { motivo } = req.body;
       const tipoMotivo = (motivo === 'admin') ? 'cancelacion_admin' : 'cancelacion_cliente';
 
+      const reserva = await prisma.reserva.findUnique({
+        where: { id_reserva },
+        select: { estado: true },
+      });
+
+      if (!reserva) {
+        res.status(404).json({ success: false, error: 'Reserva no encontrada' });
+        return;
+      }
+
+      const estabaConfirmada = reserva.estado === EstadoReserva.Confirmada;
+
       await prisma.reserva.update({
         where: { id_reserva },
         data: { estado: EstadoReserva.Cancelada_Por_Gimnasio },
@@ -46,9 +58,12 @@ export class MonedasController {
         where: { id_reserva },
       });
 
-      await MonedasService.devolverMonedas(id_reserva, tipoMotivo);
-
-      res.status(200).json({ success: true, message: 'Reserva cancelada. Se devolvieron 5 monedas.' });
+      if (estabaConfirmada) {
+        await MonedasService.devolverMonedas(id_reserva, tipoMotivo);
+        res.status(200).json({ success: true, message: 'Reserva cancelada. Se devolvieron 5 monedas.', monedas: true });
+      } else {
+        res.status(200).json({ success: true, message: 'Reserva cancelada. No se devolvieron monedas (pago no completado).', monedas: false });
+      }
     } catch (error: any) {
       logger.error(`Error cancelando reserva: ${error.message}`);
       res.status(500).json({ success: false, error: error.message });

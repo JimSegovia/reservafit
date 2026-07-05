@@ -572,7 +572,9 @@ export default function ClientHomeScreen() {
         <ConfirmDialog
             visible={!!reservationToCancel}
             title="Cancelar Reserva"
-            message="¿Estás seguro de que deseas cancelar esta reserva? Recibirás 5 monedas de reembolso."
+            message={reservationToCancel && reservations.find(r => r.id === reservationToCancel)?.status === 'Pagado'
+              ? "¿Estás seguro de que deseas cancelar esta reserva? Recibirás 5 monedas de reembolso."
+              : "¿Estás seguro de que deseas cancelar esta reserva? No recibirás monedas porque el pago no fue completado."}
             confirmLabel="Cancelar Reserva"
             cancelLabel="Mantener"
             onConfirm={handleCancelReservationConfirm}

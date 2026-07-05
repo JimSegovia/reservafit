@@ -1003,8 +1003,12 @@ export const useAppStore = create<AppState>((set, get) => {
 
   cancelReservationWithMonedas: async (id) => {
     try {
-      await api.patch(`/monedas/cancelar/${id}`, { motivo: 'cliente' });
-      get().showToast('Reserva cancelada. Recibiste 5 monedas.', 'success');
+      const response = await api.patch(`/monedas/cancelar/${id}`, { motivo: 'cliente' });
+      const msg = response.data.monedas
+        ? 'Reserva cancelada. Recibiste 5 monedas.'
+        : 'Reserva cancelada. No se devolvieron monedas (pago no completado).';
+      const type = response.data.monedas ? 'success' : 'warning';
+      get().showToast(msg, type);
       await get().fetchReservations();
       await get().fetchMonedas();
     } catch (error) {
