@@ -8,7 +8,11 @@ const PORT = envs.PORT; // Usamos la variable validada, no process.env
 
 async function bootstrap() {
   try {
-    // 1. Validamos la conexión a la base de datos
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Clases" ADD COLUMN IF NOT EXISTS "precio" DECIMAL(10,2) NOT NULL DEFAULT 5`
+    );
+    logger.info('Schema verificado.');
+
     await prisma.$queryRaw`SELECT 1`;
     logger.info('Conexión nativa a la base de datos establecida de forma segura.');
 
