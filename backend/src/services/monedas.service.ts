@@ -48,10 +48,12 @@ export class MonedasService {
       motivo === 'cancelacion_admin' ? 'devuelta_admin' :
       'devuelta_minimo';
 
-    await MonedasRepository.sumarMonedas(reserva.id_usuario, 5);
-    await MonedasRepository.registrarHistorial(reserva.id_usuario, 5, tipoHistorial, id_reserva);
+    const totalMonedas = 5 * reserva.cantidad_cupos;
 
-    logger.info(`Monedas devueltas: reserva ${id_reserva}, usuario ${reserva.id_usuario}, motivo ${motivo}`);
+    await MonedasRepository.sumarMonedas(reserva.id_usuario, totalMonedas);
+    await MonedasRepository.registrarHistorial(reserva.id_usuario, totalMonedas, tipoHistorial, id_reserva);
+
+    logger.info(`Monedas devueltas: reserva ${id_reserva}, usuario ${reserva.id_usuario}, motivo ${motivo}, total ${totalMonedas}`);
   }
 
   static async verificarBonoFidelidad(id_usuario: string) {
@@ -96,8 +98,9 @@ export class MonedasService {
     if (reservasConfirmadas.length === 0) return;
 
     for (const res of reservasConfirmadas) {
-      await MonedasRepository.sumarMonedas(res.id_usuario, 5);
-      await MonedasRepository.registrarHistorial(res.id_usuario, 5, 'devuelta_minimo', res.id_reserva);
+      const totalMonedas = 5 * res.cantidad_cupos;
+      await MonedasRepository.sumarMonedas(res.id_usuario, totalMonedas);
+      await MonedasRepository.registrarHistorial(res.id_usuario, totalMonedas, 'devuelta_minimo', res.id_reserva);
 
       await prisma.reserva.update({
         where: { id_reserva: res.id_reserva },
