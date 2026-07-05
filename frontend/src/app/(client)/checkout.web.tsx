@@ -71,6 +71,9 @@ export default function CheckoutScreen() {
 
   const hasMonedas = monedasSaldo >= 5;
 
+  const monedasNeeded = currentBooking ? currentBooking.selectedSeats.length * 5 : 5;
+  const hasEnoughMonedas = monedasSaldo >= monedasNeeded;
+
   const handleConfirm = async () => {
     setIsProcessing(true);
     
@@ -171,14 +174,14 @@ export default function CheckoutScreen() {
       {/* MonedasFit Payment Button */}
       <TouchableOpacity
         onPress={handleMonedasPay}
-        disabled={isSubmitDisabled || !hasMonedas}
-        className={`rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''} ${hasMonedas ? 'bg-amber-500' : 'bg-gray-300'}`}
+        disabled={isSubmitDisabled || !hasEnoughMonedas}
+        className={`rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''} ${hasEnoughMonedas ? 'bg-amber-500' : 'bg-gray-300'}`}
         style={{ minHeight: 56 }}
       >
         <View className="flex-row items-center gap-x-3">
-          <Ionicons name="star" size={24} color={hasMonedas ? 'white' : '#9CA3AF'} />
-          <Text className={`text-base font-bold ${hasMonedas ? 'text-white' : 'text-gray-500'}`}>
-            {hasMonedas ? 'Pagar con MonedasFit (5 🪙)' : `Sin monedas suficientes (${monedasSaldo} 🪙)`}
+          <Ionicons name="star" size={24} color={hasEnoughMonedas ? 'white' : '#9CA3AF'} />
+          <Text className={`text-base font-bold ${hasEnoughMonedas ? 'text-white' : 'text-gray-500'}`}>
+            {hasEnoughMonedas ? `Pagar con MonedasFit (${monedasNeeded} 🪙)` : `Sin monedas suficientes (${monedasSaldo}/${monedasNeeded} 🪙)`}
           </Text>
         </View>
       </TouchableOpacity>

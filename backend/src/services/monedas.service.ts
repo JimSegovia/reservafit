@@ -12,20 +12,28 @@ export class MonedasService {
 
   static async pagarConMonedas(id_reserva: string, id_usuario: string) {
     const saldo = await MonedasRepository.obtenerSaldo(id_usuario);
-    if (saldo.saldo_monedas < 5) {
-      throw new Error('Saldo insuficiente. Necesitas 5 monedas para esta clase.');
+
+    const reserva = await prisma.reserva.findUnique({
+      where: { id_reserva },
+      select: { cantidad_cupos: true },
+    });
+
+    const totalMonedas = (reserva?.cantidad_cupos || 1) * 5;
+
+    if (saldo.saldo_monedas < totalMonedas) {
+      throw new Error(`Saldo insuficiente. Necesitas ${totalMonedas} monedas para ${reserva?.cantidad_cupos || 1} cupos.`);
     }
 
-    await MonedasRepository.restarMonedas(id_usuario, 5);
-    await MonedasRepository.registrarHistorial(id_usuario, -5, 'gastada_clase', id_reserva);
+    await MonedasRepository.restarMonedas(id_usuario, totalMonedas);
+    await MonedasRepository.registrarHistorial(id_usuario, -totalMonedas, 'gastada_clase', id_reserva);
 
     await prisma.reserva.update({
       where: { id_reserva },
       data: { estado: EstadoReserva.Confirmada },
     });
 
-    logger.info(`Reserva ${id_reserva} pagada con monedas por usuario ${id_usuario}`);
-    return { success: true, saldo_restante: saldo.saldo_monedas - 5 };
+    logger.info(`Reserva ${id_reserva} pagada con monedas por usuario ${id_usuario} (${totalMonedas} monedas)`);
+    return { success: true, saldo_restante: saldo.saldo_monedas - totalMonedas };
   }
 
   static async devolverMonedas(id_reserva: string, motivo: 'cancelacion_cliente' | 'cancelacion_admin' | 'minimo_no_alcanzado') {

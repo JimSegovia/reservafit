@@ -67,6 +67,7 @@ export class UsuarioRepository {
           select: { correo_electronico: true, rol: true, estado_verificacion: true }
         },
         reservas: {
+          orderBy: { fecha_reserva: 'desc' },
           include: {
             detalles_reserva: true,
             detalle_clase: {
