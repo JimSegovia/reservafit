@@ -53,7 +53,7 @@ export class PagoController {
 
   static async handleVerifyPayment(req: Request, res: Response): Promise<void> {
     try {
-      const { id_reserva } = req.params;
+      const id_reserva = String(req.params.id_reserva);
 
       if (!id_reserva) {
         res.status(400).json({ error: 'Falta id_reserva' });
