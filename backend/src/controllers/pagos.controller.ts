@@ -27,14 +27,14 @@ export class PagoController {
 
   static async handleWebhook(req: Request, res: Response): Promise<void> {
     try {
-      const { topic, id, type } = req.query;
+      const reqQuery = req.query as Record<string, string>;
       const { data } = req.body || {};
 
-      let eventId = id as string;
-      let eventTopic = (topic || type || 'payment') as string;
+      let eventId = reqQuery.id || '';
+      let eventTopic = reqQuery.topic || reqQuery.type || 'payment';
 
       if (!eventId && data?.id) {
-        eventId = data.id;
+        eventId = String(data.id);
       }
 
       if (!eventId) {
