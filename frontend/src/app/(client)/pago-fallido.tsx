@@ -18,13 +18,13 @@ export default function PagoFallidoScreen() {
   const externalReference = (params.external_reference as string) || '';
 
   useEffect(() => {
-    if (externalReference) {
+    if (externalReference && Platform.OS === 'web') {
       localStorage.setItem('pending_payment_reserva_id', externalReference);
     }
   }, [externalReference]);
 
   const handleRetry = () => {
-    const storedId = localStorage.getItem('pending_payment_reserva_id');
+    const storedId = Platform.OS === 'web' ? localStorage.getItem('pending_payment_reserva_id') : null;
     if (currentBooking || storedId) {
       router.replace('/(client)/checkout');
     } else {

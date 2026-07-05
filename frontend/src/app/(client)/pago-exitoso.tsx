@@ -23,7 +23,7 @@ export default function PagoExitosoScreen() {
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    const storedId = localStorage.getItem('pending_payment_reserva_id');
+    const storedId = Platform.OS === 'web' ? localStorage.getItem('pending_payment_reserva_id') : null;
     const reservaId = externalReference || storedId || '';
 
     const verify = async () => {
@@ -35,7 +35,7 @@ export default function PagoExitosoScreen() {
         const response = await api.get(`/pagos/verify/${reservaId}`);
         if (response.data.status === 'approved') {
           setConfirmed(true);
-          localStorage.removeItem('pending_payment_reserva_id');
+          if (Platform.OS === 'web') localStorage.removeItem('pending_payment_reserva_id');
           await fetchReservations();
         }
       } catch (err) {

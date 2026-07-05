@@ -84,6 +84,7 @@ interface AppState {
   user: User | null;
   otpCode: string | null;
   tempRegisterData: Partial<User> | null;
+  tempPassword: string | null;
   tempResetEmail: string | null;
   
   // Toast state
@@ -191,6 +192,7 @@ export const useAppStore = create<AppState>((set, get) => {
   user: null,
   otpCode: null,
   tempRegisterData: null,
+  tempPassword: null,
   tempResetEmail: null,
   
   instructors: [],
@@ -294,7 +296,7 @@ export const useAppStore = create<AppState>((set, get) => {
         payload.codigo_referido = data.codigo_referido.toUpperCase();
       }
       await authService.register(payload);
-      set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client', id: data.password } });
+      set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client' }, tempPassword: data.password });
       return { success: true };
     } catch (error: any) {
       const message = error?.response?.data?.error || error?.response?.data?.detalles?.[0]?.mensaje || 'Error al registrar. Verifica tus datos o intenta más tarde.';
@@ -398,7 +400,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
   verifyOtp: async (code) => {
     try {
-      const { tempRegisterData } = get();
+      const { tempRegisterData, tempPassword } = get();
       if (!tempRegisterData || !tempRegisterData.email) return false;
       
       await api.post('/auth/verify-otp', {
@@ -406,11 +408,10 @@ export const useAppStore = create<AppState>((set, get) => {
         codigo_otp: code
       });
       
-      // Auto login
-      if (tempRegisterData.email && tempRegisterData.id) {
-        const success = await get().login(tempRegisterData.email, tempRegisterData.id);
+      if (tempRegisterData.email && tempPassword) {
+        const success = await get().login(tempRegisterData.email, tempPassword);
         if (success) {
-          set({ tempRegisterData: null, otpCode: null });
+          set({ tempRegisterData: null, tempPassword: null, otpCode: null });
           return true;
         }
       }
@@ -807,7 +808,7 @@ export const useAppStore = create<AppState>((set, get) => {
           apellidos: bookingData.clientLastName,
           correo_electronico: bookingData.clientEmail,
           celular: bookingData.clientPhone,
-          contrasena: 'ReservaFit123!',
+          contrasena: Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2),
           rol: 'Cliente'
         });
         const newUserId = registerResponse.data.data.usuario.id_usuario;

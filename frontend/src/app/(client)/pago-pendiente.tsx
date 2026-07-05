@@ -29,7 +29,7 @@ export default function PagoPendienteScreen() {
         const response = await api.get(`/pagos/verify/${externalReference}`);
         if (response.data.status === 'approved') {
           setConfirmed(true);
-          localStorage.removeItem('pending_payment_reserva_id');
+          if (Platform.OS === 'web') localStorage.removeItem('pending_payment_reserva_id');
           await fetchReservations();
           if (intervalRef.current) clearInterval(intervalRef.current);
           setTimeout(() => {

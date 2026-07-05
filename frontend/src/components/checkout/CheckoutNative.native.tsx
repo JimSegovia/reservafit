@@ -47,7 +47,7 @@ export default function CheckoutNative() {
       // Aquí se conectará con el servicio de Mercado Pago en el futuro
       // Por ahora, simulamos el éxito y registramos la reserva en el store
       
-      const reservation = confirmBooking(phoneYape || user?.phone || '999888777');
+      const reservation = await confirmBooking(phoneYape || user?.phone || '999888777');
       
       if (!reservation) {
         throw new Error('No se pudo registrar la reserva.');
