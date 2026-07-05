@@ -1,23 +1,39 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { AuthController } from '../controllers/auth.controller.js';
 import { validarEsquema } from '../middlewares/validator.middleware.js';
 import { registerSchema, loginSchema, verifyOtpSchema, forgotPasswordSchema, resetPasswordSchema } from '../types/auth.dto.js';
 
 const router = Router();
 
-// Endpoint: POST /api/auth/register (Protegido con Zod)
-router.post('/register', validarEsquema(registerSchema), AuthController.register);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.' },
+});
 
-// Endpoint: POST /api/auth/login (Protegido con Zod)
-router.post('/login', validarEsquema(loginSchema), AuthController.login);
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiadas cuentas creadas. Intenta de nuevo en 1 hora.' },
+});
 
-// Endpoint: POST /api/auth/verify-otp (Protegido con Zod)
-router.post('/verify-otp', validarEsquema(verifyOtpSchema), AuthController.verifyOtp);
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiados intentos de verificación. Intenta de nuevo en 15 minutos.' },
+});
 
-// Endpoint: POST /api/auth/forgot-password (Protegido con Zod)
-router.post('/forgot-password', validarEsquema(forgotPasswordSchema), AuthController.forgotPassword);
+const forgotPwdLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiadas solicitudes. Intenta de nuevo en 15 minutos.' },
+});
 
-// Endpoint: POST /api/auth/reset-password (Protegido con Zod)
+router.post('/register', registerLimiter, validarEsquema(registerSchema), AuthController.register);
+router.post('/login', loginLimiter, validarEsquema(loginSchema), AuthController.login);
+router.post('/verify-otp', otpLimiter, validarEsquema(verifyOtpSchema), AuthController.verifyOtp);
+router.post('/forgot-password', forgotPwdLimiter, validarEsquema(forgotPasswordSchema), AuthController.forgotPassword);
 router.post('/reset-password', validarEsquema(resetPasswordSchema), AuthController.resetPassword);
 
 export default router;

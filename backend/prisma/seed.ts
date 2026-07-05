@@ -178,7 +178,7 @@ async function main() {
   console.log('✅ Detalles de clase creados:', detalles.length, 'horarios');
 
   // 4. Crear Usuarios de Prueba
-  const passwordHash = await hash('123456', 10);
+  const passwordHash = await hash('ReservaFit2026!', 10);
 
   // Admin
   const adminUsuario = await prisma.usuario.create({

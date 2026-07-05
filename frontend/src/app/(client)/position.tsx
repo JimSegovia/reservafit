@@ -23,6 +23,7 @@ export default function PositionSelectorScreen() {
   const isNative = Platform.OS !== 'web';
 
   const [occupiedList, setOccupiedList] = useState<number[]>([]);
+  const [seatsLoading, setSeatsLoading] = useState(true);
 
   // If no booking is active, go back
   useEffect(() => {
@@ -41,7 +42,9 @@ export default function PositionSelectorScreen() {
       } catch (err) {
         console.error('Error fetching occupied seats:', err);
       }
+      setSeatsLoading(false);
     };
+    setSeatsLoading(true);
     fetchOccupied();
   }, [currentBooking]);
 

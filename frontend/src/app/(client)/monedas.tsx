@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +17,10 @@ export default function MonedasScreen() {
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchMonedas();
+    fetchMonedas().finally(() => setLoading(false));
   }, []);
 
   const tipoLabels: Record<string, string> = {
@@ -45,8 +47,14 @@ export default function MonedasScreen() {
         <Animated.View entering={FadeInDown.duration(200).delay(50)} className="bg-amber-500 rounded-3xl p-6 mb-6 shadow-lg shadow-amber-500/20">
           <Text className="text-white text-sm font-bold opacity-80 mb-1">Tu saldo</Text>
           <View className="flex-row items-baseline">
-            <Text className="text-white text-5xl font-extrabold">{monedasSaldo}</Text>
-            <Text className="text-white text-2xl font-bold ml-2">🪙</Text>
+            {loading ? (
+              <ActivityIndicator color="white" size="large" />
+            ) : (
+              <>
+                <Text className="text-white text-5xl font-extrabold">{monedasSaldo}</Text>
+                <Text className="text-white text-2xl font-bold ml-2">🪙</Text>
+              </>
+            )}
           </View>
           <Text className="text-white text-sm mt-2 opacity-70">
             Cada clase cuesta 5 monedas
