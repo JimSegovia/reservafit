@@ -110,8 +110,8 @@ export class PagoService {
 
       const mpPayment = await paymentService.get({ id });
 
-      if (!mpPayment || !mpPayment.external_reference) {
-        logger.warn(`Webhook sin external_reference válida, ignorado: ${id}`);
+      if (!mpPayment || !mpPayment.id || !mpPayment.external_reference) {
+        logger.warn(`Webhook con ID de pago no encontrado o sin external_reference en MP: ${id}`);
         await PagoRepository.registrarWebhook(id, topic);
         return;
       }
@@ -136,8 +136,8 @@ export class PagoService {
 
       await PagoRepository.registrarWebhook(id, topic, pago.id_pago);
     } catch (error: any) {
-      logger.error('Error procesando webhook:', error);
-      throw error;
+      logger.error(`Error procesando webhook ${id}:`, error.message);
+      await PagoRepository.registrarWebhook(id, topic).catch(() => {});
     }
   }
 }
