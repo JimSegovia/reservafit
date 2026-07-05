@@ -554,6 +554,7 @@ export default function ClientHomeScreen() {
             time={quickReservation?.time}
             date={quickReservation?.date}
             seat={quickReservation?.seat}
+            mySeats={quickReservation?.mySeats}
             status={quickReservation?.status}
             onOpenFull={() => quickReservation && router.push('/(client)/(tabs)/classes/detail')}
         />
