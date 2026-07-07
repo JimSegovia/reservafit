@@ -89,6 +89,10 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
           ))}
         </View>
 
+        <TouchableOpacity onPress={() => router.push('/help' as any)} className="flex-row items-center px-4 py-4">
+          <Ionicons name="help-buoy-outline" size={22} color="white" />
+          <Text className="text-white font-semibold ml-3 text-[15px]">Ayuda / FAQ</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center w-full pl-4 pr-3 py-4 mb-2">
           <Ionicons name="log-out-outline" size={22} color="white" />
           <Text className="text-white font-semibold ml-3 text-[15px]">Cerrar sesión</Text>

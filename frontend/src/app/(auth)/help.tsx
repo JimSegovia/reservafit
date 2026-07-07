@@ -6,9 +6,17 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import { Image as ExpoImage } from 'expo-image';
 
+type HelpTab = 'faq' | 'manual';
+
 interface FAQItem {
   question: string;
   answer: string;
+}
+
+interface ManualSection {
+  title: string;
+  content: string;
+  subsections?: { title: string; content: string }[];
 }
 
 export default function HelpScreen() {
@@ -17,7 +25,9 @@ export default function HelpScreen() {
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
 
+  const [activeTab, setActiveTab] = useState<HelpTab>('faq');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openManualIndex, setOpenManualIndex] = useState<number | null>(null);
 
   const faqs: FAQItem[] = [
     {
@@ -42,8 +52,68 @@ export default function HelpScreen() {
     },
   ];
 
+  const manualSections: ManualSection[] = [
+    {
+      title: '1. Introducción',
+      content: 'ReservaFit es una plataforma de reserva de clases de fitness (Salsa, Bachata, Zumba, Reggaetón) que te permite buscar horarios, seleccionar tu asiento en un mapa interactivo y gestionar tus reservas desde un solo lugar.',
+    },
+    {
+      title: '2. Primeros pasos',
+      content: '',
+      subsections: [
+        { title: 'Crear una cuenta', content: '1. Presiona "Registrarse" en la pantalla de inicio.\n2. Completa el formulario con tu nombre, correo, teléfono y contraseña.\n3. Recibirás un código de verificación OTP de 6 dígitos en tu correo.\n4. Ingresa el código en la pantalla de verificación para activar tu cuenta.' },
+        { title: 'Iniciar sesión', content: '1. Presiona "Iniciar sesión" en la pantalla de inicio.\n2. Ingresa tu correo electrónico y contraseña.\n3. Serás redirigido a tu panel de control.' },
+        { title: 'Recuperar contraseña', content: '1. Presiona "¿Olvidaste tu contraseña?" en la pantalla de login.\n2. Ingresa tu correo electrónico.\n3. Recibirás un código OTP para restablecer tu contraseña.\n4. Ingresa el código y define una nueva contraseña.' },
+      ],
+    },
+    {
+      title: '3. Explorar clases',
+      content: '',
+      subsections: [
+        { title: 'Catálogo de clases', content: 'Desde el tab "Clases" en la barra inferior (móvil) o el menú lateral (web) puedes ver todas las disciplinas: Salsa, Bachata, Zumba, Reggaetón y clases especiales.' },
+        { title: 'Filtrar por día o disciplina', content: 'Usa los filtros en la parte superior: selecciona un día específico de la semana o elige un tipo de clase.' },
+        { title: 'Calendario de horarios', content: 'Navega por las semanas con las flechas (< >) para ver la programación completa en una cuadrícula de días vs. horarios.' },
+      ],
+    },
+    {
+      title: '4. Reservar una clase',
+      content: '',
+      subsections: [
+        { title: 'Ver horarios disponibles', content: 'Selecciona una clase del catálogo, presiona "Ver horarios y reservar" y elige entre las próximas sesiones.' },
+        { title: 'Ver detalle de la clase', content: 'Presiona una sesión para ver: nombre, instructor, horario, capacidad disponible (X/30) y precio. Presiona "Inscribirse" para continuar.' },
+        { title: 'Seleccionar asientos', content: 'Se abrirá el mapa interactivo con 30 asientos. Los ocupados están en gris/rojo, los disponibles en verde. Selecciona tus asientos —quedan bloqueados por 10 minutos mientras completas el pago.' },
+        { title: 'Completar el pago', content: 'Web: paga con Yape/PLIN. App móvil: paga con tarjeta de crédito/débito vía Stripe o Mercado Pago. Al confirmar, verás la pantalla de éxito con los detalles.' },
+      ],
+    },
+    {
+      title: '5. Métodos de pago',
+      content: 'Web: Yape, PLIN.\nApp móvil (iOS): tarjetas de crédito/débito, Apple Pay (vía Stripe).\nApp móvil (Android): tarjetas de crédito/débito, Mercado Pago.',
+    },
+    {
+      title: '6. Gestionar reservas',
+      content: '',
+      subsections: [
+        { title: 'Ver mis reservas', content: 'Desde el panel "Inicio" ves tus reservas activas. Móvil: tarjetas con imagen y botón cancelar. Web: tabs "Mis clases", "Clases de hoy" y "Calendario".' },
+        { title: 'Cancelar una reserva', content: 'Presiona "Cancelar" en la clase, confirma en el diálogo. La reserva se cancela y el reembolso se procesa automáticamente.' },
+        { title: 'Política de cancelación', content: 'Las cancelaciones son inmediatas. El reembolso es automático. No hay penalización.' },
+      ],
+    },
+    {
+      title: '7. Perfil y configuración',
+      content: 'Presiona tu nombre (web) o el botón de perfil (móvil). Puedes editar nombre y teléfono, luego presiona "Guardar cambios". Para cerrar sesión, usa el menú lateral (web) o la pantalla de perfil (móvil).',
+    },
+    {
+      title: '8. Historial de pagos',
+      content: 'Desde el tab "Pagos" ves el historial completo: clase, monto, fecha, método de pago y estado. Presiona una entrada para ver el comprobante.',
+    },
+  ];
+
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
+  };
+
+  const toggleManualSection = (index: number) => {
+    setOpenManualIndex(openManualIndex === index ? null : index);
   };
 
   return (
@@ -68,7 +138,7 @@ export default function HelpScreen() {
             paddingBottom: 30, 
             paddingHorizontal: isWeb ? 0 : 24, 
             paddingVertical: isWeb ? 40 : 16,
-            justifyContent: isWeb ? 'center' : 'flex-start'
+            justifyContent: isWeb ? 'flex-start' : 'flex-start'
           }} 
           showsVerticalScrollIndicator={false}
         >
@@ -97,56 +167,149 @@ export default function HelpScreen() {
                 <Ionicons name="help-buoy-outline" size={28} color="#FF7A00" />
               </View>
               <Text className="text-2xl font-extrabold text-black text-center">Centro de Ayuda</Text>
-              <Text className="text-gray-500 text-xs font-bold text-center mt-1">Preguntas Frecuentes (FAQ)</Text>
             </Animated.View>
 
-            {/* Accordion FAQ List */}
-            <View className="gap-y-3">
-              {faqs.map((faq, index) => {
-                const isOpen = openIndex === index;
-                return (
-                  <Animated.View 
-                    key={index} 
-                    entering={FadeInDown.duration(200).delay(80 + index * 40)}
-                    layout={Layout.springify()}
-                    className={`border rounded-2xl bg-white overflow-hidden ${isOpen ? 'border-primary' : 'border-gray-300'}`}
-                  >
-                    <TouchableOpacity 
-                      onPress={() => toggleFAQ(index)} 
-                      activeOpacity={0.7}
-                      className="flex-row justify-between items-center p-4"
-                    >
-                      <Text className={`text-sm font-bold flex-1 pr-4 ${isOpen ? isNative ? 'text-primary-text-strong' : 'text-primary' : 'text-gray-800'}`}>
-                        {faq.question}
-                      </Text>
-                      <Ionicons 
-                        name={isOpen ? 'chevron-up-outline' : 'chevron-down-outline'} 
-                        size={18} 
-                        color={isOpen ? '#FF7A00' : 'gray'} 
-                      />
-                    </TouchableOpacity>
+            {/* Tab Switcher */}
+            <Animated.View entering={FadeInDown.duration(200).delay(80)} className="flex-row bg-gray-100 rounded-xl p-1 mb-6">
+              <TouchableOpacity
+                onPress={() => setActiveTab('faq')}
+                className={`flex-1 py-3 rounded-xl items-center ${activeTab === 'faq' ? 'bg-white shadow-sm' : ''}`}
+              >
+                <Text className={`text-sm font-bold ${activeTab === 'faq' ? (isNative ? 'text-primary-text-strong' : 'text-primary') : 'text-gray-500'}`}>
+                  Preguntas Frecuentes
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('manual')}
+                className={`flex-1 py-3 rounded-xl items-center ${activeTab === 'manual' ? 'bg-white shadow-sm' : ''}`}
+              >
+                <Text className={`text-sm font-bold ${activeTab === 'manual' ? (isNative ? 'text-primary-text-strong' : 'text-primary') : 'text-gray-500'}`}>
+                  Manual de Usuario
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-                    {isOpen && (
-                      <Animated.View entering={FadeIn.duration(200)} className="px-4 pb-4 pt-1 border-t border-gray-100">
-                        <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold leading-relaxed`}>
-                          {faq.answer}
-                        </Text>
+            {/* FAQ Tab */}
+            {activeTab === 'faq' && (
+              <>
+                <Text className="text-gray-500 text-xs font-bold text-center mt-1 mb-4">Preguntas Frecuentes (FAQ)</Text>
+
+                <View className="gap-y-3">
+                  {faqs.map((faq, index) => {
+                    const isOpen = openIndex === index;
+                    return (
+                      <Animated.View 
+                        key={index} 
+                        entering={FadeInDown.duration(200).delay(80 + index * 40)}
+                        layout={Layout.springify()}
+                        className={`border rounded-2xl bg-white overflow-hidden ${isOpen ? 'border-primary' : 'border-gray-300'}`}
+                      >
+                        <TouchableOpacity 
+                          onPress={() => toggleFAQ(index)} 
+                          activeOpacity={0.7}
+                          className="flex-row justify-between items-center p-4"
+                        >
+                          <Text className={`text-sm font-bold flex-1 pr-4 ${isOpen ? isNative ? 'text-primary-text-strong' : 'text-primary' : 'text-gray-800'}`}>
+                            {faq.question}
+                          </Text>
+                          <Ionicons 
+                            name={isOpen ? 'chevron-up-outline' : 'chevron-down-outline'} 
+                            size={18} 
+                            color={isOpen ? '#FF7A00' : 'gray'} 
+                          />
+                        </TouchableOpacity>
+
+                        {isOpen && (
+                          <Animated.View entering={FadeIn.duration(200)} className="px-4 pb-4 pt-1 border-t border-gray-100">
+                            <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold leading-relaxed`}>
+                              {faq.answer}
+                            </Text>
+                          </Animated.View>
+                        )}
                       </Animated.View>
-                    )}
-                  </Animated.View>
-                );
-              })}
-            </View>
+                    );
+                  })}
+                </View>
 
-            {/* Support Box */}
-            <Animated.View 
-              entering={FadeInDown.duration(200).delay(350)} 
-              className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
-            >
-              <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
-              <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿No encontraste lo que buscabas?</Text>
-              <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos directamente a soporte@reservafit.com y responderemos a la brevedad.</Text>
-            </Animated.View>
+                {/* Support Box */}
+                <Animated.View 
+                  entering={FadeInDown.duration(200).delay(350)} 
+                  className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                >
+                  <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
+                  <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿No encontraste lo que buscabas?</Text>
+                  <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos directamente a soporte@reservafit.com y responderemos a la brevedad.</Text>
+                </Animated.View>
+              </>
+            )}
+
+            {/* Manual de Usuario Tab */}
+            {activeTab === 'manual' && (
+              <>
+                <Text className="text-gray-500 text-xs font-bold text-center mt-1 mb-4">Guía completa de uso del sistema</Text>
+
+                <View className="gap-y-3">
+                  {manualSections.map((section, index) => {
+                    const isOpen = openManualIndex === index;
+                    return (
+                      <Animated.View 
+                        key={index} 
+                        entering={FadeInDown.duration(200).delay(80 + index * 40)}
+                        layout={Layout.springify()}
+                        className={`border rounded-2xl bg-white overflow-hidden ${isOpen ? 'border-primary' : 'border-gray-300'}`}
+                      >
+                        <TouchableOpacity 
+                          onPress={() => toggleManualSection(index)} 
+                          activeOpacity={0.7}
+                          className="flex-row justify-between items-center p-4"
+                        >
+                          <Text className={`text-sm font-bold flex-1 pr-4 ${isOpen ? isNative ? 'text-primary-text-strong' : 'text-primary' : 'text-gray-800'}`}>
+                            {section.title}
+                          </Text>
+                          <Ionicons 
+                            name={isOpen ? 'chevron-up-outline' : 'chevron-down-outline'} 
+                            size={18} 
+                            color={isOpen ? '#FF7A00' : 'gray'} 
+                          />
+                        </TouchableOpacity>
+
+                        {isOpen && (
+                          <Animated.View entering={FadeIn.duration(200)} className="px-4 pb-4 pt-1 border-t border-gray-100">
+                            {section.content ? (
+                              <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold leading-relaxed`}>
+                                {section.content}
+                              </Text>
+                            ) : null}
+                            {section.subsections ? (
+                              <View className="gap-y-3 mt-2">
+                                {section.subsections.map((sub, subIdx) => (
+                                  <View key={subIdx} className="bg-gray-50 rounded-xl p-3">
+                                    <Text className={`text-xs font-bold ${isNative ? 'text-gray-700' : 'text-gray-700'} mb-1.5`}>{sub.title}</Text>
+                                    <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-semibold leading-relaxed`}>
+                                      {sub.content}
+                                    </Text>
+                                  </View>
+                                ))}
+                              </View>
+                            ) : null}
+                          </Animated.View>
+                        )}
+                      </Animated.View>
+                    );
+                  })}
+                </View>
+
+                {/* Support Box */}
+                <Animated.View 
+                  entering={FadeInDown.duration(200).delay(350)} 
+                  className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                >
+                  <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
+                  <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿Necesitas más ayuda?</Text>
+                  <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos a soporte@reservafit.com y te atenderemos a la brevedad.</Text>
+                </Animated.View>
+              </>
+            )}
 
           </View>
         </ScrollView>

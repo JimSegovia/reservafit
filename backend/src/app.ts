@@ -5,6 +5,8 @@ import { errorHandler } from './middlewares/error.middleware.js';
 
 const app: Application = express();
 
+app.set('trust proxy', 1);
+
 // 1. Middlewares Globales
 
 // 2. Configuramos CORS para apuntar a tu Frontend en Vercel
