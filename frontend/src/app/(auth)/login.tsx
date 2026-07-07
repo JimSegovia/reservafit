@@ -67,7 +67,8 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      const success = await login(email, password);
+      const result = await login(email, password);
+      const success = typeof result === 'boolean' ? result : result?.success;
       
       if (success) {
         showToast('¡Inicio de sesión exitoso!', 'success');
@@ -79,9 +80,10 @@ export default function LoginScreen() {
           router.replace('/(client)/(tabs)');
         }
       } else {
-        setPasswordError('Credenciales incorrectas.');
-        setError('Error al iniciar sesión. Verifica tus datos.');
-        showToast('Error al iniciar sesión.', 'error');
+        const errorMsg = typeof result === 'object' ? result?.error : 'Error al iniciar sesión. Verifica tus datos.';
+        setPasswordError(errorMsg);
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
       }
     } finally {
       setLoading(false);

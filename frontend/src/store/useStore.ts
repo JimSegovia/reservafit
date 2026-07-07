@@ -109,7 +109,7 @@ interface AppState {
   monedasHistorial: any[];
 
   // Actions
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string } | boolean>;
   restoreSession: () => Promise<boolean>;
   registerUser: (data: any) => Promise<boolean>;
   fetchClasses: () => Promise<void>;
@@ -278,9 +278,10 @@ export const useAppStore = create<AppState>((set, get) => {
       set({ reservations: mappedReservations });
       await get().fetchMonedas();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      return false;
+      const message = error?.response?.data?.error || 'Error al iniciar sesión. Verifica tus datos.';
+      return { success: false, error: message };
     }
   },
 
