@@ -1,29 +1,16 @@
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { envs } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user: envs.GMAIL_USER,
-    pass: envs.GMAIL_APP_PASSWORD,
-  },
-  connectionTimeout: 15000,
-  socketTimeout: 20000,
-});
+sgMail.setApiKey(envs.SENDGRID_API_KEY);
 
 export class MailService {
   static async enviarCodigoVerificacion(correo: string, codigo: string): Promise<boolean> {
     try {
       logger.info(`[MailService] Enviando código OTP de verificación a ${correo}...`);
 
-      const info = await transporter.sendMail({
-        from: `"ReservaFit" <${envs.GMAIL_USER}>`,
+      await sgMail.send({
+        from: { email: envs.SENDGRID_FROM_EMAIL, name: envs.SENDGRID_FROM_NAME },
         to: correo,
         subject: 'Código de Verificación - ReservaFit',
         html: `
@@ -44,7 +31,7 @@ export class MailService {
         `,
       });
 
-      logger.info(`[MailService] Código OTP enviado con éxito a ${correo}. MessageId: ${info.messageId}`);
+      logger.info(`[MailService] Código OTP enviado con éxito a ${correo}.`);
       return true;
     } catch (error) {
       logger.error('[MailService] Error crítico al intentar enviar el correo electrónico:', error);
@@ -56,8 +43,8 @@ export class MailService {
     try {
       logger.info(`[MailService] Enviando código OTP de restablecimiento a ${correo}...`);
 
-      const info = await transporter.sendMail({
-        from: `"ReservaFit" <${envs.GMAIL_USER}>`,
+      await sgMail.send({
+        from: { email: envs.SENDGRID_FROM_EMAIL, name: envs.SENDGRID_FROM_NAME },
         to: correo,
         subject: 'Restablecer Contraseña - ReservaFit',
         html: `
@@ -78,7 +65,7 @@ export class MailService {
         `,
       });
 
-      logger.info(`[MailService] Código OTP de restablecimiento enviado con éxito a ${correo}. MessageId: ${info.messageId}`);
+      logger.info(`[MailService] Código OTP de restablecimiento enviado con éxito a ${correo}.`);
       return true;
     } catch (error) {
       logger.error('[MailService] Error crítico al intentar enviar correo de restablecimiento:', error);
