@@ -49,6 +49,19 @@ export default function ClientPaymentsHistoryScreen() {
   };
 
   const [selectedReceipt, setSelectedReceipt] = useState<typeof reservations[0] | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const sortedReservations = [...reservations];
+  const totalPages = Math.max(1, Math.ceil(sortedReservations.length / itemsPerPage));
+  const paginatedReservations = sortedReservations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
 
   const content = (
     <View style={{ flex: 1 }}>
@@ -59,42 +72,26 @@ export default function ClientPaymentsHistoryScreen() {
           paddingTop: isWeb ? 0 : 10,
           paddingBottom: 30,
         }} 
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
       >
         {isWeb ? (
           <>
-            <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center mb-5">
-              <TouchableOpacity
-                onPress={() => router.replace('/(client)/(tabs)')}
-                className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200 mr-3"
-              >
-                <Ionicons name="arrow-back" size={18} color="#111827" />
-              </TouchableOpacity>
-              <Text className="text-2xl font-extrabold text-black">Historial</Text>
-            </Animated.View>
-
-            <Animated.View entering={FadeIn.duration(220).delay(40)} className="flex-row border-b border-gray-200 mb-6 px-1">
-              <View className="pb-3 border-b-2 border-primary min-w-[120px]">
-                <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-center text-base`}>Pagos</Text>
-              </View>
-            </Animated.View>
-
             <Animated.View entering={FadeInDown.duration(260).delay(60)} className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
               <View className="flex-row border-b border-gray-200 py-4 px-8 bg-[#f8f6f1]">
-                <Text className="flex-[1.4] text-left text-[16px] font-extrabold text-gray-700">Fecha</Text>
-                <Text className="flex-[1.2] text-left text-[16px] font-extrabold text-gray-700">Clase</Text>
-                <Text className="flex-1 text-left text-[16px] font-extrabold text-gray-700">Monto</Text>
-                <Text className="flex-1 text-left text-[16px] font-extrabold text-gray-700">Estado</Text>
-                <Text className="w-[110px] text-center text-[16px] font-extrabold text-gray-700">Acciones</Text>
+                <Text className="flex-[1.4] text-left text-[16px] font-semibold text-gray-700">Fecha</Text>
+                <Text className="flex-[1.2] text-left text-[16px] font-semibold text-gray-700">Clase</Text>
+                <Text className="flex-1 text-left text-[16px] font-semibold text-gray-700">Monto</Text>
+                <Text className="flex-1 text-left text-[16px] font-semibold text-gray-700">Estado</Text>
+                <Text className="w-[70px] text-center text-[16px] font-semibold text-gray-700">Acciones</Text>
               </View>
 
               <View className="px-8 py-2">
-                {reservations.map((res, idx) => {
+                {paginatedReservations.map((res, idx) => {
                   const statusStyle = getStatusStyles(res.status);
                   return (
                     <View
                       key={res.id}
-                      className={`flex-row items-center py-4 ${idx !== reservations.length - 1 ? 'border-b border-gray-200' : ''}`}
+                      className={`flex-row items-center py-4 ${idx !== paginatedReservations.length - 1 ? 'border-b border-gray-200' : ''}`}
                     >
                       <Text className="flex-[1.4] text-[14px] font-semibold text-black">{res.date} · {getShortTime(res.time)}</Text>
                       <Text className="flex-[1.2] text-[14px] font-semibold text-black">{res.className}</Text>
@@ -106,12 +103,9 @@ export default function ClientPaymentsHistoryScreen() {
                         </View>
                       </View>
 
-                      <View className="w-[110px] flex-row justify-center gap-x-2">
-                        <TouchableOpacity onPress={() => setSelectedReceipt(res)} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
+                      <View className="w-[70px] flex-row justify-center">
+                        <TouchableOpacity onPress={() => setSelectedReceipt(res)} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
                           <Ionicons name="document-text-outline" size={17} color="#c2410c" />
-                        </TouchableOpacity>
-                        <TouchableOpacity className="w-9 h-9 rounded-lg bg-orange-50 items-center justify-center border border-orange-200">
-                          <Ionicons name="print-outline" size={17} color="#c2410c" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -120,13 +114,21 @@ export default function ClientPaymentsHistoryScreen() {
               </View>
 
               <View className="flex-row items-center justify-between border-t border-gray-200 px-7 py-4 bg-[#fcfbf8]">
-                <Text className="text-sm text-gray-600 font-medium">Pagina 1 de {Math.max(1, Math.ceil(reservations.length / 10))}</Text>
+                <Text className="text-sm text-gray-600 font-medium">Página {currentPage} de {totalPages}</Text>
                 <View className="flex-row gap-x-2">
-                  <TouchableOpacity className="px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => goToPage(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className={`px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center ${currentPage <= 1 ? 'opacity-40' : ''}`}
+                  >
                     <Ionicons name="chevron-back" size={16} color="#374151" />
                     <Text className="text-sm font-semibold text-gray-700 ml-1">Previous</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity className="px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => goToPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className={`px-4 py-2 rounded-xl border border-gray-300 bg-white flex-row items-center ${currentPage >= totalPages ? 'opacity-40' : ''}`}
+                  >
                     <Text className="text-sm font-semibold text-gray-700 mr-1">Next</Text>
                     <Ionicons name="chevron-forward" size={16} color="#374151" />
                   </TouchableOpacity>
@@ -136,32 +138,13 @@ export default function ClientPaymentsHistoryScreen() {
           </>
         ) : (
           <View style={{ flex: 1 }}>
-            <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center justify-between mb-5 mt-1">
-              <TouchableOpacity
-                onPress={() => router.replace('/(client)/(tabs)')}
-                className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200"
-              >
-                <Ionicons name="arrow-back" size={18} color="#111827" />
-              </TouchableOpacity>
-
-              <Text className="text-[22px] font-extrabold text-black">Historial</Text>
-
-              <TouchableOpacity
-                onPress={() => router.push('/profile')}
-                className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center border border-gray-200"
-              >
-                <Ionicons name="person-circle-outline" size={22} color="#6b7280" />
-              </TouchableOpacity>
+            <Animated.View entering={FadeIn.duration(220)} className="mb-5 mt-1">
+              <Text className="text-[22px] font-semibold text-black">Historial de Pagos</Text>
+              <Text className="text-[13px] text-gray-500 font-medium mt-1">Revisa el detalle de tus transacciones y pagos realizados.</Text>
             </Animated.View>
 
-            <Animated.View entering={FadeIn.duration(220).delay(40)} className="flex-row border-b border-gray-200 mb-5">
-              <View className="pb-3 border-b-2 border-primary min-w-[95px]">
-                <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-center text-base`}>Pagos</Text>
-              </View>
-            </Animated.View>
-
-            <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
-              {reservations.map((res, idx) => {
+            <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 8 }} showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}>
+              {paginatedReservations.map((res, idx) => {
                 const statusStyle = getStatusStyles(res.status);
                 return (
                   <Animated.View
@@ -242,7 +225,7 @@ export default function ClientPaymentsHistoryScreen() {
 
   return (
     isWeb
-      ? <ClientDesktopShell title="Historial de Pagos" subtitle="">{content}</ClientDesktopShell>
+      ? <ClientDesktopShell title="Historial de Pagos" subtitle="Revisa el detalle de tus transacciones y pagos realizados.">{content}</ClientDesktopShell>
       : <SafeAreaView className="flex-1 bg-cream">{content}</SafeAreaView>
   );
 }

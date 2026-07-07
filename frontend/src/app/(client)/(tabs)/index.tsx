@@ -70,10 +70,13 @@ export default function ClientHomeScreen() {
   const reservations = useAppStore((state) => state.reservations);
   const classes = useAppStore((state) => state.classes);
   const cancelReservation = useAppStore((state) => state.cancelReservation);
+  const cancelReservationWithMonedas = useAppStore((state) => state.cancelReservationWithMonedas);
   const showToast = useAppStore((state) => state.showToast);
   const fetchClasses = useAppStore((state) => state.fetchClasses);
   const fetchInstructors = useAppStore((state) => state.fetchInstructors);
   const fetchReservations = useAppStore((state) => state.fetchReservations);
+  const monedasSaldo = useAppStore((state) => state.monedasSaldo);
+  const fetchMonedas = useAppStore((state) => state.fetchMonedas);
 
   const [activeTab, setActiveTab] = useState<DesktopTab>('mis-clases');
   const [quickReservation, setQuickReservation] = useState<any>(null);
@@ -102,7 +105,8 @@ export default function ClientHomeScreen() {
       await Promise.all([
         fetchClasses(),
         fetchInstructors(),
-        fetchReservations()
+        fetchReservations(),
+        fetchMonedas()
       ]);
       setLoading(false);
     };
@@ -128,13 +132,12 @@ export default function ClientHomeScreen() {
 
   const handleCancelReservationConfirm = async () => {
     if (reservationToCancel) {
-      await cancelReservation(reservationToCancel);
+      await cancelReservationWithMonedas(reservationToCancel);
       setReservationToCancel(null);
-      showToast('Tu reserva ha sido cancelada y reembolsada.', 'success');
     }
   };
 
-  const clientReservations = reservations.filter((res) => res.status === 'Pagado');
+  const clientReservations = reservations.filter((res) => res.status === 'Pagado' || res.status === 'Pendiente');
   const todayReservations = useMemo(() => {
     const today = new Date();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -208,16 +211,20 @@ export default function ClientHomeScreen() {
   const mobileContent = (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
     >
       <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
-        <View className="flex-row items-center">
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.replace('/(client)/(tabs)')}
+          className="flex-row items-center cursor-pointer"
+        >
           <ExpoImage
             source={require('../../../../assets/images/logo.svg')}
             style={{ width: 150, height: 50 }}
             contentFit="contain"
           />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity 
           onPress={() => router.push('/profile')}
           className="flex-row items-center bg-gray-100 px-3 py-2 rounded-full border border-gray-200"
@@ -228,12 +235,18 @@ export default function ClientHomeScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(200).delay(50)} className="mb-6">
-        <Text className="text-2xl font-extrabold text-black">
+        <Text className="text-2xl font-normal text-black">
           ¡Hola, {user?.name || 'Ana Pérez'}! 👋
         </Text>
+        <TouchableOpacity onPress={() => router.push('/monedas')} className="flex-row items-center mt-2">
+          <View className="bg-amber-100 rounded-full px-3 py-1 flex-row items-center">
+            <Ionicons name="star" size={14} color="#D97706" />
+            <Text className="text-amber-700 font-bold text-sm ml-1">{monedasSaldo} 🪙</Text>
+          </View>
+        </TouchableOpacity>
       </Animated.View>
 
-      <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold text-center text-sm tracking-wide mb-4`}>
+      <Animated.Text entering={FadeInDown.duration(200).delay(100)} className={`${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium text-center text-sm tracking-wide mb-4`}>
         Estas son tus Clases Reservadas
       </Animated.Text>
 
@@ -261,7 +274,7 @@ export default function ClientHomeScreen() {
                     ? require('../../../../assets/images/Salsa.jpeg')
                     : require('../../../../assets/images/bachata.jpg')
                 }
-                style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 200 }}
+                style={{ width: '100%', height: 180 }}
                 resizeMode="cover"
               />
               <View className="p-4 items-center">
@@ -274,7 +287,7 @@ export default function ClientHomeScreen() {
                   <View className="flex-1 mr-2">
                     <Text className={`text-xs font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>Cupos: {res.seats.join(', ')}</Text>
                     <Text className={`text-xs font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'} mt-0.5 text-ellipsis overflow-hidden`}>
-                      Profesor: {res.className.toLowerCase().includes('salsa') ? 'Profesor B' : 'Profesor A'}
+                      Profesor: {classes.find(c => c.id === res.classId)?.instructorName || 'Profesor'}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -300,15 +313,16 @@ export default function ClientHomeScreen() {
   );
 
   const desktopContent = (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
+    <View className="flex-1">
         {loading ? (
              <View className="flex-1 justify-center items-center">
                 <Loader variant="inline" label="Cargando tu panel de control..." />
              </View>
         ) : (
             <>
-                <View className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden">
-                <View className="flex-row border-b border-gray-200">
+                {/* Fixed Tab Header */}
+                <View className="bg-white border-b border-gray-200 shadow-sm z-10">
+                <View className="flex-row">
                     {[
                     { key: 'mis-clases', label: 'Mis clases' },
                     { key: 'clases-hoy', label: 'Clases de hoy' },
@@ -319,19 +333,23 @@ export default function ClientHomeScreen() {
                         <TouchableOpacity
                         key={tab.key}
                         onPress={() => setActiveTab(tab.key as DesktopTab)}
-                        className={`flex-1 py-5 items-center ${idx !== 2 ? 'border-r border-gray-300' : ''}`}
+                        className={`flex-1 py-5 items-center ${idx !== 2 ? 'border-r border-gray-200' : ''}`}
                         >
                         <Text className={`text-[16px] font-semibold ${active ? (isNative ? 'text-primary-text-strong' : 'text-primary') : 'text-black'}`}>{tab.label}</Text>
                         </TouchableOpacity>
                     );
                     })}
                 </View>
+                </View>
+
+                {/* Scrollable Tab Content */}
+                <ScrollView showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768} contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
 
                 {activeTab === 'mis-clases' && (
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
                     <View className="flex-row items-center mb-4">
                         <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Estas son tus Clases Reservadas</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Estas son tus Clases Reservadas</Text>
                     </View>
                     {clientReservations.length === 0 ? (
                         <EmptyState
@@ -363,10 +381,10 @@ export default function ClientHomeScreen() {
                                   ? require('../../../../assets/images/Salsa.jpeg')
                                   : require('../../../../assets/images/bachata.jpg')
                               }
-                              style={{ width: 88, height: '100%', aspectRatio: 1.5 }}
+                              style={{ width: 88, height: 88 }}
                               resizeMode="cover"
                             />
-                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), status: 'Pagado' })}>
+                            <TouchableOpacity className="flex-1 px-4 py-3 justify-between" onPress={() => setQuickReservation({ title: res.className, time: res.time, date: res.date, seat: res.seats.join(', '), mySeats: res.seats, classId: res.classId, scheduleId: res.scheduleId, status: res.status })}>
                             <View>
                                 <Text className="text-[14px] font-bold text-black">{res.className}</Text>
                                 <Text className="text-[13px] font-semibold text-gray-600 mt-1">{res.time}</Text>
@@ -375,8 +393,8 @@ export default function ClientHomeScreen() {
                             </View>
                             </TouchableOpacity>
                             <View className="w-[124px] items-center justify-center pr-4">
-                            <View className="bg-green-100 rounded-lg px-4 py-2">
-                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
+                            <View className={`rounded-lg px-4 py-2 ${res.status === 'Pendiente' ? 'bg-amber-100' : 'bg-green-100'}`}>
+                                <Text className={`font-bold text-sm ${res.status === 'Pendiente' ? 'text-amber-700' : 'text-green-700'}`}>{res.status === 'Pendiente' ? 'Verificando...' : 'Pagado'}</Text>
                             </View>
                             <TouchableOpacity
                                 onPress={() => promptCancelReservation(res.id)}
@@ -397,7 +415,7 @@ export default function ClientHomeScreen() {
                     <Animated.View entering={FadeIn.duration(180)} className="px-5 py-5">
                     <View className="flex-row items-center mb-6">
                         <Ionicons name="calendar-outline" size={24} color="#FF7A00" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Clases de hoy</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Clases de hoy</Text>
                     </View>
 
                     {todayReservations.length === 0 ? (
@@ -422,7 +440,7 @@ export default function ClientHomeScreen() {
                                   ? require('../../../../assets/images/Salsa.jpeg')
                                   : require('../../../../assets/images/bachata.jpg')
                               }
-                              style={{ width: 240, height: '100%', aspectRatio: 16 / 9 }}
+                              style={{ width: 240, height: 200 }}
                               resizeMode="cover"
                             />
                             <View className="flex-1 px-5 py-4 justify-between">
@@ -438,8 +456,8 @@ export default function ClientHomeScreen() {
                                 <Text className={`text-[11px] font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'} uppercase`}>Instructor</Text>
                                 <Text className="text-[12px] font-semibold text-black">{classInfo?.instructorName || 'Profesor'}</Text>
                                 </View>
-                                <View className="bg-green-100 rounded-lg px-4 py-2">
-                                <Text className="text-green-700 font-bold text-sm">Pagado</Text>
+                                <View className={`rounded-lg px-4 py-2 ${res.status === 'Pendiente' ? 'bg-amber-100' : 'bg-green-100'}`}>
+                                <Text className={`font-bold text-sm ${res.status === 'Pendiente' ? 'text-amber-700' : 'text-green-700'}`}>{res.status === 'Pendiente' ? 'Verificando...' : 'Pagado'}</Text>
                                 </View>
                             </View>
                             </View>
@@ -456,14 +474,14 @@ export default function ClientHomeScreen() {
                     <View className={`mb-5 px-2 ${isCompactDesktop ? 'flex-col items-start gap-y-3' : 'flex-row justify-between items-center'}`}>
                         <View className="flex-row items-center">
                         <Ionicons name="calendar-outline" size={26} color="#666" />
-                        <Text className="text-[15px] font-bold text-black ml-3">Mi semana</Text>
+                        <Text className="text-[15px] font-medium text-black ml-3">Mi semana</Text>
                         </View>
                         <View className={`flex-row items-center ${isCompactDesktop ? 'gap-x-3' : 'gap-x-4'}`}>
                         <Text className={`${isCompactDesktop ? 'text-[16px]' : 'text-[20px]'} font-semibold ${isNative ? 'text-gray-600' : 'text-gray-500'}`}>{weeklyCalendarData.weekRangeLabel}</Text>
-                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
+                        <TouchableOpacity hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() - DAY_MS * 7))}>
                           <Ionicons name="chevron-back" size={18} color="#555" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
+                        <TouchableOpacity hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} onPress={() => setSelectedWeekStart((prev) => new Date(prev.getTime() + DAY_MS * 7))}>
                           <Ionicons name="chevron-forward" size={18} color="#555" />
                         </TouchableOpacity>
                         </View>
@@ -515,15 +533,23 @@ export default function ClientHomeScreen() {
                     </ScrollView>
                     </Animated.View>
                 )}
-                </View>
+                </ScrollView>
             </>
         )}
-    </ScrollView>
+    </View>
   );
   
   return (
     <SafeAreaView className="flex-1 bg-cream">
         <ClientDesktopShell title={`¡Hola, ${user?.name || 'Ana Pérez'}! 👋`} subtitle="Resumen general">
+            {isWeb && (
+              <TouchableOpacity onPress={() => router.push('/monedas')} className="mb-4">
+                <View className="bg-amber-100 rounded-full px-4 py-2 flex-row items-center self-start">
+                  <Ionicons name="star" size={16} color="#D97706" />
+                  <Text className="text-amber-700 font-bold text-sm ml-1.5">{monedasSaldo} 🪙 MonedasFit</Text>
+                </View>
+              </TouchableOpacity>
+            )}
             {isWeb ? desktopContent : mobileContent}
         </ClientDesktopShell>
 
@@ -535,8 +561,9 @@ export default function ClientHomeScreen() {
             time={quickReservation?.time}
             date={quickReservation?.date}
             seat={quickReservation?.seat}
+            mySeats={quickReservation?.mySeats}
             status={quickReservation?.status}
-            onOpenFull={() => quickReservation && router.push('/(client)/(tabs)/classes/detail')}
+            onOpenFull={() => quickReservation ? (setQuickReservation(null), router.push(`/(client)/(tabs)/classes/detail?id=${quickReservation.classId || ''}&id_detalle_clase=${quickReservation.scheduleId || ''}`)) : null}
         />
 
         <ConfirmDialog
@@ -553,7 +580,15 @@ export default function ClientHomeScreen() {
         <ConfirmDialog
             visible={!!reservationToCancel}
             title="Cancelar Reserva"
-            message="¿Estás seguro de que deseas cancelar esta reserva? Se realizará un reembolso automático."
+            message={(() => {
+              const res = reservationToCancel ? reservations.find(r => r.id === reservationToCancel) : null;
+              if (!res || res.status !== 'Pagado') {
+                return "¿Estás seguro de que deseas cancelar esta reserva? No recibirás monedas porque el pago no fue completado.";
+              }
+              const cupos = res.seats.length;
+              const total = cupos * 5;
+              return `¿Estás seguro de que deseas cancelar esta reserva? Recibirás ${total} monedas (5 por cada cupo, ${cupos} cupo${cupos > 1 ? 's' : ''}).`;
+            })()}
             confirmLabel="Cancelar Reserva"
             cancelLabel="Mantener"
             onConfirm={handleCancelReservationConfirm}

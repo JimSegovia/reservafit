@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, useWindowDimensions, Platform, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { Loader } from '@/components/ui/loader';
 
 export default function AdminDashboardScreen() {
   const { width } = useWindowDimensions();
@@ -11,7 +12,46 @@ export default function AdminDashboardScreen() {
   const instructors = useAppStore((state) => state.instructors);
   const reservations = useAppStore((state) => state.reservations);
 
+  const fetchClasses = useAppStore((state) => state.fetchClasses);
+  const fetchInstructors = useAppStore((state) => state.fetchInstructors);
+  const fetchReservations = useAppStore((state) => state.fetchReservations);
+
   const [searchText, setSearchText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
+    try {
+      await Promise.all([
+        fetchClasses(),
+        fetchInstructors(),
+        fetchReservations(),
+      ]);
+    } catch (err) {
+      console.error('Error loading admin dashboard data:', err);
+    } finally {
+      if (showLoadingIndicator) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData(true);
+  }, [fetchClasses, fetchInstructors, fetchReservations]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData(false);
+    setRefreshing(false);
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-cream">
+        <Loader variant="inline" label="Cargando panel de control..." />
+      </View>
+    );
+  }
 
   const activeClassesCount = classes.filter(c => c.status === 'Activo').length;
   const totalReservationsCount = reservations.filter(r => r.status === 'Pagado').length;
@@ -24,22 +64,13 @@ export default function AdminDashboardScreen() {
     { label: 'Clases hoy', val: activeClassesCount, icon: 'people', color: '#3B82F6' },
     { label: 'Reservas hoy', val: totalReservationsCount, icon: 'business', color: '#FF7A00' },
     { label: 'Instructores', val: activeInstructorsCount, icon: 'person', color: '#10B981' },
-    { label: 'Ingresos hoy', val: `S/ ${totalIncome}`, icon: 'wallet', color: '#6B7280' },
+    { label: 'Ingresos hoy', val: `S/ ${totalIncome.toFixed(2)}`, icon: 'wallet', color: '#6B7280' },
   ];
 
-  const MOCK_RESERVATIONS = [
-    { nombre: 'Carlos Mendoza', clase: 'Salsa', fecha: '15/06/2025', monto: 'S/ 25.00', estado: 'Pagado' },
-    { nombre: 'Ana Torres', clase: 'Zumba', fecha: '15/06/2025', monto: 'S/ 30.00', estado: 'Pagado' },
-    { nombre: 'Luis García', clase: 'Bachata', fecha: '14/06/2025', monto: 'S/ 25.00', estado: 'Pendiente' },
-    { nombre: 'María López', clase: 'Salsa', fecha: '14/06/2025', monto: 'S/ 25.00', estado: 'Pagado' },
-    { nombre: 'Diego Ramírez', clase: 'Reageton', fecha: '13/06/2025', monto: 'S/ 25.00', estado: 'Cancelado' },
-    { nombre: 'Sofía Castro', clase: 'Zumba', fecha: '13/06/2025', monto: 'S/ 30.00', estado: 'Pagado' },
-  ];
-
-  const filteredReservations = MOCK_RESERVATIONS.filter(
+  const filteredReservations = reservations.filter(
     (r) =>
-      r.nombre.toLowerCase().includes(searchText.toLowerCase()) ||
-      r.clase.toLowerCase().includes(searchText.toLowerCase())
+      r.clientName.toLowerCase().includes(searchText.toLowerCase()) ||
+      r.className.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const TABLE_HEADERS = ['Nombre', 'Clase', 'Fecha', 'Monto', 'Estado'];
@@ -64,6 +95,7 @@ export default function AdminDashboardScreen() {
       className="flex-1 bg-cream"
       contentContainerStyle={{ padding: isMobile ? 16 : 32, paddingBottom: isMobile ? 80 : 40 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
     >
       {/* Top Header */}
       <View className={`${isMobile ? 'flex-col gap-y-4' : 'flex-row justify-between items-center'} mb-8`}>
@@ -84,7 +116,7 @@ export default function AdminDashboardScreen() {
               style={{ outlineWidth: 0 }}
             />
           </View>
-          <TouchableOpacity className="w-10 h-10 rounded-xl bg-white items-center justify-center border border-gray-200">
+          <TouchableOpacity hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }} className="w-10 h-10 rounded-xl bg-white items-center justify-center border border-gray-200">
             <Ionicons name="notifications-outline" size={20} color="#1F0F08" />
           </TouchableOpacity>
         </View>
@@ -122,19 +154,19 @@ export default function AdminDashboardScreen() {
         {isMobile ? (
           <View className="px-4 py-2" style={{ gap: 12 }}>
             {filteredReservations.map((row, idx) => {
-              const badge = getEstadoBadge(row.estado);
+              const badge = getEstadoBadge(row.status);
               return (
                 <View key={idx} className="border border-gray-100 rounded-xl p-4 bg-white">
                   <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-sm font-bold text-secondary">{row.nombre}</Text>
+                    <Text className="text-sm font-bold text-secondary">{row.clientName}</Text>
                     <View className={`rounded-full px-3 py-1 ${badge.bg}`}>
-                      <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
+                      <Text className={`text-xs font-bold ${badge.text}`}>{row.status}</Text>
                     </View>
                   </View>
                   <View className="flex-row justify-between">
-                    <Text className="text-xs text-gray-500">{row.clase}</Text>
-                    <Text className="text-xs text-gray-500">{row.fecha}</Text>
-                    <Text className="text-xs font-semibold text-secondary">{row.monto}</Text>
+                    <Text className="text-xs text-gray-500">{row.className}</Text>
+                    <Text className="text-xs text-gray-500">{row.date}</Text>
+                    <Text className="text-xs font-semibold text-secondary">S/ {row.price.toFixed(2)}</Text>
                   </View>
                 </View>
               );
@@ -158,27 +190,27 @@ export default function AdminDashboardScreen() {
             </View>
 
             {filteredReservations.map((row, idx) => {
-              const badge = getEstadoBadge(row.estado);
+              const badge = getEstadoBadge(row.status);
               return (
                 <View
                   key={idx}
                   className="flex-row px-6 py-4 border-b border-gray-50 items-center"
                 >
                   <Text style={{ flex: 2 }} className="text-sm font-semibold text-secondary">
-                    {row.nombre}
+                    {row.clientName}
                   </Text>
                   <Text style={{ flex: 1 }} className="text-sm text-gray-500">
-                    {row.clase}
+                    {row.className}
                   </Text>
                   <Text style={{ flex: 1 }} className="text-sm text-gray-500">
-                    {row.fecha}
+                    {row.date}
                   </Text>
                   <Text style={{ flex: 1 }} className="text-sm font-semibold text-secondary">
-                    {row.monto}
+                    S/ {row.price.toFixed(2)}
                   </Text>
                   <View style={{ flex: 1 }}>
                     <View className={`rounded-full px-3 py-1 self-start ${badge.bg}`}>
-                      <Text className={`text-xs font-bold ${badge.text}`}>{row.estado}</Text>
+                      <Text className={`text-xs font-bold ${badge.text}`}>{row.status}</Text>
                     </View>
                   </View>
                 </View>

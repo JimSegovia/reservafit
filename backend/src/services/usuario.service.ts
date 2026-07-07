@@ -1,11 +1,31 @@
 import { UsuarioRepository } from '../repositories/usuario.repository.js';
+import { generateReferralCode } from '../utils/referral.util.js';
 import { UpdateUsuarioDTO } from '../types/usuario.dto.js';
 
 export class UsuarioService {
   
   static async obtenerPerfil(id: string) {
-    const usuario = await UsuarioRepository.buscarPorId(id);
+    let usuario = await UsuarioRepository.buscarPorId(id);
     if (!usuario) throw new Error('Usuario no encontrado.');
+
+    if (!usuario.codigo_referido) {
+      let codigo: string;
+      let intentos = 0;
+      do {
+        codigo = generateReferralCode();
+        intentos++;
+        const existe = await UsuarioRepository.buscarPorCodigoReferido(codigo);
+        if (!existe) break;
+      } while (intentos < 10);
+
+      if (intentos >= 10) {
+        throw new Error('No se pudo generar un código de referido único después de 10 intentos.');
+      }
+
+      await UsuarioRepository.asignarCodigoReferido(id, codigo);
+      return { ...usuario, codigo_referido: codigo };
+    }
+
     return usuario;
   }
 

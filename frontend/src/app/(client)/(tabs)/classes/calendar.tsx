@@ -4,19 +4,40 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ClientDesktopShell } from '@/components/client-desktop-shell';
+import { useAppStore } from '@/store/useStore';
+import { parseDateTime } from '@/utils/date';
 
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown} from 'react-native-reanimated';
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const agenda = useAppStore((state) => state.agenda);
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
   
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d;
+  });
   const [showYearCalendar, setShowYearCalendar] = useState(false);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
-  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getMonth();
+  });
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getFullYear();
+  });
 
   const monthsNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -27,8 +48,13 @@ export default function CalendarScreen() {
   const getMonday = (d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
+    if (day === 0) {
+      const nextMon = new Date(date);
+      nextMon.setDate(date.getDate() + 1);
+      return nextMon;
+    }
     // Sun=0, Mon=1, Tue=2, ...
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = date.getDate() - day + 1;
     return new Date(date.setDate(diff));
   };
 
@@ -70,33 +96,74 @@ export default function CalendarScreen() {
 
   // Grid hourly blocks
   const getTimeBlocks = (date: Date) => {
-    const day = date.getDay();
-    if (day === 1 || day === 3 || day === 5) {
-      return [
-        { start: '5 PM', end: '6 PM', class: { id: 'c7', title: 'Zumba', teacher: 'Con Profesor A', colorBg: 'bg-orange-100 border-l-4 border-orange-500', colorText: 'text-orange-800' } },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: { id: 'c9', title: 'Reggaeton', teacher: 'Con Profesor C', colorBg: 'bg-blue-100 border-l-4 border-blue-500', colorText: 'text-blue-800' } },
-      ];
-    } else if (day === 2 || day === 4 || day === 6) {
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: { id: 'c8', title: 'Salsa', teacher: 'Con Profesor B', colorBg: 'bg-green-100 border-l-4 border-green-500', colorText: 'text-green-800' } },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
-    } else {
-      // Sunday: No classes
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+    const targetDay = date.getDate();
+    const nowTs = Date.now();
+    const minStartTs = nowTs + 3 * 60 * 60 * 1000;
+
+    const matchingSessions = agenda.filter((session: any) => {
+      const sessionDate = parseDateTime(session.fecha_hora_inicio);
+      return sessionDate.getFullYear() === targetYear &&
+             sessionDate.getMonth() === targetMonth &&
+             sessionDate.getDate() === targetDay &&
+             sessionDate.getTime() >= minStartTs;
+    });
+
+    if (matchingSessions.length === 0) {
+      return [];
     }
+
+    matchingSessions.sort((a: any, b: any) => new Date(a.fecha_hora_inicio).getTime() - new Date(b.fecha_hora_inicio).getTime());
+
+    return matchingSessions.map((session: any) => {
+      const startTime = parseDateTime(session.fecha_hora_inicio);
+      const endTime = parseDateTime(session.fecha_hora_fin);
+
+      const ampmStart = startTime.getHours() >= 12 ? 'PM' : 'AM';
+      const ampmEnd = endTime.getHours() >= 12 ? 'PM' : 'AM';
+
+      const formatHour = (d: Date) => {
+        let hours = d.getHours() % 12;
+        hours = hours ? hours : 12;
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const startStr = `${formatHour(startTime)}${ampmStart !== ampmEnd ? ' ' + ampmStart : ''}`;
+      const endStr = `${formatHour(endTime)} ${ampmEnd}`;
+
+      const titleLower = (session.clase?.nombre || '').toLowerCase();
+      let colorBg = 'bg-orange-50 border-l-4 border-orange-500';
+      let colorText = 'text-orange-950';
+
+      if (titleLower.includes('zumba')) {
+        colorBg = 'bg-orange-100 border-l-4 border-orange-500';
+        colorText = 'text-orange-800';
+      } else if (titleLower.includes('salsa')) {
+        colorBg = 'bg-green-100 border-l-4 border-green-500';
+        colorText = 'text-green-800';
+      } else if (titleLower.includes('bachata') || titleLower.includes('funcional')) {
+        colorBg = 'bg-blue-100 border-l-4 border-blue-500';
+        colorText = 'text-blue-800';
+      } else {
+        colorBg = 'bg-purple-100 border-l-4 border-purple-500';
+        colorText = 'text-purple-800';
+      }
+
+      return {
+        start: startStr,
+        end: endStr,
+        class: {
+          id: session.id_clase,
+          id_detalle_clase: session.id_detalle_clase,
+          title: session.clase?.nombre || 'Clase',
+          teacher: session.instructor ? `Con ${session.instructor.nombre} ${session.instructor.apellidos}` : 'Sin profesor asignado',
+          colorBg,
+          colorText
+        }
+      };
+    });
   };
 
   const timeBlocks = getTimeBlocks(selectedDate);
@@ -114,6 +181,9 @@ export default function CalendarScreen() {
     }
     for (let i = 1; i <= numDays; i++) {
       cells.push(new Date(currentCalendarYear, currentCalendarMonth, i));
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
     }
     return cells;
   }, [currentCalendarMonth, currentCalendarYear]);
@@ -136,63 +206,72 @@ export default function CalendarScreen() {
     }
   };
 
-  const handleClassClick = (classId: string) => {
+  const handlePrevDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+
+  const handleNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+
+  const handleClassClick = (classId: string, idDetalleClase: string) => {
     router.push({
       pathname: '/(client)/(tabs)/classes/detail',
-      params: { id: classId }
+      params: { id: classId, id_detalle_clase: idDetalleClase }
     });
   };
 
   const content = (
-<ScrollView 
-         contentContainerStyle={{ flexGrow: 1, flex: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
-         showsVerticalScrollIndicator={false}
-       >
-        {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity onPress={() => router.replace('/(client)/(tabs)/classes')}>
-            <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
+    <ScrollView 
+      contentContainerStyle={{ flexGrow: 1, paddingHorizontal: isWeb ? 0 : 24, paddingVertical: isWeb ? 0 : 16, paddingBottom: 30 }} 
+      showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
+    >
+        {/* Week switcher header with arrows */}
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row justify-between items-center mb-6">
+          <TouchableOpacity 
+            onPress={handlePrevDay}
+            className={`p-2.5 rounded-full border border-gray-200 bg-white shadow-sm`}
+          >
+            <Ionicons name="chevron-back" size={18} color="black" />
           </TouchableOpacity>
-          <Text className="text-2xl font-extrabold text-black">Calendario</Text>
-        </Animated.View>
 
-        {/* Week Heading (Actúa como toggle para el calendario anual) */}
-        <Animated.View entering={FadeInDown.duration(200).delay(50)} className="items-center mb-4">
           <TouchableOpacity 
             onPress={() => {
-              // Sincronizar el mes y año del calendario con la fecha seleccionada antes de abrir
               setCurrentCalendarMonth(selectedDate.getMonth());
               setCurrentCalendarYear(selectedDate.getFullYear());
               setShowYearCalendar(!showYearCalendar);
             }}
-            className="flex-row items-center bg-white border border-gray-200 px-4 py-2.5 rounded-full shadow-sm"
+            className="flex-row items-center bg-white border border-gray-200 px-5 py-3 rounded-full shadow-sm"
           >
-            <Text className="text-base font-bold text-black mr-2">
+            <Text className="text-base font-medium text-black mr-2">
               {formatWeekRange(monday)}
             </Text>
-            <Ionicons 
-              name={showYearCalendar ? "chevron-up" : "chevron-down"} 
-              size={18} 
-              color="#FF7A00" 
-            />
+            <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={handleNextDay}
+            className={`p-2.5 rounded-full border border-gray-200 bg-white shadow-sm`}
+          >
+            <Ionicons name="chevron-forward" size={18} color="black" />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Calendar Anual Desplegable */}
+        {/* Annual Calendar selector */}
         {showYearCalendar && (
-          <Animated.View 
-            entering={FadeInDown.duration(200)} 
-            className="bg-white border border-gray-200 rounded-3xl p-5 mb-6 shadow-md"
-          >
-            {/* Month selector header */}
+          <Animated.View entering={FadeInDown.duration(200)} className="bg-white border border-gray-200 rounded-3xl p-6 mb-6 shadow-md max-w-md mx-auto w-full">
             <View className="flex-row justify-between items-center mb-4 px-1">
-              <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                 <Ionicons name="chevron-back" size={20} color="black" />
               </TouchableOpacity>
-              <Text className="text-base font-extrabold text-black uppercase">
+              <Text className="text-base font-semibold text-black uppercase">
                 {monthsNames[currentCalendarMonth]} {currentCalendarYear}
               </Text>
-              <TouchableOpacity onPress={handleNextMonth} className="p-1">
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                 <Ionicons name="chevron-forward" size={20} color="black" />
               </TouchableOpacity>
             </View>
@@ -213,25 +292,27 @@ export default function CalendarScreen() {
                   return <View key={idx} className="w-[13%] aspect-square" />;
                 }
 
+                const isSunday = cellDate.getDay() === 0;
                 const isSelected = cellDate.getDate() === selectedDate.getDate() &&
                                    cellDate.getMonth() === selectedDate.getMonth() &&
                                    cellDate.getFullYear() === selectedDate.getFullYear();
                 const isPast = isPastDate(cellDate);
+                const isDisabled = isPast || isSunday;
                 
                 return (
                   <TouchableOpacity
                     key={idx}
                     onPress={() => {
-                      if (!isPast) {
+                      if (!isDisabled) {
                         setSelectedDate(cellDate);
                         setShowYearCalendar(false);
                       }
                     }}
                     className={`w-[13%] aspect-square items-center justify-center rounded-xl ${
-                      isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'
+                      isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isDisabled ? 'bg-gray-100 opacity-40' : 'bg-gray-50'
                     }`}
                   >
-                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>
+                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-black'}`}>
                       {cellDate.getDate()}
                     </Text>
                   </TouchableOpacity>
@@ -289,7 +370,7 @@ export default function CalendarScreen() {
                 <View className="flex-1 p-2 justify-center">
                   {block.class ? (
                     <TouchableOpacity
-                      onPress={() => handleClassClick(block.class!.id)}
+                      onPress={() => handleClassClick(block.class!.id, block.class!.id_detalle_clase)}
                       className={`rounded-xl p-3 flex-row justify-between items-center ${block.class.colorBg}`}
                     >
                       <View>
@@ -315,7 +396,7 @@ export default function CalendarScreen() {
         {/* Footer Warning Info */}
         <Animated.View entering={FadeInDown.duration(200).delay(200)} className="flex-row items-center justify-center py-2 mb-4">
           <Ionicons name="time-outline" size={16} color="gray" />
-          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-bold ml-1`}>
+          <Text className={`text-xs ${isNative ? 'text-gray-600' : 'text-gray-500'} font-medium ml-1`}>
             Las reservas deben ser 3 horas antes
           </Text>
         </Animated.View>

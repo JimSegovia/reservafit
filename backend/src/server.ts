@@ -8,7 +8,34 @@ const PORT = envs.PORT; // Usamos la variable validada, no process.env
 
 async function bootstrap() {
   try {
-    // 1. Validamos la conexión a la base de datos
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Clases" ADD COLUMN IF NOT EXISTS "precio" DECIMAL(10,2) NOT NULL DEFAULT 5`
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS "Monedas_Cliente" (
+        "id_monedas_cliente" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "id_usuario" UUID UNIQUE NOT NULL REFERENCES "Usuarios"("id_usuario") ON DELETE CASCADE,
+        "saldo_monedas" INTEGER NOT NULL DEFAULT 0
+      )`
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS "Historial_Monedas" (
+        "id_historial" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "id_usuario" UUID NOT NULL,
+        "cantidad" INTEGER NOT NULL,
+        "tipo" VARCHAR(50) NOT NULL,
+        "id_reserva" UUID,
+        "fecha" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+      )`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "codigo_referido" VARCHAR(10)`
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "id_referidor" UUID`
+    );
+    logger.info('Schema verificado.');
+
     await prisma.$queryRaw`SELECT 1`;
     logger.info('Conexión nativa a la base de datos establecida de forma segura.');
 

@@ -32,7 +32,7 @@ export default function SuccessScreen() {
            paddingVertical: 16, 
            paddingBottom: 30 
          }} 
-         showsVerticalScrollIndicator={false}
+         showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
        >
         <View className={isWeb ? 'w-full max-w-md self-center' : 'w-full'}>
           {/* Success Icon */}

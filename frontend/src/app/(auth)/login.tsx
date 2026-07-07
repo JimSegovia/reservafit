@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ImageBackground, useWindowDimensions, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,11 +17,12 @@ export default function LoginScreen() {
   const isWeb = width >= 768;
   const isNative = Platform.OS !== 'web';
 
-  const [email, setEmail] = useState('cliente@reservafit.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   
+  const passwordRef = useRef<TextInput>(null);
+
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
@@ -71,9 +72,8 @@ export default function LoginScreen() {
       if (success) {
         showToast('¡Inicio de sesión exitoso!', 'success');
         
-        // Use user state from store after login or decode token, but here we assume logic
-        const role = email.toLowerCase().includes('admin') ? 'admin' : 'client';
-        if (role === 'admin') {
+        const user = useAppStore.getState().user;
+        if (user?.role === 'admin') {
           router.replace('/(admin)');
         } else {
           router.replace('/(client)/(tabs)');
@@ -127,6 +127,7 @@ export default function LoginScreen() {
               {!isWeb && (
                 <TouchableOpacity 
                   onPress={() => router.back()} 
+                  hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
                   className="w-10 h-10 rounded-full bg-white/90 items-center justify-center absolute top-4 left-4 z-10 shadow-sm"
                 >
                   <Ionicons name="arrow-back" size={24} color="black" />
@@ -168,6 +169,8 @@ export default function LoginScreen() {
                         placeholderTextColor="#9CA3AF"
                         className="flex-1 text-black text-base p-0"
                         editable={!loading}
+                        returnKeyType="next"
+                        onSubmitEditing={() => passwordRef.current?.focus()}
                       />
                     </View>
                     {emailError ? (
@@ -178,6 +181,7 @@ export default function LoginScreen() {
                   <View>
                     <View className={`flex-row items-center border rounded-xl bg-white px-4 py-4 border-gray-300 ${passwordError ? 'border-red-500' : 'border-gray-200'}`}>
                       <TextInput
+                        ref={passwordRef}
                         placeholder="Contraseña"
                         value={password}
                         onChangeText={validatePassword}
@@ -185,8 +189,10 @@ export default function LoginScreen() {
                         placeholderTextColor="#9CA3AF"
                         className="flex-1 text-black text-base p-0"
                         editable={!loading}
+                        returnKeyType="done"
+                        onSubmitEditing={handleLogin}
                       />
-                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
+                      <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setShowPassword(!showPassword)} disabled={loading}>
                         <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#9CA3AF" />
                       </TouchableOpacity>
                     </View>
@@ -197,20 +203,7 @@ export default function LoginScreen() {
                 </Animated.View>
 
                 {!isWeb && (
-                  <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-between items-center mb-8">
-                    <TouchableOpacity
-                      onPress={() => setRememberMe(!rememberMe)}
-                      className="flex-row items-center"
-                      disabled={loading}
-                    >
-                      <Ionicons
-                        name={rememberMe ? "checkbox" : "square-outline"}
-                        size={22}
-                        color={rememberMe ? "#FF7A00" : "#4B5563"}
-                      />
-                      <Text className="text-gray-700 text-sm ml-2 font-medium">Recordarme</Text>
-                    </TouchableOpacity>
-                    
+                  <Animated.View entering={FadeInDown.duration(200).delay(150)} className="flex-row justify-end items-center mb-8">
                     <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
                       <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>¿Olvidaste tu contraseña?</Text>
                     </TouchableOpacity>

@@ -8,10 +8,12 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Image as ExpoImage } from 'expo-image';
+import { parseDateTime } from '@/utils/date';
 
 export default function ClassesSelectorScreen() {
   const router = useRouter();
   const classes = useAppStore((state) => state.classes);
+  const agenda = useAppStore((state) => state.agenda);
   const showToast = useAppStore((state) => state.showToast);
   const fetchClasses = useAppStore((state) => state.fetchClasses);
   const { width } = useWindowDimensions();
@@ -36,10 +38,28 @@ export default function ClassesSelectorScreen() {
     loadClasses();
   }, [fetchClasses]);
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d;
+  });
   const [showYearCalendar, setShowYearCalendar] = useState(false);
-  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
-  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getMonth();
+  });
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(() => {
+    const d = new Date();
+    if (d.getDay() === 0) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.getFullYear();
+  });
 
   const monthsNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -50,8 +70,13 @@ export default function ClassesSelectorScreen() {
   const getMonday = (d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
+    if (day === 0) {
+      const nextMon = new Date(date);
+      nextMon.setDate(date.getDate() + 1);
+      return nextMon;
+    }
     // Sun=0, Mon=1, Tue=2, ...
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = date.getDate() - day + 1;
     return new Date(date.setDate(diff));
   };
 
@@ -60,7 +85,84 @@ export default function ClassesSelectorScreen() {
     return date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
   };
 
+  const handlePrevDay = () => {
+    const prevDate = new Date(selectedDate);
+    const day = prevDate.getDay();
+    if (day === 1) { // Monday -> Saturday
+      prevDate.setDate(prevDate.getDate() - 2);
+    } else if (day === 0) { // Sunday -> Saturday
+      prevDate.setDate(prevDate.getDate() - 1);
+    } else {
+      prevDate.setDate(prevDate.getDate() - 1);
+    }
+    setSelectedDate(prevDate);
+  };
+
+  const handleNextDay = () => {
+    const nextDate = new Date(selectedDate);
+    const day = nextDate.getDay();
+    if (day === 6) { // Saturday -> Monday
+      nextDate.setDate(nextDate.getDate() + 2);
+    } else if (day === 0) { // Sunday -> Monday
+      nextDate.setDate(nextDate.getDate() + 1);
+    } else {
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+    setSelectedDate(nextDate);
+  };
+
   const monday = getMonday(selectedDate);
+
+  const getClassScheduleDescription = (classId: string) => {
+    const now = new Date();
+    const currentMonday = getMonday(now);
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    
+    const startOfWeek = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate(), 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+    const classSessionsThisWeek = agenda.filter((a: any) => {
+      if (a.id_clase !== classId) return false;
+      const sessionDate = parseDateTime(a.fecha_hora_inicio);
+      return sessionDate >= startOfWeek && sessionDate < endOfWeek && sessionDate >= minStartTime;
+    });
+
+    if (classSessionsThisWeek.length === 0) {
+      return 'Sin horarios programados esta semana';
+    }
+
+    classSessionsThisWeek.sort((a: any, b: any) => new Date(a.fecha_hora_inicio).getTime() - new Date(b.fecha_hora_inicio).getTime());
+
+    const dayLabels: Record<string, string> = {
+      'Lunes': 'Lun',
+      'Martes': 'Mar',
+      'Miércoles': 'Mié',
+      'Jueves': 'Jue',
+      'Viernes': 'Vie',
+      'Sábado': 'Sáb',
+      'Domingo': 'Dom'
+    };
+
+    const sessionLabels = classSessionsThisWeek.map((s: any) => {
+      const sDate = parseDateTime(s.fecha_hora_inicio);
+      const dayName = s.Dia || 'Lun';
+      const shortDay = dayLabels[dayName] || dayName.slice(0, 3);
+      const dayNum = sDate.getDate().toString().padStart(2, '0');
+      
+      let hours = sDate.getHours();
+      const minutes = sDate.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timeStr = `${hours}:${minutes} ${ampm}`;
+
+      return `${shortDay} ${dayNum} (${timeStr})`;
+    });
+
+    return sessionLabels.join('  |  ');
+  };
+
   const weekDays = React.useMemo(() => {
     const labels = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
     return Array.from({ length: 6 }, (_, i) => {
@@ -93,32 +195,75 @@ export default function ClassesSelectorScreen() {
 
   // Grid hourly blocks
   const getTimeBlocks = (date: Date) => {
-    const day = date.getDay();
-    if (day === 1 || day === 3 || day === 5) {
-      return [
-        { start: '5 PM', end: '6 PM', class: { id: 'c7', title: 'Zumba', teacher: 'Con Profesor A', colorBg: 'bg-orange-100 border-l-4 border-orange-500', colorText: 'text-orange-850' } },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: { id: 'c9', title: 'Reggaeton', teacher: 'Con Profesor C', colorBg: 'bg-blue-100 border-l-4 border-blue-500', colorText: 'text-blue-800' } },
-      ];
-    } else if (day === 2 || day === 4 || day === 6) {
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: { id: 'c8', title: 'Salsa', teacher: 'Con Profesor B', colorBg: 'bg-green-100 border-l-4 border-green-500', colorText: 'text-green-800' } },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
-    } else {
-      return [
-        { start: '5 PM', end: '6 PM', class: null },
-        { start: '6 PM', end: '7 PM', class: null },
-        { start: '7 PM', end: '8 PM', class: null },
-        { start: '8 PM', end: '9 PM', class: null },
-        { start: '9 PM', end: '10 PM', class: null },
-      ];
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+    const targetDay = date.getDate();
+
+    const nowTs = Date.now();
+    const minStartTs = nowTs + 3 * 60 * 60 * 1000;
+
+    const matchingSessions = agenda.filter((session: any) => {
+      const sessionDate = parseDateTime(session.fecha_hora_inicio);
+      return sessionDate.getFullYear() === targetYear &&
+             sessionDate.getMonth() === targetMonth &&
+             sessionDate.getDate() === targetDay &&
+             sessionDate.getTime() >= minStartTs;
+    });
+
+    if (matchingSessions.length === 0) {
+      return [];
     }
+
+    matchingSessions.sort((a: any, b: any) => new Date(a.fecha_hora_inicio).getTime() - new Date(b.fecha_hora_inicio).getTime());
+
+    return matchingSessions.map((session: any) => {
+      const startTime = parseDateTime(session.fecha_hora_inicio);
+      const endTime = parseDateTime(session.fecha_hora_fin);
+
+      const ampmStart = startTime.getHours() >= 12 ? 'PM' : 'AM';
+      const ampmEnd = endTime.getHours() >= 12 ? 'PM' : 'AM';
+
+      const formatHour = (d: Date) => {
+        let hours = d.getHours() % 12;
+        hours = hours ? hours : 12;
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const startStr = `${formatHour(startTime)}${ampmStart !== ampmEnd ? ' ' + ampmStart : ''}`;
+      const endStr = `${formatHour(endTime)} ${ampmEnd}`;
+
+      const titleLower = (session.clase?.nombre || '').toLowerCase();
+      let colorBg = 'bg-orange-50 border-l-4 border-orange-500';
+      let colorText = 'text-orange-950';
+
+      if (titleLower.includes('zumba')) {
+        colorBg = 'bg-orange-50 border-l-4 border-orange-500';
+        colorText = 'text-orange-950';
+      } else if (titleLower.includes('salsa')) {
+        colorBg = 'bg-green-50 border-l-4 border-green-500';
+        colorText = 'text-green-950';
+      } else if (titleLower.includes('bachata') || titleLower.includes('funcional')) {
+        colorBg = 'bg-blue-50 border-l-4 border-blue-500';
+        colorText = 'text-blue-950';
+      } else {
+        colorBg = 'bg-purple-50 border-l-4 border-purple-500';
+        colorText = 'text-purple-950';
+      }
+
+      return {
+        start: startStr,
+        end: endStr,
+        class: {
+          id: session.id_clase,
+          id_detalle_clase: session.id_detalle_clase,
+          title: session.clase?.nombre || 'Clase',
+          teacher: session.instructor ? `Con ${session.instructor.nombre} ${session.instructor.apellidos}` : 'Sin profesor asignado',
+          colorBg,
+          colorText
+        }
+      };
+    });
   };
 
   const timeBlocks = getTimeBlocks(selectedDate);
@@ -135,6 +280,9 @@ export default function ClassesSelectorScreen() {
     }
     for (let i = 1; i <= numDays; i++) {
       cells.push(new Date(currentCalendarYear, currentCalendarMonth, i));
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
     }
     return cells;
   }, [currentCalendarMonth, currentCalendarYear]);
@@ -157,9 +305,9 @@ export default function ClassesSelectorScreen() {
     }
   };
 
-  const handleClassClick = (classId: string) => {
-    if (classId === 'c7') {
-      router.push(`/(client)/(tabs)/classes/schedules`);
+  const handleClassClick = (classId: string, id_detalle_clase?: string) => {
+    if (id_detalle_clase) {
+      router.push(`/(client)/(tabs)/classes/detail?id=${classId}&id_detalle_clase=${id_detalle_clase}`);
     } else {
       router.push(`/(client)/(tabs)/classes/detail?id=${classId}`);
     }
@@ -167,16 +315,51 @@ export default function ClassesSelectorScreen() {
 
   // Filter logic
   const categoryClasses = classes.filter((cls) => {
-    // Filter by day
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
+    const hasAnyFutureSession = agenda.some((session: any) => {
+      if (session.id_clase !== cls.id) return false;
+      const sessionDate = parseDateTime(session.fecha_hora_inicio);
+      return sessionDate >= minStartTime;
+    });
+    if (!hasAnyFutureSession) return false;
+
     if (selectedDay !== 'Todos') {
-      const scheduleLower = cls.schedule.toLowerCase();
-      const dayLower = selectedDay.toLowerCase();
-      const normalizedSchedule = scheduleLower.replace('miércoles', 'miercoles').replace('sábado', 'sabado');
-      const normalizedDay = dayLower.replace('miércoles', 'miercoles').replace('sábado', 'sabado');
-      if (!normalizedSchedule.includes(normalizedDay)) return false;
+      const dayIndices: Record<string, number> = {
+        'Lunes': 1,
+        'Martes': 2,
+        'Miércoles': 3,
+        'Jueves': 4,
+        'Viernes': 5,
+        'Sábado': 6,
+        'Domingo': 0
+      };
+      
+      const dayIndex = dayIndices[selectedDay];
+      if (dayIndex === undefined) return false;
+      
+      const currentMonday = getMonday(now);
+      const targetDate = new Date(currentMonday);
+      const offset = dayIndex === 0 ? 6 : dayIndex - 1;
+      targetDate.setDate(currentMonday.getDate() + offset);
+      
+      const targetYear = targetDate.getFullYear();
+      const targetMonth = targetDate.getMonth();
+      const targetDay = targetDate.getDate();
+
+      const hasSession = agenda.some((session: any) => {
+        if (session.id_clase !== cls.id) return false;
+        const sessionDate = parseDateTime(session.fecha_hora_inicio);
+        return sessionDate.getFullYear() === targetYear &&
+               sessionDate.getMonth() === targetMonth &&
+               sessionDate.getDate() === targetDay &&
+               sessionDate.getTime() >= minStartTime.getTime();
+      });
+
+      if (!hasSession) return false;
     }
 
-    // Filter by theme/title category
     if (selectedTheme !== 'Todos') {
       const titleLower = cls.title.toLowerCase();
       const themeLower = selectedTheme.toLowerCase();
@@ -210,7 +393,7 @@ export default function ClassesSelectorScreen() {
 
   const SkeletonCard = () => (
     <View className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm mb-6 animate-pulse">
-      <View className="w-full h-32 bg-gray-250" />
+      <View className="w-full h-48 bg-gray-250" />
       <View className="p-4 items-center">
         <View className="w-28 h-5 bg-gray-200 rounded-full mb-3" />
         <View className="w-40 h-3 bg-gray-200 rounded-full mb-4" />
@@ -224,7 +407,7 @@ export default function ClassesSelectorScreen() {
   );
 
   const desktopContent = (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+    <ScrollView showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768} contentContainerStyle={{ paddingBottom: 40 }} className="flex-1">
       {/* Tab Selector Web */}
       <View className="flex-row border-b border-gray-200 mb-6 max-w-md mx-auto w-full bg-white p-1 rounded-xl shadow-sm">
         <TouchableOpacity
@@ -261,7 +444,8 @@ export default function ClassesSelectorScreen() {
                     <TouchableOpacity
                       key={day}
                       onPress={() => handleFilterDay(day)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                      hitSlop={{ top: 11, bottom: 11, left: 0, right: 0 }}
+                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                     >
                       <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
                     </TouchableOpacity>
@@ -269,23 +453,7 @@ export default function ClassesSelectorScreen() {
                 </View>
               </View>
 
-              <View className="flex-1 min-w-[200px]">
-                <View className="flex-row items-center mb-2">
-                  <Text className="text-xs text-gray-500 font-bold">Filtrar por Disciplina</Text>
-                  <Tooltip content="Filtra las clases según la disciplina o tipo de actividad (ej. Salsa, Zumba)." className="ml-1" />
-                </View>
-                <View className="flex-row flex-wrap gap-2">
-                  {themeFilterOptions.map(theme => (
-                    <TouchableOpacity
-                      key={theme}
-                      onPress={() => handleFilterTheme(theme)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
-                    >
-                      <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+
             </View>
           </View>
 
@@ -314,33 +482,36 @@ export default function ClassesSelectorScreen() {
             ) : (
               <View className="flex-row flex-wrap gap-4 mt-4">
                 {categoryClasses.map((cls) => (
-                  <View key={cls.id} className="w-[31%] border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                  <TouchableOpacity
+                    key={cls.id}
+                    activeOpacity={0.95}
+                    onPress={() => router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`)}
+                    className="w-[31%] border border-gray-200 rounded-2xl overflow-hidden bg-white hover:shadow-md hover:border-orange-300 hover:bg-orange-50/5 transition-all duration-300 cursor-pointer"
+                  >
                     <Image
                       source={
-                        cls.title.toLowerCase().includes('zumba')
+                        cls.image
+                          ? { uri: cls.image }
+                          : cls.title.toLowerCase().includes('zumba')
                           ? require('../../../../../assets/images/zumba.jpg')
                           : cls.title.toLowerCase().includes('salsa')
                           ? require('../../../../../assets/images/Salsa.jpeg')
                           : require('../../../../../assets/images/bachata.jpg')
                       }
-                      style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 260 }}
+                      style={{ width: '100%', height: 200 }}
                       resizeMode="cover"
                     />
                     <View className="p-4">
                       <Text className="text-[16px] font-extrabold text-black">{cls.title}</Text>
                       <Text className="text-gray-500 mt-2 leading-5 text-[13px] min-h-[60px]">
-                        {cls.title.toLowerCase().includes('zumba') 
-                          ? 'Ritmo, sabor y diversión. Aprende los pasos básicos y avanza a tu ritmo' 
-                          : cls.title.toLowerCase().includes('salsa') 
-                          ? 'Conecta y disfruta. Desde lo básico hasta combinaciones avanzadas' 
-                          : 'Energía y movimiento. Quema calorías mientras te diviertes.'}
+                        {cls.theme || 'Sin descripción'}
                       </Text>
                       
                       {/* Visual relevant details on card (H6) */}
                       <View className="mt-3 gap-y-1.5 border-t border-b border-gray-100 py-3 my-2">
                         <View className="flex-row items-center">
                           <Ionicons name="time-outline" size={14} color="#FF7A00" className="mr-1.5" />
-                          <Text className="text-[13px] text-gray-500 font-semibold">{cls.schedule}</Text>
+                          <Text className="text-[13px] text-gray-500 font-semibold">{getClassScheduleDescription(cls.id)}</Text>
                         </View>
                         <View className="flex-row items-center">
                           <Ionicons name="wallet-outline" size={14} color="#FF7A00" className="mr-1.5" />
@@ -348,11 +519,11 @@ export default function ClassesSelectorScreen() {
                         </View>
                       </View>
 
-                      <TouchableOpacity onPress={() => router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`)} className="bg-primary rounded-xl py-3 items-center mt-3">
+                      <View className="bg-primary rounded-xl py-3 items-center mt-3">
                         <Text className={`${isNative ? 'text-secondary' : 'text-white'} font-bold text-sm`}>Ver horarios</Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
@@ -363,7 +534,14 @@ export default function ClassesSelectorScreen() {
         <Animated.View entering={FadeIn.duration(200)}>
           <View className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             {/* Week Heading */}
-            <View className="items-center mb-6">
+            <View className="flex-row justify-center items-center mb-6 gap-x-4">
+              <TouchableOpacity
+                onPress={handlePrevDay}
+                className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-back" size={18} color="black" />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={() => {
                   setCurrentCalendarMonth(selectedDate.getMonth());
@@ -372,10 +550,17 @@ export default function ClassesSelectorScreen() {
                 }}
                 className="flex-row items-center bg-white border border-gray-200 px-5 py-3 rounded-full shadow-sm"
               >
-                <Text className="text-base font-bold text-black mr-2">
+                <Text className="text-base font-medium text-black mr-2">
                   {formatWeekRange(monday)}
                 </Text>
                 <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleNextDay}
+                className="p-2.5 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-forward" size={18} color="black" />
               </TouchableOpacity>
             </View>
 
@@ -383,13 +568,13 @@ export default function ClassesSelectorScreen() {
             {showYearCalendar && (
               <Animated.View entering={FadeInDown.duration(200)} className="bg-white border border-gray-200 rounded-3xl p-6 mb-6 shadow-md max-w-md mx-auto w-full">
                 <View className="flex-row justify-between items-center mb-4 px-1">
-                  <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                     <Ionicons name="chevron-back" size={20} color="black" />
                   </TouchableOpacity>
-                  <Text className="text-base font-extrabold text-black uppercase">
+                  <Text className="text-base font-semibold text-black uppercase">
                     {monthsNames[currentCalendarMonth]} {currentCalendarYear}
                   </Text>
-                  <TouchableOpacity onPress={handleNextMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                     <Ionicons name="chevron-forward" size={20} color="black" />
                   </TouchableOpacity>
                 </View>
@@ -401,15 +586,18 @@ export default function ClassesSelectorScreen() {
                 <View className="flex-row flex-wrap justify-between gap-y-2">
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
+                    const isSunday = cellDate.getDay() === 0;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
                     const isPast = isPastDate(cellDate);
+                    const isDisabled = isPast || isSunday;
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
+                        onPress={() => { if (!isDisabled) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isDisabled ? 'bg-gray-100 opacity-40' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -426,6 +614,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={idx}
                     onPress={() => !isPast && setSelectedDate(day.date)}
+                    hitSlop={{ top: 2, bottom: 2, left: 0, right: 0 }}
                     className={`items-center p-3 rounded-xl w-[55px] ${isSelected ? 'bg-primary shadow-sm' : isPast ? 'bg-gray-100' : 'bg-gray-55'}`}
                   >
                     <Text className={`text-[11px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>
@@ -440,18 +629,18 @@ export default function ClassesSelectorScreen() {
               {timeBlocks.length === 0 || timeBlocks.every(tb => !tb.class) ? (
                 <View className="py-12 items-center justify-center bg-white">
                   <Ionicons name="calendar-outline" size={40} color="lightgray" />
-                  <Text className="text-gray-400 font-bold text-sm mt-3">No hay clases programadas para hoy</Text>
+                  <Text className="text-gray-400 font-medium text-sm mt-3">No hay clases programadas para hoy</Text>
                 </View>
               ) : (
                 timeBlocks.map((block, idx) => (
                   <View key={idx} className="flex-row min-h-[80px] border-b border-gray-200 last:border-b-0">
-                    <View className="w-32 border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
-                      <Text className="text-sm font-bold text-black">{block.start} - {block.end}</Text>
+                    <View className="w-[155px] border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
+                      <Text className="text-[13px] font-bold text-black text-center whitespace-nowrap" numberOfLines={1}>{block.start} - {block.end}</Text>
                     </View>
                     <View className="flex-1 p-2.5 justify-center">
                       {block.class ? (
                         <TouchableOpacity
-                          onPress={() => handleClassClick(block.class!.id)}
+                          onPress={() => handleClassClick(block.class!.id, block.class!.id_detalle_clase)}
                           className={`rounded-xl p-4 flex-row justify-between items-center ${block.class.colorBg}`}
                         >
                           <View>
@@ -469,11 +658,6 @@ export default function ClassesSelectorScreen() {
                 ))
               )}
             </View>
-
-            <View className="flex-row items-center justify-center py-2">
-              <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-bold ml-1">Las reservas deben ser realizadas al menos 3 horas antes.</Text>
-            </View>
           </View>
         </Animated.View>
       )}
@@ -485,11 +669,10 @@ export default function ClassesSelectorScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
-      {/* Mobile Headers */}
+    <SafeAreaView className="flex-1 bg-cream p-0 m-0" edges={['top', 'bottom']}>
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 16, paddingBottom: 30 }} 
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={Platform.OS === 'web' && width >= 768}
         refreshControl={activeTab === 'clases' ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} /> : undefined}
       >
         {/* Header */}
@@ -529,29 +712,15 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={day}
                     onPress={() => handleFilterDay(day)}
-                    className={`px-4 py-2 rounded-full border ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
+                    hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
+                    className={`px-4 py-2 rounded-full border ${selectedDay === day ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                   >
                     <Text className={`text-xs font-bold ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>{day}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
 
-              {/* Theme Filters Horizontal */}
-              <View className="flex-row items-center mb-2 ml-1">
-                <Text className="text-xs text-gray-500 font-bold">Filtrar por Disciplina</Text>
-                <Tooltip content="Filtra las clases según la disciplina o tipo de actividad (ej. Salsa, Zumba)." className="ml-1" />
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-x-2 pb-1">
-                {themeFilterOptions.map(theme => (
-                  <TouchableOpacity
-                    key={theme}
-                    onPress={() => handleFilterTheme(theme)}
-                    className={`px-4 py-2 rounded-full border ${selectedTheme === theme ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}
-                  >
-                    <Text className={`text-xs font-bold ${selectedTheme === theme ? 'text-white' : 'text-gray-700'}`}>{theme}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+
             </View>
 
             {/* Catalog List */}
@@ -571,48 +740,50 @@ export default function ClassesSelectorScreen() {
                 </View>
               ) : (
                 categoryClasses.map((cls, idx) => (
-                  <Animated.View
+                  <TouchableOpacity
                     key={cls.id}
-                    entering={FadeInDown.duration(200).delay(idx * 40)}
-                    className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm"
+                    activeOpacity={0.95}
+                    onPress={() => router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`)}
                   >
-                    <Image
-                      source={
-                        cls.title.toLowerCase().includes('zumba')
-                          ? require('../../../../../assets/images/zumba.jpg')
-                          : cls.title.toLowerCase().includes('salsa')
-                          ? require('../../../../../assets/images/Salsa.jpeg')
-                          : require('../../../../../assets/images/bachata.jpg')
-                      }
-                      style={{ width: '100%', height: undefined, aspectRatio: 16 / 9, maxHeight: 180 }}
-                      resizeMode="cover"
-                    />
+                    <Animated.View
+                      entering={FadeInDown.duration(200).delay(idx * 40)}
+                      className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:border-orange-300 transition-all duration-300"
+                    >
+                      <Image
+                        source={
+                          cls.image
+                            ? { uri: cls.image }
+                            : cls.title.toLowerCase().includes('zumba')
+                            ? require('../../../../../assets/images/zumba.jpg')
+                            : cls.title.toLowerCase().includes('salsa')
+                            ? require('../../../../../assets/images/Salsa.jpeg')
+                            : require('../../../../../assets/images/bachata.jpg')
+                        }
+                        style={{ width: '100%', height: 180 }}
+                        resizeMode="cover"
+                      />
 
-                    <View className="p-4 items-center">
-                      <Text className="text-lg font-extrabold text-black mb-1">{cls.title}</Text>
+                      <View className="p-4 items-center">
+                        <Text className="text-lg font-extrabold text-black mb-1">{cls.title}</Text>
 
-                      <View className="flex-row items-center mb-3">
-                        <Ionicons name="calendar-outline" size={14} color="#FF7A00" className="mr-1" />
-                        <Text className="text-gray-400 text-xs font-semibold">
-                          {cls.schedule}
-                        </Text>
+                        <View className="flex-row items-center mb-3">
+                          <Ionicons name="calendar-outline" size={14} color="#FF7A00" className="mr-1" />
+                          <Text className="text-gray-400 text-xs font-semibold">
+                            {getClassScheduleDescription(cls.id)}
+                          </Text>
+                        </View>
+
+                        {/* Price visible on Card */}
+                        <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 px-2 mb-2">
+                          <Text className={`text-xs font-bold ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>Precio: S/ {cls.price.toFixed(2)}</Text>
+                        </View>
+
+                        <View className="py-2.5 w-full items-center border-t border-gray-50 mt-2">
+                          <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Ver horarios y reservar</Text>
+                        </View>
                       </View>
-
-                      {/* Price visible on Card */}
-                      <View className="flex-row justify-between w-full border-t border-gray-100 pt-3 px-2 mb-2">
-                        <Text className={`text-xs font-bold ${isNative ? 'text-primary-text-strong' : 'text-primary'}`}>Precio: S/ {cls.price.toFixed(2)}</Text>
-                      </View>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          router.push(`/(client)/(tabs)/classes/schedules?id=${cls.id}`);
-                        }}
-                        className="py-2.5 w-full items-center border-t border-gray-50 mt-2"
-                      >
-                        <Text className={`${isNative ? 'text-primary-text-strong' : 'text-primary'} font-bold text-sm`}>Ver horarios y reservar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Animated.View>
+                    </Animated.View>
+                  </TouchableOpacity>
                 ))
               )}
             </View>
@@ -621,7 +792,14 @@ export default function ClassesSelectorScreen() {
           /* Calendario View Mobile */
           <Animated.View entering={FadeIn.duration(200)}>
             {/* Week Range heading */}
-            <View className="items-center mb-4 mt-2">
+            <View className="flex-row justify-between items-center mb-4 mt-2 px-1 max-w-sm mx-auto w-full">
+              <TouchableOpacity
+                onPress={handlePrevDay}
+                className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-back" size={16} color="black" />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={() => {
                   setCurrentCalendarMonth(selectedDate.getMonth());
@@ -633,7 +811,14 @@ export default function ClassesSelectorScreen() {
                 <Text className="text-sm font-bold text-black mr-2">
                   {formatWeekRange(monday)}
                 </Text>
-                <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={18} color="#FF7A00" />
+                <Ionicons name={showYearCalendar ? "chevron-up" : "chevron-down"} size={16} color="#FF7A00" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleNextDay}
+                className="p-2 rounded-full border border-gray-200 bg-white shadow-sm"
+              >
+                <Ionicons name="chevron-forward" size={16} color="black" />
               </TouchableOpacity>
             </View>
 
@@ -641,13 +826,13 @@ export default function ClassesSelectorScreen() {
             {showYearCalendar && (
               <Animated.View entering={FadeInDown.duration(200)} className="bg-white border border-gray-200 rounded-3xl p-5 mb-6 shadow-md">
                 <View className="flex-row justify-between items-center mb-4 px-1">
-                  <TouchableOpacity onPress={handlePrevMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handlePrevMonth} className="p-1">
                     <Ionicons name="chevron-back" size={20} color="black" />
                   </TouchableOpacity>
                   <Text className="text-sm font-extrabold text-black uppercase">
                     {monthsNames[currentCalendarMonth]} {currentCalendarYear}
                   </Text>
-                  <TouchableOpacity onPress={handleNextMonth} className="p-1">
+                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={handleNextMonth} className="p-1">
                     <Ionicons name="chevron-forward" size={20} color="black" />
                   </TouchableOpacity>
                 </View>
@@ -659,15 +844,18 @@ export default function ClassesSelectorScreen() {
                 <View className="flex-row flex-wrap justify-between gap-y-2">
                   {gridCells.map((cellDate, idx) => {
                     if (!cellDate) return <View key={idx} className="w-[13%] aspect-square" />;
+                    const isSunday = cellDate.getDay() === 0;
                     const isSelected = cellDate.getDate() === selectedDate.getDate() && cellDate.getMonth() === selectedDate.getMonth() && cellDate.getFullYear() === selectedDate.getFullYear();
                     const isPast = isPastDate(cellDate);
+                    const isDisabled = isPast || isSunday;
                     return (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => { if (!isPast) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
-                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isPast ? 'bg-gray-100' : 'bg-gray-50'}`}
+                        onPress={() => { if (!isDisabled) { setSelectedDate(cellDate); setShowYearCalendar(false); } }}
+                        hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
+                        className={`w-[13%] aspect-square items-center justify-center rounded-xl ${isSelected ? 'bg-primary shadow-sm shadow-orange-500/20' : isDisabled ? 'bg-gray-100 opacity-40' : 'bg-gray-50'}`}
                       >
-                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
+                        <Text className={`text-xs font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-black'}`}>{cellDate.getDate()}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -684,6 +872,7 @@ export default function ClassesSelectorScreen() {
                   <TouchableOpacity
                     key={idx}
                     onPress={() => !isPast && setSelectedDate(day.date)}
+                    hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
                     className={`items-center p-2 rounded-xl w-[45px] ${isSelected ? 'bg-primary' : isPast ? 'bg-gray-100' : 'bg-transparent'}`}
                   >
                     <Text className={`text-[10px] font-bold ${isSelected ? 'text-white' : isPast ? 'text-gray-300' : 'text-gray-500'}`}>{day.label}</Text>
@@ -698,18 +887,18 @@ export default function ClassesSelectorScreen() {
               {timeBlocks.length === 0 || timeBlocks.every(tb => !tb.class) ? (
                 <View className="py-12 items-center justify-center bg-white">
                   <Ionicons name="calendar-outline" size={40} color="lightgray" />
-                  <Text className="text-gray-400 font-bold text-sm mt-3">No hay clases programadas para hoy</Text>
+                  <Text className="text-gray-400 font-medium text-sm mt-3">No hay clases programadas para hoy</Text>
                 </View>
               ) : (
                 timeBlocks.map((block, idx) => (
                   <View key={idx} className="flex-row min-h-[70px] border-b border-gray-200 last:border-b-0">
-                    <View className="w-24 border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
-                      <Text className="text-xs font-bold text-black">{block.start} - {block.end}</Text>
+                    <View className="w-[125px] border-r border-gray-200 items-center justify-center p-2 bg-gray-50/50">
+                      <Text className="text-[11px] font-bold text-black text-center whitespace-nowrap" numberOfLines={1}>{block.start} - {block.end}</Text>
                     </View>
                     <View className="flex-1 p-2 justify-center">
                       {block.class ? (
                         <TouchableOpacity
-                          onPress={() => handleClassClick(block.class!.id)}
+                          onPress={() => handleClassClick(block.class!.id, block.class!.id_detalle_clase)}
                           className={`rounded-xl p-3 flex-row justify-between items-center ${block.class.colorBg}`}
                         >
                           <View>
@@ -726,12 +915,6 @@ export default function ClassesSelectorScreen() {
                   </View>
                 ))
               )}
-            </View>
-
-            {/* Footer warning */}
-            <View className="flex-row items-center justify-center py-2 mb-4">
-              <Ionicons name="time-outline" size={16} color="gray" />
-              <Text className="text-xs text-gray-500 font-bold ml-1">Las reservas deben ser 3 horas antes</Text>
             </View>
           </Animated.View>
         )}

@@ -13,6 +13,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  codigo_referido?: string;
   role: 'client' | 'admin';
 }
 
@@ -42,6 +43,7 @@ export interface ClassItem {
 export interface Reservation {
   id: string;
   classId: string;
+  scheduleId: string;
   className: string;
   time: string;
   date: string;
@@ -70,6 +72,7 @@ interface CurrentBooking {
   totalPrice: number;
   timeLeft: number; // in seconds
   startedAt: number; // timestamp when booking started
+  totalSeats?: number;
 }
 
 export interface ToastInfo {
@@ -82,6 +85,7 @@ interface AppState {
   user: User | null;
   otpCode: string | null;
   tempRegisterData: Partial<User> | null;
+  tempPassword: string | null;
   tempResetEmail: string | null;
   
   // Toast state
@@ -100,8 +104,13 @@ interface AppState {
   currentBooking: CurrentBooking | null;
   timerIntervalId: any | null;
 
+  // MonedasFit
+  monedasSaldo: number;
+  monedasHistorial: any[];
+
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
+  restoreSession: () => Promise<boolean>;
   registerUser: (data: any) => Promise<boolean>;
   fetchClasses: () => Promise<void>;
   fetchInstructors: () => Promise<void>;
@@ -143,7 +152,12 @@ interface AppState {
   hideToast: () => void;
   fetchReservations: () => Promise<void>;
   cancelReservation: (id: string) => Promise<void>;
+  cancelReservationWithMonedas: (id: string) => Promise<void>;
   updateProfile: (data: { nombres: string; apellidos: string; celular: string }) => Promise<boolean>;
+
+  // MonedasFit actions
+  fetchMonedas: () => Promise<void>;
+  pagarConMonedas: (id_reserva: string) => Promise<boolean>;
 }
 
 // Helpers to format date/time slots
@@ -168,10 +182,18 @@ const formatDate = (dateStr: string) => {
 };
 
 // Create Zustand store
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set, get) => {
+  const getClassPrice = (id_clase?: string): number => {
+    if (!id_clase) return 5;
+    const cls = get().classes.find(c => c.id === id_clase);
+    return cls?.price || 5;
+  };
+
+  return {
   user: null,
   otpCode: null,
   tempRegisterData: null,
+  tempPassword: null,
   tempResetEmail: null,
   
   instructors: [],
@@ -183,6 +205,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentBooking: null,
   timerIntervalId: null,
   toast: null,
+
+  monedasSaldo: 0,
+  monedasHistorial: [],
 
   login: async (email, password) => {
     try {
@@ -207,9 +232,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         name: `${usuario.nombres} ${usuario.apellidos}`,
         email: cuenta.correo_electronico,
         phone: usuario.celular || '',
+        codigo_referido: usuario.codigo_referido || undefined,
         role: role
       };
-      
+
       set({ user: userObj });
 
       // Map user's reservations or all reservations
@@ -220,13 +246,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           mappedReservations = (resData.data || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
         } catch (err) {
@@ -236,18 +263,20 @@ export const useAppStore = create<AppState>((set, get) => ({
         mappedReservations = (usuario.reservas || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
           clientName: userObj.name,
           clientPhone: userObj.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       }
 
       set({ reservations: mappedReservations });
+      await get().fetchMonedas();
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -257,14 +286,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   registerUser: async (data) => {
     try {
-      await authService.register({
+      const payload: any = {
         nombres: data.name?.split(' ')[0] || 'Usuario',
         apellidos: data.name?.split(' ').slice(1).join(' ') || 'ReservaFit',
         correo_electronico: data.email,
         contrasena: data.password,
         celular: data.phone || ''
-      });
-      set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client', id: data.password } });
+      };
+      if (data.codigo_referido) {
+        payload.codigo_referido = data.codigo_referido.toUpperCase();
+      }
+      await authService.register(payload);
+      set({ tempRegisterData: { email: data.email, name: data.name, phone: data.phone, role: 'client' }, tempPassword: data.password });
       return { success: true };
     } catch (error: any) {
       const message = error?.response?.data?.error || error?.response?.data?.detalles?.[0]?.mensaje || 'Error al registrar. Verifica tus datos o intenta más tarde.';
@@ -291,14 +324,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         
         let instructorName = 'Sin asignar';
         let status: 'Activo' | 'Inactivo' = 'Activo';
-        let price = 40;
+        let price = Number(c.precio) || 5;
         let descText = c.descripcion || '';
 
         try {
           if (descText.startsWith('{')) {
             const parsed = JSON.parse(descText);
             instructorName = parsed.instructorName || instructorName;
-            price = parsed.price || price;
             status = parsed.status || status;
             descText = parsed.description || descText;
           }
@@ -369,7 +401,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   verifyOtp: async (code) => {
     try {
-      const { tempRegisterData } = get();
+      const { tempRegisterData, tempPassword } = get();
       if (!tempRegisterData || !tempRegisterData.email) return false;
       
       await api.post('/auth/verify-otp', {
@@ -377,11 +409,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         codigo_otp: code
       });
       
-      // Auto login
-      if (tempRegisterData.email && tempRegisterData.id) {
-        const success = await get().login(tempRegisterData.email, tempRegisterData.id);
+      if (tempRegisterData.email && tempPassword) {
+        const success = await get().login(tempRegisterData.email, tempPassword);
         if (success) {
-          set({ tempRegisterData: null, otpCode: null });
+          set({ tempRegisterData: null, tempPassword: null, otpCode: null });
           return true;
         }
       }
@@ -421,6 +452,90 @@ export const useAppStore = create<AppState>((set, get) => ({
     authService.logout();
     set({ user: null, reservations: [] });
     get().clearBooking();
+  },
+
+  restoreSession: async () => {
+    try {
+      let token: string | null = null;
+      if (Platform.OS === 'web') {
+        token = localStorage.getItem('token_jwt');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        token = await SecureStore.getItemAsync('token_jwt');
+      }
+
+      if (!token) return false;
+
+      const payloadBase64 = token.split('.')[1];
+      const decoded = JSON.parse(atob(payloadBase64));
+      const { id_usuario, rol } = decoded;
+
+      if (!id_usuario) return false;
+
+      const profileResponse = await api.get(`/usuarios/${id_usuario}`);
+      const usuario = profileResponse.data.data;
+      const cuentas = usuario.cuentas || (usuario.cuenta ? [usuario.cuenta] : []);
+      const cuenta = cuentas[0] || {};
+      const role = rol === 'Administrador' ? 'admin' : 'client';
+
+      const userObj: User = {
+        id: usuario.id_usuario,
+        name: `${usuario.nombres} ${usuario.apellidos}`,
+        email: cuenta.correo_electronico || '',
+        phone: usuario.celular || '',
+        codigo_referido: usuario.codigo_referido || undefined,
+        role
+      };
+
+      let mappedReservations: Reservation[] = [];
+      if (role === 'admin') {
+        try {
+          const resData = await reservationsService.getAll();
+          mappedReservations = (resData.data || []).map((r: any) => ({
+            id: r.id_reserva,
+            classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
+            className: r.detalle_clase?.clase?.nombre || 'Clase',
+            time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+            date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+            clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
+            clientPhone: r.usuario?.celular || '',
+            seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
+            status: mapReservationStatus(r.estado)
+          }));
+        } catch (err) {
+          console.error('Restore session - fetch all reservations error:', err);
+        }
+      } else {
+        mappedReservations = (usuario.reservas || []).map((r: any) => ({
+          id: r.id_reserva,
+          classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
+          className: r.detalle_clase?.clase?.nombre || 'Clase',
+          time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
+          date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
+          clientName: userObj.name,
+          clientPhone: userObj.phone,
+          seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
+          status: mapReservationStatus(r.estado)
+        }));
+      }
+
+      set({ user: userObj, reservations: mappedReservations });
+      await get().fetchMonedas();
+      return true;
+    } catch (error) {
+      console.error('Restore session error:', error);
+      if (Platform.OS === 'web') {
+        localStorage.removeItem('token_jwt');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        await SecureStore.deleteItemAsync('token_jwt');
+      }
+      return false;
+    }
   },
 
   // Instructor CRUD
@@ -487,12 +602,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       await classesService.create({
         nombre: classItem.title,
         descripcion: classItem.theme || '',
-        imagen_url: classItem.image || ''
+        imagen_url: classItem.image || '',
+        precio: Number(classItem.price) || 5
       });
 
       await get().fetchClasses();
     } catch (error) {
       console.error('Add class error:', error);
+      throw error;
     }
   },
 
@@ -507,15 +624,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       const merged = { ...existing, ...updatedFields };
 
-      await classesService.update(id, {
+      const updateData: any = {
         nombre: merged.title,
         descripcion: merged.theme || '',
         imagen_url: merged.image || ''
-      });
+      };
+
+      if (updatedFields.price !== undefined) {
+        updateData.precio = Number(updatedFields.price) || 5;
+      }
+
+      await classesService.update(id, updateData);
 
       await get().fetchClasses();
     } catch (error) {
       console.error('Update class error:', error);
+      throw error;
     }
   },
 
@@ -525,6 +649,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await get().fetchClasses();
     } catch (error) {
       console.error('Delete class error:', error);
+      throw error;
     }
   },
 
@@ -610,22 +735,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         const match = agenda.find((a: any) => a.id_clase === currentBooking.classId);
         if (match) {
           id_detalle_clase = match.id_detalle_clase;
-        } else {
-          const instructorResponse = await api.get('/instructores');
-          const instructors = instructorResponse.data.data || [];
-          const instructorId = instructors[0]?.id_instructor;
-          if (instructorId) {
-            const newDetail = await api.post('/agenda', {
-              id_clase: currentBooking.classId,
-              id_instructor: instructorId,
-              fecha_hora_inicio: new Date().toISOString(),
-              fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
-            });
-            id_detalle_clase = newDetail.data.data.id_detalle_clase;
-          }
         }
       } catch (err) {
-        console.error('Error finding/creating agenda detail:', err);
+        console.error('Error finding agenda detail:', err);
       }
     }
 
@@ -636,24 +748,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     let lastReservation: any = null;
     try {
-      for (const seat of currentBooking.selectedSeats) {
-        const response = await api.post('/reservas/reservas', {
-          id_usuario: user.id,
-          id_detalle_clase,
-          numero_cupo: seat
-        });
-        
-        const reservationId = response.data.reserva.id_reserva;
-        lastReservation = response.data.reserva;
-        
-        if (Platform.OS !== 'web') {
-          await api.patch(`/reservas/${reservationId}`, {
-            estado: 'Confirmada'
-          });
-        }
-      }
+      const response = await api.post('/reservas/crear', {
+        id_usuario: user.id,
+        id_detalle_clase,
+        numeros_cupo: currentBooking.selectedSeats
+      });
+
+      lastReservation = response.data.reserva;
       
-      // Refresh classes and agenda to update enrolled counts
       await get().fetchClasses();
 
       // Refresh user profile reservations
@@ -662,17 +764,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       const mappedReservations = (updatedUser.reservas || []).map((r: any) => ({
         id: r.id_reserva,
         classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
         className: r.detalle_clase?.clase?.nombre || 'Clase',
         time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
         date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
         clientName: user.name,
         clientPhone: phoneYape || user.phone,
         seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-        price: r.cantidad_cupos * 40,
+        price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
         status: mapReservationStatus(r.estado)
       }));
       
-      set({ reservations: mappedReservations, currentBooking: null });
+      set({ reservations: mappedReservations });
       return lastReservation;
     } catch (err: any) {
       console.error('Confirm booking error:', err);
@@ -693,7 +796,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           apellidos: bookingData.clientLastName,
           correo_electronico: bookingData.clientEmail,
           celular: bookingData.clientPhone,
-          contrasena: 'ReservaFit123!',
+          contrasena: Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2),
           rol: 'Cliente'
         });
         const newUserId = registerResponse.data.data.usuario.id_usuario;
@@ -707,18 +810,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       let match = agenda.find((a: any) => a.id_clase === bookingData.classId);
       
       if (!match) {
-        const instructorsResponse = await api.get('/instructores');
-        const instructors = instructorsResponse.data.data || [];
-        const instructorId = instructors[0]?.id_instructor;
-        if (!instructorId) return false;
-        
-        const newDetail = await api.post('/agenda', {
-          id_clase: bookingData.classId,
-          id_instructor: instructorId,
-          fecha_hora_inicio: new Date().toISOString(),
-          fecha_hora_fin: new Date(Date.now() + 60*60*1000).toISOString()
-        });
-        match = newDetail.data.data;
+        get().showToast('No se encontró un horario disponible para esta clase.', 'error');
+        return false;
       }
       
       const seatsToBook = bookingData.selectedSeats && bookingData.selectedSeats.length > 0 
@@ -759,13 +852,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         const mappedReservations = (resData.data || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
         set({ reservations: mappedReservations });
@@ -796,13 +890,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         mappedReservations = (resData.data || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
           clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
           clientPhone: r.usuario?.celular || '',
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       } else {
@@ -811,13 +906,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         mappedReservations = (usuario.reservas || []).map((r: any) => ({
           id: r.id_reserva,
           classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
           className: r.detalle_clase?.clase?.nombre || 'Clase',
           time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
           date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
           clientName: user.name,
           clientPhone: user.phone,
           seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-          price: r.cantidad_cupos * 40,
+          price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
           status: mapReservationStatus(r.estado)
         }));
       }
@@ -842,13 +938,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           const mappedReservations = (resData.data || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
             clientName: r.usuario ? `${r.usuario.nombres} ${r.usuario.apellidos}` : 'Cliente',
             clientPhone: r.usuario?.celular || '',
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
@@ -858,13 +955,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           const mappedReservations = (usuario.reservas || []).map((r: any) => ({
             id: r.id_reserva,
             classId: r.detalle_clase?.id_clase || '',
+            scheduleId: r.id_detalle_clase,
             className: r.detalle_clase?.clase?.nombre || 'Clase',
             time: r.detalle_clase ? formatTimeSlot(r.detalle_clase.fecha_hora_inicio, r.detalle_clase.fecha_hora_fin) : 'Horario',
             date: r.detalle_clase ? formatDate(r.detalle_clase.fecha_hora_inicio) : 'Fecha',
             clientName: user.name,
             clientPhone: user.phone,
             seats: r.detalles_reserva?.map((d: any) => d.numero_cupo) || [],
-            price: r.cantidad_cupos * 40,
+            price: r.cantidad_cupos * getClassPrice(r.detalle_clase?.id_clase),
             status: mapReservationStatus(r.estado)
           }));
           set({ reservations: mappedReservations });
@@ -888,5 +986,48 @@ export const useAppStore = create<AppState>((set, get) => ({
       get().showToast('Error al actualizar el perfil', 'error');
       return false;
     }
-  }
-}));
+  },
+
+  cancelReservationWithMonedas: async (id) => {
+    try {
+      const response = await api.patch(`/monedas/cancelar/${id}`, { motivo: 'cliente' });
+      const msg = response.data.monedas
+        ? 'Reserva cancelada. Recibiste 5 monedas.'
+        : 'Reserva cancelada. No se devolvieron monedas (pago no completado).';
+      const type = response.data.monedas ? 'success' : 'warning';
+      get().showToast(msg, type);
+      await get().fetchReservations();
+      await get().fetchMonedas();
+    } catch (error) {
+      console.error('Cancel reservation with monedas error:', error);
+      get().showToast('Error al cancelar la reserva.', 'error');
+    }
+  },
+
+  fetchMonedas: async () => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const response = await api.get(`/monedas/${user.id}`);
+      set({ monedasSaldo: response.data.saldo, monedasHistorial: response.data.historial || [] });
+    } catch (error) {
+      console.error('Fetch monedas error:', error);
+    }
+  },
+
+  pagarConMonedas: async (id_reserva) => {
+    const { user } = get();
+    if (!user) return false;
+    try {
+      await api.post('/monedas/pagar', { id_reserva, id_usuario: user.id });
+      get().showToast('¡Pago con monedas exitoso!', 'success');
+      await get().fetchMonedas();
+      await get().fetchReservations();
+      return true;
+    } catch (error: any) {
+      const msg = error?.response?.data?.error || 'Error al pagar con monedas';
+      get().showToast(msg, 'error');
+      return false;
+    }
+  },
+}; });

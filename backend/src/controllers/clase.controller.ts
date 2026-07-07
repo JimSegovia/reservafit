@@ -7,8 +7,8 @@ export class ClaseController {
   // Crear una nueva clase
   static async create(req: Request, res: Response): Promise<void> {
     try {
-      const { nombre, descripcion, imagen_url } = req.body;
-      const data: CreateClaseDTO = { nombre, descripcion, imagen_url };
+      const { nombre, descripcion, imagen_url, precio } = req.body;
+      const data: CreateClaseDTO = { nombre, descripcion, imagen_url, precio };
       const nuevaClase = await ClaseService.registrarClase(data);
       
       res.status(201).json({
@@ -34,8 +34,8 @@ export class ClaseController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const { nombre, descripcion, imagen_url } = req.body;
-      const data: UpdateClaseDTO = { nombre, descripcion, imagen_url };
+      const { nombre, descripcion, imagen_url, precio } = req.body;
+      const data: UpdateClaseDTO = { nombre, descripcion, imagen_url, precio };
       
       const claseActualizada = await ClaseService.modificarClase(id, data);
       

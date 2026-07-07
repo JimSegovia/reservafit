@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, useWindowDimensions, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Platform, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useStore';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Loader } from '@/components/ui/loader';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -13,24 +14,60 @@ export default function AdminBookingsHistoryScreen() {
   const isMobile = width < 768;
   const isNative = Platform.OS !== 'web';
   const reservations = useAppStore((state) => state.reservations);
+  const fetchReservations = useAppStore((state) => state.fetchReservations);
 
   const [activeTab, setActiveTab] = useState<'Reservas' | 'Pagos'>('Reservas');
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadReservations = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
+    try {
+      await fetchReservations();
+    } catch (err) {
+      console.error('Error fetching reservations:', err);
+    } finally {
+      if (showLoadingIndicator) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReservations(true);
+  }, [fetchReservations]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadReservations(false);
+    setRefreshing(false);
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-cream">
+        <Loader variant="inline" label="Cargando historial..." />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-cream">
+    <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 80 : 30 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
-        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        className="flex-1"
+        style={{ flex: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A00']} />}
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center mb-6">
-          <TouchableOpacity onPress={() => router.replace('/(admin)')}>
-            <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
-            <Text className="text-2xl font-extrabold text-black mt-0.5">Historial</Text>
+        <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
+          <View className="flex-row items-center flex-1 mr-2">
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
+              <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
+            </TouchableOpacity>
+            <View>
+              <Text className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Panel Admin &gt; Historial</Text>
+              <Text className="text-2xl font-semibold text-secondary mt-0.5">Historial</Text>
+            </View>
           </View>
         </Animated.View>
 
@@ -122,6 +159,6 @@ export default function AdminBookingsHistoryScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

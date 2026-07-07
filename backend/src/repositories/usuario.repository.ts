@@ -21,7 +21,9 @@ export class UsuarioRepository {
     data: RegisterDTO, 
     contrasenaHasheada: string,
     codigoOtp: string,
-    expiracionOtp: Date
+    expiracionOtp: Date,
+    codigoReferidoPropio?: string,
+    idReferidor?: string
   ) {
     // Agregamos 'Prisma.TransactionClient' al parámetro 'tx' para que TypeScript y Railway no arrojen error
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -31,6 +33,8 @@ export class UsuarioRepository {
           nombres: data.nombres,
           apellidos: data.apellidos,
           celular: data.celular,
+          codigo_referido: codigoReferidoPropio,
+          id_referidor: idReferidor,
         }
       });
 
@@ -63,15 +67,16 @@ export class UsuarioRepository {
           select: { correo_electronico: true, rol: true, estado_verificacion: true }
         },
         reservas: {
-          include: { 
-            detalle_clase: { 
-              include: { 
+          orderBy: { fecha_reserva: 'desc' },
+          include: {
+            detalles_reserva: true,
+            detalle_clase: {
+              include: {
                 clase: {
-                  // Le decimos explícitamente qué columnas traer, sin tocar 'dia'
-                  select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true }
-                } 
-              } 
-            } 
+                  select: { id_clase: true, nombre: true, descripcion: true, imagen_url: true, precio: true }
+                }
+              }
+            }
           }
         }
       }
@@ -95,6 +100,54 @@ export class UsuarioRepository {
     return prisma.usuario.findMany({
       include: { cuentas: { select: { correo_electronico: true, rol: true } } }
     });
+  }
+
+  static async obtenerClientesConMonedas(search?: string, page = 1, limit = 20) {
+    const where: any = {
+      cuentas: { some: { rol: 'Cliente' } },
+    };
+
+    if (search) {
+      where.OR = [
+        { nombres: { contains: search, mode: 'insensitive' } },
+        { apellidos: { contains: search, mode: 'insensitive' } },
+        { cuentas: { some: { correo_electronico: { contains: search, mode: 'insensitive' } } } },
+      ];
+    }
+
+    const [clientes, total] = await Promise.all([
+      prisma.usuario.findMany({
+        where,
+        select: {
+          id_usuario: true,
+          nombres: true,
+          apellidos: true,
+          celular: true,
+          codigo_referido: true,
+          cuentas: { select: { correo_electronico: true } },
+          monedas_cliente: { select: { saldo_monedas: true } },
+        },
+        orderBy: { nombres: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.usuario.count({ where }),
+    ]);
+
+    return {
+      data: clientes.map((c) => ({
+        id_usuario: c.id_usuario,
+        nombres: c.nombres,
+        apellidos: c.apellidos,
+        email: c.cuentas[0]?.correo_electronico || '',
+        celular: c.celular,
+        codigo_referido: c.codigo_referido,
+        saldo_monedas: c.monedas_cliente?.saldo_monedas ?? 0,
+      })),
+      total,
+      page,
+      limit,
+    };
   }
 
   // 3. Activar cuenta y limpiar OTP
@@ -135,6 +188,19 @@ export class UsuarioRepository {
         codigo_otp: null,
         expiracion_otp: null,
       }
+    });
+  }
+
+  static async buscarPorCodigoReferido(codigo: string) {
+    return prisma.usuario.findFirst({
+      where: { codigo_referido: codigo },
+    });
+  }
+
+  static async asignarCodigoReferido(id: string, codigo: string) {
+    return prisma.usuario.update({
+      where: { id_usuario: id },
+      data: { codigo_referido: codigo },
     });
   }
 }

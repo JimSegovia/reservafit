@@ -1,17 +1,10 @@
 import { DetalleClaseRepository } from '../repositories/detalleClase.repository.js';
 import { CreateDetalleClaseDTO, UpdateDetalleClaseDTO } from '../types/detalleClase.dto.js';
+import prisma from '../config/prisma.js';
 
 export class DetalleClaseService {
   
   static async programarClase(data: CreateDetalleClaseDTO) {
-    // Validar que la fecha de inicio no sea mayor a la fecha de fin
-    const inicio = new Date(data.fecha_hora_inicio);
-    const fin = new Date(data.fecha_hora_fin);
-
-    if (inicio >= fin) {
-      throw new Error('La fecha de inicio no puede ser igual o mayor a la fecha de fin');
-    }
-
     return await DetalleClaseRepository.crear(data);
   }
 
@@ -24,16 +17,6 @@ export class DetalleClaseService {
     if (!agendaExistente) {
       throw new Error('El registro en la agenda no existe.');
     }
-
-    // Si nos están enviando ambas fechas para actualizar, validamos que tengan sentido
-    if (data.fecha_hora_inicio && data.fecha_hora_fin) {
-      const inicio = new Date(data.fecha_hora_inicio);
-      const fin = new Date(data.fecha_hora_fin);
-      if (inicio >= fin) {
-        throw new Error('La fecha de inicio no puede ser mayor o igual a la de fin.');
-      }
-    }
-
     return await DetalleClaseRepository.actualizar(id, data);
   }
 
@@ -42,6 +25,46 @@ export class DetalleClaseService {
     if (!agendaExistente) {
       throw new Error('El registro en la agenda no existe.');
     }
+
+    // Find all reservations for this session schedule
+    const reservas = await prisma.reserva.findMany({
+      where: { id_detalle_clase: id }
+    });
+    const idsReservas = reservas.map(r => r.id_reserva);
+
+    // Find all payments for these reservations
+    const pagos = await prisma.pago.findMany({
+      where: { id_reserva: { in: idsReservas } }
+    });
+    const idsPagos = pagos.map(p => p.id_pago);
+
+    // Delete related refunds
+    if (idsPagos.length > 0) {
+      await prisma.reembolso.deleteMany({
+        where: { id_pago: { in: idsPagos } }
+      });
+      // Delete webhook processed records
+      await prisma.webHookProcesado.deleteMany({
+        where: { id_pago: { in: idsPagos } }
+      });
+    }
+
+    // Delete payments
+    await prisma.pago.deleteMany({
+      where: { id_reserva: { in: idsReservas } }
+    });
+
+    // Delete reservation details
+    await prisma.detalleReserva.deleteMany({
+      where: { id_reserva: { in: idsReservas } }
+    });
+
+    // Delete reservations
+    await prisma.reserva.deleteMany({
+      where: { id_reserva: { in: idsReservas } }
+    });
+
+    // Finally delete from agenda
     return await DetalleClaseRepository.eliminar(id);
   }
   

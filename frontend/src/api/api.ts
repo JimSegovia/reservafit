@@ -53,16 +53,22 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // Si el backend nos devuelve un 401 (No Autorizado), significa que el token expiró o es inválido.
-    // Aquí podrías agregar lógica para desloguear al usuario automáticamente y mandarlo al Login.
-    if (error.response && error.response.status === 401) {
-      console.warn('Token expirado o inválido. Sesión terminada.');
+    const isAuthRequest = error.config?.url?.includes('/auth/');
+    if (error.response && error.response.status === 401 && !isAuthRequest) {
+      console.warn('Token expirado o inválido. Cerrando sesión.');
       if (Platform.OS === 'web') {
         localStorage.removeItem('token_jwt');
       } else {
         await SecureStore.deleteItemAsync('token_jwt');
       }
-      // Lógica de redirección al login (dependerá de cómo uses Expo Router)
+      // Limpiar estado y redirigir
+      try {
+        const { useAppStore } = require('@/store/useStore');
+        useAppStore.getState().logout();
+      } catch (e) {}
+      if (Platform.OS === 'web') {
+        window.location.href = '/landing';
+      }
     }
     
     return Promise.reject(error);

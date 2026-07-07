@@ -7,6 +7,7 @@ export interface CreateDetalleClaseDTO {
   fecha_hora_fin: string;
   dia: string;
   tematica?: string;
+  cupos?: number;
 }
 
 export interface UpdateDetalleClaseDTO {

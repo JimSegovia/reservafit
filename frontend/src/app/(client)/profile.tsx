@@ -49,6 +49,7 @@ export default function ProfileScreen() {
         <Animated.View entering={FadeIn.duration(220)} className="flex-row items-center mb-8">
           <TouchableOpacity
             onPress={() => router.back()}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="w-10 h-10 rounded-full items-center justify-center bg-white border border-gray-200 mr-4"
           >
             <Ionicons name="arrow-back" size={18} color="#111827" />
@@ -94,6 +95,21 @@ export default function ProfileScreen() {
             className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-black"
           />
         </View>
+
+        {user?.codigo_referido ? (
+          <View className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-2">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="people-outline" size={18} color="#D97706" />
+              <Text className="text-amber-700 font-bold text-sm ml-2">Tu código de referido</Text>
+            </View>
+            <Text className="text-2xl font-extrabold text-amber-800 tracking-widest text-center">
+              {user.codigo_referido}
+            </Text>
+            <Text className="text-amber-600 text-xs text-center mt-1">
+              Comparte este código. Por cada persona que lo use, ganas 1 moneda.
+            </Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity
           onPress={handleSave}

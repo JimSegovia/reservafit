@@ -12,17 +12,26 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const currentBooking = useAppStore((state) => state.currentBooking);
   const confirmBooking = useAppStore((state) => state.confirmBooking);
+  const clearBooking = useAppStore((state) => state.clearBooking);
   const decrementTimer = useAppStore((state) => state.decrementTimer);
   const showToast = useAppStore((state) => state.showToast);
+  const monedasSaldo = useAppStore((state) => state.monedasSaldo);
+  const pagarConMonedas = useAppStore((state) => state.pagarConMonedas);
+  const fetchMonedas = useAppStore((state) => state.fetchMonedas);
+  const user = useAppStore((state) => state.user);
+
+  useEffect(() => {
+    fetchMonedas();
+  }, []);
   
   const [showPopup, setShowPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!currentBooking) {
+    if (!currentBooking && !isProcessing) {
       router.replace('/(client)/(tabs)/classes');
     }
-  }, [currentBooking, router]);
+  }, [currentBooking, isProcessing, router]);
 
   useEffect(() => {
     const interval = setInterval(() => decrementTimer(), 1000);
@@ -38,11 +47,37 @@ export default function CheckoutScreen() {
     setShowPopup(true);
   };
 
+  const handleMonedasPay = async () => {
+    if (!currentBooking) return;
+    setIsProcessing(true);
+    try {
+      const res = await confirmBooking('');
+      if (!res) {
+        showToast('No se pudo registrar la reserva.', 'error');
+        setIsProcessing(false);
+        return;
+      }
+      const success = await pagarConMonedas(res.id_reserva);
+      if (success) {
+        clearBooking();
+        router.replace('/(client)/(tabs)');
+      }
+    } catch (error: any) {
+      showToast('Error al procesar el pago.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const hasMonedas = monedasSaldo >= 5;
+
+  const monedasNeeded = currentBooking ? currentBooking.selectedSeats.length * 5 : 5;
+  const hasEnoughMonedas = monedasSaldo >= monedasNeeded;
+
   const handleConfirm = async () => {
     setIsProcessing(true);
     
     try {
-      // 1. Create the reservation in the backend database
       const res = await confirmBooking('');
       if (!res) {
         showToast('No se pudo registrar la reserva. Inténtalo de nuevo.', 'error');
@@ -50,7 +85,8 @@ export default function CheckoutScreen() {
         return;
       }
 
-      // 2. Call the payment checkout preference generator
+      localStorage.setItem('pending_payment_reserva_id', res.id_reserva);
+
       const checkoutResponse = await api.post('/pagos/checkout', {
         id_reserva: res.id_reserva,
         amount: currentBooking.totalPrice,
@@ -61,9 +97,8 @@ export default function CheckoutScreen() {
 
       if (checkoutResponse.status === 200 && result.success && result.data?.initPoint) {
         setShowPopup(false);
-        
-        // Direct redirect to Mercado Pago Checkout Pro
-        window.location.href = result.data.initPoint; 
+        clearBooking();
+        window.location.href = result.data.initPoint;
       } else {
         showToast(result.error || 'No se pudo generar el enlace de Mercado Pago.', 'error');
       }
@@ -107,44 +142,59 @@ export default function CheckoutScreen() {
         </View>
       </View>
 
-      <View className="items-center mt-2 mb-4">
-        <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 64, height: 64, borderRadius: 32 }} />
-        <Text className="text-[14px] text-center mt-3 text-gray-600">Paga de forma segura con Mercado Pago.</Text>
+      {/* Ticket Summary – white elevated card */}
+      <View className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+        <Text className="text-base font-semibold text-black mb-4">Resumen de tu clase</Text>
+        <View className="gap-y-2.5 mb-4">
+          <View className="flex-row justify-between"><Text className="text-sm text-gray-500 font-medium">Clase</Text><Text className="text-sm text-gray-900 font-medium">{currentBooking.className}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-sm text-gray-500 font-medium">Horario</Text><Text className="text-sm text-gray-900 font-medium">{currentBooking.time}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-sm text-gray-500 font-medium">Asiento(s)</Text><Text className="text-sm text-gray-900 font-medium">{currentBooking.selectedSeats.join(', ')}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-sm text-gray-500 font-medium">Fecha</Text><Text className="text-sm text-gray-900 font-medium">{currentBooking.day.charAt(0).toUpperCase() + currentBooking.day.slice(1).toLowerCase()}</Text></View>
+          <View className="flex-row justify-between"><Text className="text-sm text-gray-500 font-medium">Instructor</Text><Text className="text-sm text-gray-900 font-medium">{currentBooking.instructorName}</Text></View>
+        </View>
+        <View className="border-t border-gray-100 pt-3 flex-row justify-between items-center">
+          <Text className="text-sm font-semibold text-gray-600">Total a pagar:</Text>
+          <Text className="text-2xl font-semibold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
+        </View>
       </View>
 
-      <View className="bg-[#fdeedb] rounded-[24px] p-4 mx-auto w-full max-w-[460px]">
-        <Text className="text-[18px] font-extrabold text-black mb-3">Resumen de tu clase</Text>
-        <View className="bg-white rounded-[16px] p-4 border border-[#f5e0c8] gap-y-2.5">
-          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Clase</Text><Text className="text-[14px] font-bold text-black">{currentBooking.className}</Text></View>
-          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Horario</Text><Text className="text-[14px] font-bold text-black">{currentBooking.time}</Text></View>
-          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Asiento(s)</Text><Text className="text-[14px] font-bold text-black">{currentBooking.selectedSeats.join(', ')}</Text></View>
-          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Fecha</Text><Text className="text-[14px] font-bold text-black">{currentBooking.day}</Text></View>
-          <View className="flex-row justify-between"><Text className="text-[14px] text-gray-500 font-semibold">Instructor</Text><Text className="text-[14px] font-bold text-black">{currentBooking.instructorName}</Text></View>
+      {/* CTA Payment Button */}
+      <TouchableOpacity
+        onPress={handlePay}
+        disabled={isSubmitDisabled}
+        className={`bg-primary rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''}`}
+        style={{ minHeight: 56 }}
+      >
+        <View className="flex-row items-center gap-x-3">
+          <Image source={require('@/assets/images/mercadopagologo.png')} style={{ width: 28, height: 28, borderRadius: 14 }} />
+          <Text className="text-white text-base font-bold">Pagar S/ {currentBooking.totalPrice.toFixed(2)} con Mercado Pago</Text>
         </View>
+      </TouchableOpacity>
 
-        <View className="mt-4 flex-row justify-between items-center bg-white/50 p-3 rounded-xl">
-          <Text className="text-[14px] font-bold text-gray-600">Total a pagar:</Text>
-          <Text className="text-[26px] font-extrabold text-primary">S/ {currentBooking.totalPrice.toFixed(2)}</Text>
+      {/* MonedasFit Payment Button */}
+      <TouchableOpacity
+        onPress={handleMonedasPay}
+        disabled={isSubmitDisabled || !hasEnoughMonedas}
+        className={`rounded-2xl py-4 items-center justify-center mb-4 ${isSubmitDisabled ? 'opacity-50' : ''} ${hasEnoughMonedas ? 'bg-amber-500' : 'bg-gray-300'}`}
+        style={{ minHeight: 56 }}
+      >
+        <View className="flex-row items-center gap-x-3">
+          <Ionicons name="star" size={24} color={hasEnoughMonedas ? 'white' : '#9CA3AF'} />
+          <Text className={`text-base font-bold ${hasEnoughMonedas ? 'text-white' : 'text-gray-500'}`}>
+            {hasEnoughMonedas ? `Pagar con MonedasFit (${monedasNeeded} 🪙)` : `Sin monedas suficientes (${monedasSaldo}/${monedasNeeded} 🪙)`}
+          </Text>
         </View>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handlePay}
-          disabled={isSubmitDisabled}
-          className={`bg-primary rounded-2xl py-4 items-center justify-center mt-5 ${isSubmitDisabled ? 'opacity-50' : ''}`}
-          style={{ minHeight: 52 }}
-        >
-          <Text className="text-white text-[16px] font-bold">Pagar</Text>
-        </TouchableOpacity>
-
-        <View className="flex-row items-center justify-center mt-4 gap-x-2">
-          <Ionicons name="time-outline" size={16} color="#FF7A00" />
-          <Text className="text-[12px] text-gray-500 font-semibold">Reserva bloqueada por {formatTime(currentBooking.timeLeft)} minutos</Text>
-        </View>
+      {/* Countdown Timer */}
+      <View className="flex-row items-center justify-center mb-2 gap-x-2">
+        <Ionicons name="time-outline" size={16} color="#FF7A00" />
+        <Text className="text-xs text-gray-500 font-medium">Reserva bloqueada por {formatTime(currentBooking.timeLeft)} minutos</Text>
       </View>
 
       <Modal transparent visible={showPopup} animationType="fade">
         <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center shadow-2xl border border-gray-150">
+          <View className="w-full max-w-[380px] bg-white rounded-[24px] p-5 items-center shadow-2xl border border-gray-200">
             <View className="w-16 h-16 rounded-full bg-green-500 items-center justify-center mb-5">
               <Ionicons name="checkmark" size={40} color="white" />
             </View>

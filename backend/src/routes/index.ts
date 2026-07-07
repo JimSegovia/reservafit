@@ -8,6 +8,8 @@ import detalleClaseRoutes from './detalleClase.routes.js';
 import reservaRoutes from './reserva.routes.js';
 import detalleReservaRoutes from './detalleReserva.routes.js';
 import pagoRoutes from './pagos.routes.js';
+import monedasRoutes from './monedas.routes.js';
+import adminRoutes from './admin.routes.js';
 
 const router = Router();
 
@@ -22,5 +24,7 @@ router.use('/agenda', detalleClaseRoutes);
 router.use('/reservas', reservaRoutes);
 router.use('/detalles-reserva', detalleReservaRoutes);
 router.use('/pagos', pagoRoutes);
+router.use('/monedas', monedasRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

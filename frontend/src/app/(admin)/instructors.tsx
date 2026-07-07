@@ -106,28 +106,29 @@ export default function AdminInstructorsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-cream" style={{ flex: 1, height: '100%' }}>
+    <View className={`flex-1 bg-cream w-full ${isMobile ? 'px-4 pt-3 pb-4' : 'px-8 pt-6 pb-4'}`} style={{ flex: 1, height: '100%' }}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: isMobile ? 100 : 80 }} 
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 80 }} 
         showsVerticalScrollIndicator={false}
-        className={`flex-1 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+        className="flex-1"
         style={{ flex: 1 }}
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(200)} className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center flex-1 mr-2">
-            <TouchableOpacity onPress={() => router.replace('/(admin)')}>
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => router.replace('/(admin)')}>
               <Ionicons name="arrow-back" size={24} color="black" className="mr-4" />
             </TouchableOpacity>
             <View>
-              <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
-              <Text className="text-2xl font-bold text-secondary mt-0.5">Instructores</Text>
+              <Text className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Panel Admin &gt; Instructores</Text>
+              <Text className="text-2xl font-semibold text-secondary mt-0.5">Instructores</Text>
             </View>
           </View>
 
           {/* Add Button */}
           <TouchableOpacity
             onPress={openAddModal}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-sm"
           >
             <Ionicons name="add" size={24} color="white" />
@@ -240,12 +241,12 @@ export default function AdminInstructorsScreen() {
 
                       <View className="flex-row items-center gap-x-2">
                         {/* Edit button */}
-                        <TouchableOpacity onPress={() => openEditModal(inst)} className="p-1">
+                        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => openEditModal(inst)} className="p-1">
                           <Ionicons name="pencil-outline" size={20} color="black" />
                         </TouchableOpacity>
 
                         {/* Delete button */}
-                        <TouchableOpacity onPress={() => deleteInstructor(inst.id)} className="p-1">
+                        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => deleteInstructor(inst.id)} className="p-1">
                           <Ionicons name="trash-outline" size={20} color="#EF4444" />
                         </TouchableOpacity>
                       </View>
@@ -266,7 +267,7 @@ export default function AdminInstructorsScreen() {
               <Text className="text-xl font-bold text-secondary">
                 {editingId ? 'Editar Instructor' : 'Agregar Instructor'}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>

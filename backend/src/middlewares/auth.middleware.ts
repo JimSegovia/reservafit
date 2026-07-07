@@ -7,10 +7,7 @@ export interface AuthRequest extends Request {
 }
 
 export const verificarToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  // 1. Buscamos la cabecera "Authorization"
   const authHeader = req.headers['authorization'];
-  
-  // 2. Extraemos el token (Formato esperado: "Bearer eyJhbGciOiJIUz...")
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
@@ -19,18 +16,19 @@ export const verificarToken = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   try {
-    // IMPORTANTE: Asegúrate de tener JWT_SECRET en tu archivo config/env.ts
-    const secret = process.env.JWT_SECRET || 'super_secret'; 
-    
-    // 3. Verificamos la firma y expiración del token
+    const secret = process.env.JWT_SECRET || 'super_secret';
     const decoded = jwt.verify(token, secret);
-    
-    // 4. Inyectamos los datos decodificados en la petición
     req.usuario = decoded;
-    
-    // 5. ¡Pase adelante!
     next();
   } catch (error) {
     res.status(403).json({ error: 'El token proporcionado es inválido o ha expirado.' });
   }
+};
+
+export const verificarAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (!req.usuario || req.usuario.rol !== 'Administrador') {
+    res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador.' });
+    return;
+  }
+  next();
 };

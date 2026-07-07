@@ -27,6 +27,18 @@ export class ReservaService {
     return await this.reservaRepository.obtenerTodas();
   }
 
+  async registrarReservaBatch(input: {
+    id_usuario: string;
+    id_detalle_clase: string;
+    numeros_cupo: number[];
+  }) {
+    return await this.reservaRepository.crearReservaBatch(
+      input.id_usuario,
+      input.id_detalle_clase,
+      input.numeros_cupo
+    );
+  }
+
   async modificarEstado(id: string, estado: EstadoReserva) {
     return await this.reservaRepository.actualizarEstado(id, estado);
   }

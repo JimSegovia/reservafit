@@ -28,10 +28,14 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
     { label: 'Dashboard', icon: 'home-outline' as const, href: '/(client)/(tabs)' },
     { label: 'Clases', icon: 'calendar-outline' as const, href: '/(client)/(tabs)/classes' },
     { label: 'Pagos', icon: 'card-outline' as const, href: '/(client)/(tabs)/payments' },
+    { label: 'Monedas', icon: 'star-outline' as const, href: '/monedas' },
   ];
 
   const isActive = (href: string) => {
     const normalized = pathname.replace(/\/index$/, '').replace(/\/$/, '');
+    if (href === '/monedas') {
+      return normalized === href || normalized.includes('/monedas');
+    }
     if (href === '/(client)/(tabs)') {
       return normalized === '/(client)/(tabs)' || normalized === '/(client)' || normalized === '';
     }
@@ -59,21 +63,25 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
 
   return (
     <View className="flex-1 flex-row bg-cream">
-      <View className="w-[280px] bg-[#1f0f08] px-6 py-8 justify-between">
+      <View className="w-60 bg-[#1f0f08] py-8 justify-between">
         <View>
-          <View className="flex-row justify-center items-center mb-10 mt-2">
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.replace('/(client)/(tabs)')}
+            className="flex-row justify-center items-center mb-10 mt-2 px-4 cursor-pointer"
+          >
             <ExpoImage
               source={require('../../assets/images/logoblanco.svg')}
-              style={{ width: 200, height: 66 }}
+              style={{ width: 190, height: 64 }}
               contentFit="contain"
             />
-          </View>
+          </TouchableOpacity>
 
           {nav.map((item) => (
             <TouchableOpacity
               key={item.href}
               onPress={() => router.replace(item.href as any)}
-              className={`flex-row items-center rounded-lg px-4 py-4 mb-4 ${isActive(item.href) ? 'bg-primary' : ''}`}
+              className={`flex-row items-center w-full rounded-sm pl-4 pr-3 py-4 mb-4 ${isActive(item.href) ? 'bg-primary' : ''}`}
             >
               <Ionicons name={item.icon} size={22} color="white" />
               <Text className="text-white font-semibold ml-3 text-[15px]">{item.label}</Text>
@@ -85,7 +93,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
           <Ionicons name="help-buoy-outline" size={22} color="white" />
           <Text className="text-white font-semibold ml-3 text-[15px]">Ayuda / FAQ</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center px-4 py-4 mb-2">
+        <TouchableOpacity onPress={handleLogoutPress} className="flex-row items-center w-full pl-4 pr-3 py-4 mb-2">
           <Ionicons name="log-out-outline" size={22} color="white" />
           <Text className="text-white font-semibold ml-3 text-[15px]">Cerrar sesión</Text>
         </TouchableOpacity>
@@ -102,7 +110,7 @@ export function ClientDesktopShell({ children, title, subtitle }: Props) {
         <View className="flex-1 px-8 pb-8 pt-3">
           {(headerTitle || headerSubtitle) ? (
             <View className="mb-6">
-              {headerTitle ? <Text className="text-[24px] font-bold text-black leading-7">{headerTitle}</Text> : null}
+              {headerTitle ? <Text className="text-[24px] font-medium text-black leading-7">{headerTitle}</Text> : null}
               {headerSubtitle ? <Text className="text-[13px] text-gray-500 font-medium mt-2">{headerSubtitle}</Text> : null}
             </View>
           ) : null}
