@@ -17,7 +17,8 @@ export const envs = {
 
   JWT_SECRET: env.get('JWT_SECRET').required().asString(),
 
-  // Servicio de Correos (Nodemailer + Gmail SMTP)
-  GMAIL_USER: env.get('GMAIL_USER').required().asString(),
-  GMAIL_APP_PASSWORD: env.get('GMAIL_APP_PASSWORD').required().asString()
+  // Servicio de Correos (SendGrid)
+  SENDGRID_API_KEY: env.get('SENDGRID_API_KEY').required().asString(),
+  SENDGRID_FROM_EMAIL: env.get('SENDGRID_FROM_EMAIL').required().asString(),
+  SENDGRID_FROM_NAME: env.get('SENDGRID_FROM_NAME').default('ReservaFit').asString()
 };
