@@ -3,11 +3,15 @@ import { envs } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: envs.GMAIL_USER,
     pass: envs.GMAIL_APP_PASSWORD,
   },
+  connectionTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 export class MailService {
