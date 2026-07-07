@@ -289,6 +289,13 @@ export default function ClientHomeScreen() {
           ))
         )}
       </View>
+
+      <Animated.View entering={FadeInDown.duration(200).delay(300)} className="items-center mt-6 mb-8">
+        <TouchableOpacity onPress={() => router.push('/help' as any)} className="flex-row items-center gap-x-2">
+          <Ionicons name="help-buoy-outline" size={18} color="#FF7A00" />
+          <Text className="text-primary font-bold text-sm">Centro de Ayuda / FAQ</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </ScrollView>
   );
 
