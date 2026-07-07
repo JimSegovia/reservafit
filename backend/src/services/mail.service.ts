@@ -1,3 +1,5 @@
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 import nodemailer from 'nodemailer';
 import { envs } from '../config/env.js';
 import { logger } from '../config/logger.js';
