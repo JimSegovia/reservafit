@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -360,7 +360,7 @@ export default function HelpScreen() {
             paddingVertical: isWeb ? 40 : 16,
             justifyContent: isWeb ? 'flex-start' : 'flex-start'
           }} 
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
         >
           <View className={`md:w-[600px] md:mx-auto md:bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-200 md:px-12 md:py-10`}>
             
@@ -452,14 +452,19 @@ export default function HelpScreen() {
                 </View>
 
                 {/* Support Box */}
-                <Animated.View 
-                  entering={FadeInDown.duration(200).delay(350)} 
-                  className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                <TouchableOpacity 
+                  onPress={() => Linking.openURL('mailto:reservafitgym@gmail.com')}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
-                  <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿No encontraste lo que buscabas?</Text>
-                  <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos directamente a soporte@reservafit.com y responderemos a la brevedad.</Text>
-                </Animated.View>
+                  <Animated.View 
+                    entering={FadeInDown.duration(200).delay(350)} 
+                    className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                  >
+                    <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
+                    <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿No encontraste lo que buscabas?</Text>
+                    <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos directamente a reservafitgym@gmail.com y responderemos a la brevedad.</Text>
+                  </Animated.View>
+                </TouchableOpacity>
               </>
             )}
 
@@ -572,14 +577,19 @@ export default function HelpScreen() {
                 </View>
 
                 {/* Support Box */}
-                <Animated.View 
-                  entering={FadeInDown.duration(200).delay(500)} 
-                  className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                <TouchableOpacity 
+                  onPress={() => Linking.openURL('mailto:reservafitgym@gmail.com')}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
-                  <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿Necesitas más ayuda?</Text>
-                  <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos a soporte@reservafit.com y te atenderemos a la brevedad.</Text>
-                </Animated.View>
+                  <Animated.View 
+                    entering={FadeInDown.duration(200).delay(500)} 
+                    className="bg-orange-50 border border-orange-150 rounded-2xl p-4 mt-8 items-center"
+                  >
+                    <Ionicons name="mail-open-outline" size={24} color="#FF7A00" />
+                    <Text className="text-xs font-bold text-gray-800 mt-2 text-center">¿Necesitas más ayuda?</Text>
+                    <Text className="text-[10px] text-gray-500 mt-1 text-center font-semibold">Escríbenos a reservafitgym@gmail.com y te atenderemos a la brevedad.</Text>
+                  </Animated.View>
+                </TouchableOpacity>
               </>
             )}
 
