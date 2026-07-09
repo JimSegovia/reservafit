@@ -8,63 +8,6 @@ export class ClaseService {
   
   static async registrarClase(data: CreateClaseDTO) {
     const clase = await ClaseRepository.crear(data);
-    
-    // Parse JSON details from description if they exist
-    let instructorName = 'Profesor A';
-    try {
-      if (data.descripcion && data.descripcion.startsWith('{')) {
-        const parsed = JSON.parse(data.descripcion);
-        instructorName = parsed.instructorName || instructorName;
-      }
-    } catch (e) {
-      console.error('Error parsing class description JSON:', e);
-    }
-    
-    // Auto-create/find instructor
-    let instructor = await prisma.instructor.findFirst({
-      where: {
-        OR: [
-          { nombre: { contains: instructorName, mode: 'insensitive' } },
-          { apellidos: { contains: instructorName, mode: 'insensitive' } }
-        ]
-      }
-    });
-    
-    if (!instructor) {
-      const names = instructorName.split(' ');
-      instructor = await prisma.instructor.create({
-        data: {
-          nombre: names[0] || 'Profesor',
-          apellidos: names.slice(1).join(' ') || 'General',
-          foto_url: JSON.stringify({ specialty: 'General', status: 'Activo' })
-        }
-      });
-    }
-    
-    // Create DetalleClase (agenda record)
-    // Schedule it for next Monday at 6:00 PM
-    const baseDate = new Date();
-    baseDate.setDate(baseDate.getDate() + ((1 + 7 - baseDate.getDay()) % 7 || 7)); // Next Monday
-    baseDate.setHours(18, 0, 0, 0); // 6:00 PM
-    
-    const endDate = new Date(baseDate);
-    endDate.setHours(19, 0, 0, 0); // 7:00 PM
-
-    // Array para obtener el nombre del día automáticamente
-    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    
-    await prisma.detalleClase.create({
-      data: {
-        id_clase: clase.id_clase,
-        id_instructor: instructor.id_instructor,
-        fecha_hora_inicio: baseDate,
-        fecha_hora_fin: endDate,
-        Dia: dayNames[baseDate.getDay()], // <-- Este es el campo clave que faltaba
-        estado: 'Disponible',
-        cupos: 30
-      }
-    });
-    
     return clase;
   }
 

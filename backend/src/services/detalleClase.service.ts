@@ -4,7 +4,44 @@ import prisma from '../config/prisma.js';
 
 export class DetalleClaseService {
   
+  static async verificarCruceDeHorarios(fechaInicio: Date, fechaFin: Date, idDetalleClaseExcluir?: string) {
+    const cruces = await prisma.detalleClase.findMany({
+      where: {
+        AND: [
+          {
+            fecha_hora_inicio: {
+              lt: fechaFin
+            }
+          },
+          {
+            fecha_hora_fin: {
+              gt: fechaInicio
+            }
+          },
+          ...(idDetalleClaseExcluir ? [{
+            id_detalle_clase: {
+              not: idDetalleClaseExcluir
+            }
+          }] : [])
+        ]
+      },
+      include: {
+        clase: true
+      }
+    });
+
+    if (cruces.length > 0) {
+      const nombresClases = cruces.map(c => c.clase?.nombre || 'Clase').join(', ');
+      throw new Error(`Ya existe una sesión de clase programada en este horario que se cruza con esta sesión (Cruza con: ${nombresClases}).`);
+    }
+  }
+
   static async programarClase(data: CreateDetalleClaseDTO) {
+    const inicio = new Date(data.fecha_hora_inicio);
+    const fin = new Date(data.fecha_hora_fin);
+    
+    await DetalleClaseService.verificarCruceDeHorarios(inicio, fin);
+    
     return await DetalleClaseRepository.crear(data);
   }
 
@@ -17,6 +54,14 @@ export class DetalleClaseService {
     if (!agendaExistente) {
       throw new Error('El registro en la agenda no existe.');
     }
+
+    const inicio = data.fecha_hora_inicio ? new Date(data.fecha_hora_inicio) : agendaExistente.fecha_hora_inicio;
+    const fin = data.fecha_hora_fin ? new Date(data.fecha_hora_fin) : agendaExistente.fecha_hora_fin;
+
+    if (data.fecha_hora_inicio || data.fecha_hora_fin) {
+      await DetalleClaseService.verificarCruceDeHorarios(inicio, fin, id);
+    }
+
     return await DetalleClaseRepository.actualizar(id, data);
   }
 
