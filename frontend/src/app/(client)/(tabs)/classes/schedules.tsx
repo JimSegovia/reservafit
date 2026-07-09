@@ -37,11 +37,11 @@ export default function HorariosDisponiblesScreen() {
 
   const futureSessions = useMemo(() => {
     const now = new Date();
-    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
 
     return classSessions.filter((s: any) => {
       const sDate = parseDateTime(s.fecha_hora_inicio);
-      return sDate >= minStartTime;
+      return sDate >= todayStart;
     });
   }, [classSessions]);
 
@@ -52,6 +52,9 @@ export default function HorariosDisponiblesScreen() {
   }, [futureSessions]);
 
   const slots = useMemo(() => {
+    const now = new Date();
+    const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
     return sortedSessions.map((s: any) => {
       const startTime = parseDateTime(s.fecha_hora_inicio);
       const endTime = parseDateTime(s.fecha_hora_fin);
@@ -70,8 +73,12 @@ export default function HorariosDisponiblesScreen() {
       const enrolledCount = s._count?.detalles_reserva || 0;
       
       let status = s.estado || 'Disponible';
-      if (enrolledCount >= s.cupos) {
-        status = 'Lleno';
+      if (status === 'Disponible') {
+        if (startTime < minStartTime) {
+          status = 'Fuera de hora';
+        } else if (enrolledCount >= s.cupos) {
+          status = 'Lleno';
+        }
       }
 
       return {
@@ -82,7 +89,7 @@ export default function HorariosDisponiblesScreen() {
         time: timeStr,
         teacher: teacher,
         enrolled: `${enrolledCount}/${s.cupos || 30} inscritos`,
-        status: status as 'Disponible' | 'Lleno' | 'Cancelada'
+        status: status as 'Disponible' | 'Lleno' | 'Cancelada' | 'Fuera de hora'
       };
     });
   }, [sortedSessions]);
@@ -152,15 +159,19 @@ export default function HorariosDisponiblesScreen() {
               badgeBg = 'bg-blue-50';
               badgeText = 'text-blue-700';
               badgeBorder = 'border-blue-200';
+            } else if (slot.status === 'Fuera de hora') {
+              badgeBg = 'bg-amber-50';
+              badgeText = 'text-amber-700';
+              badgeBorder = 'border-amber-200';
             }
 
             return (
               <Animated.View key={index} entering={FadeInDown.duration(200).delay(50 + index * 15)}>
                 <TouchableOpacity
                   onPress={() => handleSlotSelect(slot)}
-                  disabled={slot.status === 'Lleno' || slot.status === 'Cancelada'}
+                  disabled={slot.status === 'Lleno' || slot.status === 'Cancelada' || slot.status === 'Fuera de hora'}
                   className={`bg-white border border-gray-200 rounded-2xl p-4 flex-row justify-between items-center ${
-                    slot.status === 'Lleno' || slot.status === 'Cancelada' ? 'opacity-60' : ''
+                    slot.status === 'Lleno' || slot.status === 'Cancelada' || slot.status === 'Fuera de hora' ? 'opacity-60' : ''
                   }`}
                 >
                   <View>

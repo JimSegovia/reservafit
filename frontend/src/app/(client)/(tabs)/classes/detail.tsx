@@ -31,8 +31,33 @@ export default function ClassDetailScreen() {
     if (isNaN(startDate.getTime())) return false;
     const now = new Date();
     const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-    return startDate >= minStartTime;
+    return startDate >= minStartTime && sessionItem.estado !== 'Cancelada';
   }, [sessionItem]);
+
+  const statusLabel = useMemo(() => {
+    if (!sessionItem) return 'No disponible';
+    if (sessionItem.estado === 'Cancelada') return 'Cancelada';
+    if (sessionItem.estado === 'Lleno') return 'Lleno';
+    
+    if (sessionItem.fecha_hora_inicio) {
+      const startDate = new Date(sessionItem.fecha_hora_inicio);
+      if (!isNaN(startDate.getTime())) {
+        const now = new Date();
+        const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+        if (startDate < minStartTime) {
+          return 'Fuera de hora';
+        }
+      }
+    }
+    return 'Disponible';
+  }, [sessionItem]);
+
+  const badgeStyle = useMemo(() => {
+    if (statusLabel === 'Disponible') return { bg: 'bg-green-100 border-green-200', text: 'text-green-700' };
+    if (statusLabel === 'Cancelada') return { bg: 'bg-blue-100 border-blue-200', text: 'text-blue-700' };
+    if (statusLabel === 'Lleno') return { bg: 'bg-red-100 border-red-200', text: 'text-red-700' };
+    return { bg: 'bg-amber-100 border-amber-200', text: 'text-amber-700' };
+  }, [statusLabel]);
 
   const getFormattedDay = () => {
     if (!sessionItem?.fecha_hora_inicio) {
@@ -226,9 +251,9 @@ export default function ClassDetailScreen() {
             {/* Title + Status */}
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-semibold text-black flex-1 mr-2">{classItem.title}</Text>
-              <View className={`px-3 py-1 rounded-full border ${isAvailable ? 'bg-green-100 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
-                <Text className={`text-xs font-medium ${isAvailable ? 'text-green-700' : 'text-gray-500'}`}>
-                  {isAvailable ? 'Disponible' : 'No disponible'}
+              <View className={`px-3 py-1 rounded-full border ${badgeStyle.bg}`}>
+                <Text className={`text-xs font-medium ${badgeStyle.text}`}>
+                  {statusLabel}
                 </Text>
               </View>
             </View>

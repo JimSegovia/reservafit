@@ -318,13 +318,6 @@ export default function ClassesSelectorScreen() {
     const now = new Date();
     const minStartTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
-    const hasAnyFutureSession = agenda.some((session: any) => {
-      if (session.id_clase !== cls.id) return false;
-      const sessionDate = parseDateTime(session.fecha_hora_inicio);
-      return sessionDate >= minStartTime;
-    });
-    if (!hasAnyFutureSession) return false;
-
     if (selectedDay !== 'Todos') {
       const dayIndices: Record<string, number> = {
         'Lunes': 1,
