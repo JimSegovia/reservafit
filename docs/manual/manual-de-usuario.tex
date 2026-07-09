@@ -1,0 +1,554 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Paquetes Requeridos ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=1.8cm, top=3.5cm, bottom=3cm, headheight=2.5cm, headsep=0.5cm, footskip=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{lastpage}
+\usepackage{setspace}
+
+% --- Definición de Colores ---
+\definecolor{brandorange}{HTML}{FF7A00}
+\definecolor{brandgray}{HTML}{555555}
+\definecolor{lightgray}{HTML}{F2F2F2}
+\definecolor{bordergray}{HTML}{CCCCCC}
+\definecolor{calloutbg}{HTML}{FFFDF9}
+\definecolor{infobg}{HTML}{F4FCFD}
+\definecolor{infoborder}{HTML}{17A2B8}
+
+% --- Configuración de tcolorbox para Banners y Alertas ---
+\newtcolorbox{sectionbanner}[1]{
+  colback=brandorange,
+  colframe=brandorange,
+  arc=4pt,
+  boxrule=0pt,
+  left=10pt,
+  right=10pt,
+  top=6pt,
+  bottom=6pt,
+  fontupper=\color{white}\bfseries\large,
+  halign=left,
+  valign=center,
+  nobeforeafter,
+  width=\linewidth
+}
+
+\newtcolorbox{warningbox}[1]{
+  colback=calloutbg,
+  colframe=brandorange,
+  leftrule=5pt,
+  rightrule=0.5pt,
+  toprule=0.5pt,
+  bottomrule=0.5pt,
+  arc=4pt,
+  title={\bfseries \color{brandorange} [!] #1},
+  coltitle=brandorange,
+  attach title to upper,
+  after title={\smallskip\newline},
+  fontupper=\small\color{brandgray}
+}
+
+\newtcolorbox{infobox}[1]{
+  colback=infobg,
+  colframe=infoborder,
+  leftrule=5pt,
+  rightrule=0.5pt,
+  toprule=0.5pt,
+  bottomrule=0.5pt,
+  arc=4pt,
+  title={\bfseries \color{infoborder} [i] #1},
+  coltitle=infoborder,
+  attach title to upper,
+  after title={\smallskip\newline},
+  fontupper=\small\color{brandgray}
+}
+
+% --- Configuración de Cabecera y Pie de Página (Estilo IPD) ---
+\pagestyle{fancy}
+\fancyhf{}
+
+% Cabecera repetitiva en cada página
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[C]{
+  \begin{tabularx}{\linewidth}{|p{3.5cm}|X|p{4.5cm}|}
+    \hline
+    \centering \raisebox{-0.1cm}{\textbf{\color{brandorange}RESERVA FIT}} \par \fontsize{7pt}{8pt}\selectfont ÁREA DE TECNOLOGÍA & 
+    \centering \bfseries MANUAL DE USUARIO v1.0 \par SISTEMA DE RESERVAS & 
+    \fontsize{8pt}{9pt}\selectfont 
+    \textbf{N°:} 001 \par 
+    \textbf{Fecha de Creación:} 08-07-2026 \par 
+    \textbf{Versión:} 01 \hfill \textbf{Pág.:} \thepage\ de \pageref{LastPage} \\
+    \hline
+  \end{tabularx}
+}
+
+% Pie de página repetitivo en cada página
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{
+  \begin{tabularx}{\linewidth}{p{4cm}Xp{3cm}}
+    \hline
+    \fontsize{7pt}{8pt}\selectfont ReservaFit v1.0 & 
+    \centering \fontsize{7pt}{8pt}\selectfont MANUAL DE USUARIO & 
+    \hfill \fontsize{7pt}{8pt}\selectfont Pág. \thepage \\
+  \end{tabularx}
+}
+
+% --- Configuración de Hipervínculos ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  filecolor=brandorange,      
+  urlcolor=brandorange,
+}
+
+% --- Ajustes de Formato de Secciones ---
+\titleformat{\section}{\normalfont\Large\bfseries\color{black}}{}{0pt}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{brandgray}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{15pt}{10pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+% --- Comando para Capturas de Pantalla ---
+\newcommand{\screenshot}[3]{
+  \nopagebreak
+  \begin{center}
+    \begin{tcolorbox}[colback=lightgray!30, colframe=bordergray, arc=6pt, boxrule=0.5pt, width=\linewidth, halign=center]
+      \includegraphics[max width=\linewidth, max height=14cm, keepaspectratio]{#1}
+      \tcblower
+      \fontsize{8pt}{9pt}\selectfont \textit{#2} \par \fontsize{7pt}{8pt}\selectfont \color{brandgray} [#3]
+    \end{tcolorbox}
+  \end{center}
+}
+
+\begin{document}
+
+% ==================== PORTADA ====================
+\thispagestyle{empty} % Sin cabecera ni pie en la portada
+
+\begin{tabularx}{\linewidth}{|p{3.5cm}|X|p{4.5cm}|}
+  \hline
+  \centering \raisebox{-0.1cm}{\textbf{\color{brandorange}RESERVA FIT}} \par \fontsize{7pt}{8pt}\selectfont ÁREA DE TECNOLOGÍA & 
+  \centering \bfseries MANUAL DE USUARIO v1.0 \par SISTEMA DE RESERVAS & 
+  \fontsize{8pt}{9pt}\selectfont 
+  \textbf{N°:} 001 \par 
+  \textbf{Fecha de Creación:} 08-07-2026 \par 
+  \textbf{Versión:} 01 \hfill \textbf{Pág.:} 1 de \pageref{LastPage} \\
+  \hline
+\end{tabularx}
+
+\vspace{2.5cm}
+
+\begin{center}
+  {\fontsize{32pt}{38pt}\selectfont \textbf{MANUAL DE USUARIO}} \\[0.5cm]
+  {\fontsize{18pt}{22pt}\selectfont \textbf{\color{brandgray}SISTEMA DE CONTROL Y RESERVA DE CLASES}} \\[1cm]
+  {\fontsize{14pt}{16pt}\selectfont \textbf{\color{brandorange}``Rumbo al Cero Papel — Entrena Sin Límites''}} \\[1.5cm]
+  {\large \textbf{Versión: 01}}
+\end{center}
+
+\vspace{2.5cm}
+
+% Tabla de Aprobación (Estilo IPD)
+\noindent
+\begin{tabularx}{\linewidth}{|X|X|}
+  \hline
+  \cellcolor{lightgray}\textbf{Elaborado por:} & \cellcolor{lightgray}\textbf{Revisado por:} \\
+  \hline
+  Nombre: Joshua Nicolas Chavez Cerna, Sebastian Joaquín Chicata Serrato, Gabriel Sonny De la cruz Aguilar \par
+  Cargo: Analistas Programadores \par
+  Fecha: 08-07-2026 &
+  Nombre: Jim Bryan Segovia Valencia \par
+  Cargo: Líder del Proyecto \par
+  Fecha: 08-07-2026 \\
+  \hline
+  \multicolumn{2}{|c|}{\cellcolor{lightgray}\textbf{Aprobado por:}} \\
+  \hline
+  \multicolumn{2}{|>{\hsize=\dimexpr2\hsize+2\tabcolsep+\arrayrulewidth\relax}X|}{
+    Nombre: Diego Martín Arevalo Mauricio \hfill Cargo: Coordinador de proyecto \hfill Fecha: 08-07-2026
+  } \\
+  \hline
+\end{tabularx}
+
+\vspace{1.5cm}
+
+\noindent
+\begin{tabularx}{\linewidth}{|p{5cm}|X|p{2cm}|}
+  \hline
+  \fontsize{8pt}{9pt}\selectfont ReservaFit v1.0 \par MANUAL\_USUARIO\_V1.pdf & 
+  \centering \fontsize{8pt}{9pt}\selectfont ReservaFit – Unidad de Informática – Desarrollo de Sistemas & 
+  \hfill \fontsize{8pt}{9pt}\selectfont 1 \\
+  \hline
+\end{tabularx}
+
+\newpage
+
+% ==================== ÍNDICE ====================
+\begin{sectionbanner}{Contenido / Índice}
+\end{sectionbanner}
+
+\vspace{0.8cm}
+\begin{spacing}{1.2}
+\begin{itemize}[label={}, leftmargin=0.5cm]
+  \item \textbf{1. Introducción a ReservaFit} \dotfill \pageref{sec:intro}
+  \item \textbf{2. Registro de Usuario} \dotfill \pageref{sec:registro}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 2.1 Crear una cuenta \dotfill \pageref{sec:crear-cuenta}
+      \item 2.2 Verificación de cuenta (OTP) \dotfill \pageref{sec:otp}
+    \end{itemize}
+  \item \textbf{3. Inicio de Sesión} \dotfill \pageref{sec:login}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 3.1 Acceder a tu cuenta \dotfill \pageref{sec:acceder}
+      \item 3.2 Recuperar contraseña \dotfill \pageref{sec:recuperar}
+    \end{itemize}
+  \item \textbf{4. Panel de Inicio (Dashboard)} \dotfill \pageref{sec:dashboard}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 4.1 Mis Clases Reservadas \dotfill \pageref{sec:mis-clases}
+      \item 4.2 Clases de Hoy \dotfill \pageref{sec:clases-hoy}
+      \item 4.3 Calendario Semanal \dotfill \pageref{sec:calendario-semanal}
+      \item 4.4 MonedasFit \dotfill \pageref{sec:monedasfit}
+    \end{itemize}
+  \item \textbf{5. Explorar Clases} \dotfill \pageref{sec:explorar}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 5.1 Catálogo de Clases \dotfill \pageref{sec:catalogo}
+      \item 5.2 Filtrar Clases \dotfill \pageref{sec:filtrar}
+      \item 5.3 Vista de Calendario \dotfill \pageref{sec:vista-calendario}
+      \item 5.4 Horarios Disponibles \dotfill \pageref{sec:horarios}
+      \item 5.5 Detalle de Clase \dotfill \pageref{sec:detalle}
+    \end{itemize}
+  \item \textbf{6. Reservar una Clase} \dotfill \pageref{sec:reservar}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 6.1 Selección de Asientos \dotfill \pageref{sec:asientos}
+      \item 6.2 Temporizador de Reserva \dotfill \pageref{sec:temporizador}
+    \end{itemize}
+  \item \textbf{7. Pago} \dotfill \pageref{sec:pago}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 7.1 Métodos de Pago Disponibles \dotfill \pageref{sec:metodos-pago}
+      \item 7.2 Completar el Pago \dotfill \pageref{sec:completar-pago}
+      \item 7.3 Pago Exitoso \dotfill \pageref{sec:pago-exitoso}
+      \item 7.4 Pago Fallido o Pendiente \dotfill \pageref{sec:pago-fallido}
+    \end{itemize}
+  \item \textbf{8. Gestionar Reservas} \dotfill \pageref{sec:gestionar}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 8.1 Cancelar una Reserva \dotfill \pageref{sec:cancelar}
+      \item 8.2 Política de Cancelación y Reembolsos \dotfill \pageref{sec:politica}
+    \end{itemize}
+  \item \textbf{9. Historial de Pagos} \dotfill \pageref{sec:historial}
+  \item \textbf{10. Perfil y Configuración} \dotfill \pageref{sec:perfil}
+    \begin{itemize}[label={}, leftmargin=0.5cm]
+      \item 10.1 Editar Información Personal \dotfill \pageref{sec:editar-perfil}
+      \item 10.2 Código de Referido \dotfill \pageref{sec:referido}
+      \item 10.3 Cerrar Sesión \dotfill \pageref{sec:salir}
+    \end{itemize}
+  \item \textbf{11. Centro de Ayuda y Soporte} \dotfill \pageref{sec:ayuda}
+\end{itemize}
+\end{spacing}
+
+\newpage
+
+% ==================== SECCIÓN 1 ====================
+\section{1. Introducción a ReservaFit}
+\label{sec:intro}
+
+ReservaFit es una plataforma de reserva de clases de fitness que te permite buscar horarios, seleccionar tu asiento en un mapa interactivo y gestionar tus reservas desde un solo lugar. Las disciplinas disponibles incluyen Salsa, Bachata, Zumba, Reggaetón y clases especiales.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-1.png}{Imagen 01: Pantalla principal de bienvenida (landing page) con el logo de ReservaFit, botones de Iniciar Sesión y Registrarse.}{manual-seccion-1.png}
+
+\newpage
+
+% ==================== SECCIÓN 2 ====================
+\section{2. Registro de Usuario}
+\label{sec:registro}
+
+\subsection{2.1 Crear una cuenta}
+\label{sec:crear-cuenta}
+Para comenzar a usar ReservaFit, primero debes crear una cuenta. Este proceso consta de dos pasos: registro y verificación.
+
+\begin{enumerate}[label=\arabic*.]
+  \item Desde la pantalla de inicio, presiona el botón \textbf{"Registrarse"}.
+  \item Completa el formulario con tu nombre, apellidos, correo electrónico, teléfono y contraseña.
+  \item Opcionalmente, ingresa un código de referido si cuentas con uno.
+  \item Presiona \textbf{"Crear cuenta"} para enviar el formulario.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-2-1.png}{Imagen 02: Formulario de registro completo con los campos de datos personales y de acceso.}{manual-seccion-2-1.png}
+
+\newpage
+
+\subsection{2.2 Verificación de cuenta (OTP)}
+\label{sec:otp}
+Después de registrarte, recibirás un código de verificación de 6 dígitos en tu correo electrónico.
+
+\begin{enumerate}[label=\arabic*.]
+  \item Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el correo de verificación.
+  \item Ingresa el código de 6 dígitos en la pantalla de verificación.
+  \item Al validarse correctamente, tu cuenta quedará activada y serás redirigido al panel de inicio.
+  \item Si no recibes el código, puedes presionar \textbf{"Reenviar código"} para solicitar uno nuevo.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-2-2.png}{Imagen 03: Pantalla de verificación OTP con 6 campos para dígitos y opción de reenvío.}{manual-seccion-2-2.png}
+
+\begin{warningbox}{IMPORTANTE}
+Si no ves el código en tu bandeja de entrada después de 2 minutos, asegúrate de revisar la bandeja de Spam o Correo No Deseado. El código OTP tiene una validez exclusiva de 10 minutos.
+\end{warningbox}
+
+\newpage
+
+% ==================== SECCIÓN 3 ====================
+\section{3. Inicio de Sesión}
+\label{sec:login}
+
+\subsection{3.1 Acceder a tu cuenta}
+\label{sec:acceder}
+Una vez que tu cuenta está activada, puedes iniciar sesión en cualquier momento.
+
+\begin{enumerate}[label=\arabic*.]
+  \item Desde la pantalla de inicio, presiona \textbf{"Iniciar Sesión"}.
+  \item Ingresa tu correo electrónico y contraseña.
+  \item Presiona \textbf{"Ingresar"}. Serás redirigido a tu panel de control.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-3-1.png}{Imagen 04: Pantalla de inicio de sesión de usuario.}{manual-seccion-3-1.png}
+
+\newpage
+
+\subsection{3.2 Recuperar contraseña}
+\label{sec:recuperar}
+Si olvidaste tu contraseña, puedes restablecerla en pocos pasos.
+
+\begin{enumerate}[label=\arabic*.]
+  \item En la pantalla de login, presiona \textbf{"¿Olvidaste tu contraseña?"}.
+  \item Ingresa tu correo electrónico y presiona \textbf{"Enviar código"}.
+  \item Recibirás un código OTP de 6 dígitos en tu correo.
+  \item Ingresa el código en la pantalla de restablecimiento.
+  \item Define una nueva contraseña y confírmala.
+  \item Presiona \textbf{"Restablecer contraseña"}. Ahora puedes iniciar sesión con la nueva contraseña.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-3-2.png}{Imagen 05: Pantalla para el cambio y restablecimiento de contraseña segura.}{manual-seccion-3-2.png}
+
+\newpage
+
+% ==================== SECCIÓN 4 ====================
+\section{4. Panel de Inicio (Dashboard)}
+\label{sec:dashboard}
+
+Al iniciar sesión, llegarás a tu panel de inicio. Esta es tu vista principal donde puedes ver de un vistazo toda tu actividad en ReservaFit.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-4.png}{Imagen 06: Vista general del panel de inicio de cliente.}{manual-seccion-4.png}
+
+\newpage
+
+\subsection{4.1 Mis Clases Reservadas}
+\label{sec:mis-clases}
+En la sección principal del panel verás todas tus reservas activas. Cada tarjeta de reserva muestra la imagen de la clase, el nombre, día, horario, instructor y los asientos que seleccionaste. Desde aquí puedes cancelar cualquier reserva presionando el botón \textbf{"Cancelar"}.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-4-1.png}{Imagen 07: Sección de clases reservadas del cliente con botones de acción directa.}{manual-seccion-4-1.png}
+
+\newpage
+
+\subsection{4.2 Clases de Hoy}
+\label{sec:clases-hoy}
+Esta sección te muestra únicamente las clases que tienes programadas para el día actual, para que sepas exactamente a qué hora y dónde debes estar.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-4-2.png}{Imagen 08: Vista rápida de actividades agendadas para el día de hoy.}{manual-seccion-4-2.png}
+
+\newpage
+
+\subsection{4.3 Calendario Semanal}
+\label{sec:calendario-semanal}
+El calendario semanal te permite visualizar todas tus clases de la semana en un formato de cuadrícula de días (lunes a sábado) vs. horarios. Cada clase reservada aparece como un bloque de color según la disciplina.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-4-3.png}{Imagen 09: Distribución horaria semanal con marcas de clases reservadas.}{manual-seccion-4-3.png}
+
+\newpage
+
+\subsection{4.4 MonedasFit}
+\label{sec:monedasfit}
+En la parte superior del panel verás tu saldo de MonedasFit. Estas monedas las ganas al cancelar reservas pagadas y puedes usarlas para reservar nuevas clases. Presiona el saldo para ver tu historial completo de transacciones.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-4-4.png}{Imagen 10: Control de saldo de MonedasFit e historial detallado.}{manual-seccion-4-4.png}
+
+\newpage
+
+% ==================== SECCIÓN 5 ====================
+\section{5. Explorar Clases}
+\label{sec:explorar}
+
+\subsection{5.1 Catálogo de Clases}
+\label{sec:catalogo}
+Desde la pestaña \textbf{"Clases"} en la barra inferior (móvil) o el panel de navegación (web) accedes al catálogo completo de disciplinas disponibles: Salsa, Bachata, Zumba, Reggaetón y clases especiales.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-5-1.png}{Imagen 11: Catálogo con tarjetas e información de las disciplinas impartidas.}{manual-seccion-5-1.png}
+
+\newpage
+
+\subsection{5.2 Filtrar Clases}
+\label{sec:filtrar}
+Usa los filtros en la parte superior para encontrar exactamente lo que buscas. Puedes filtrar por día de la semana (Lunes a Sábado) o por tipo de disciplina. Los resultados se actualizan inmediatamente.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-5-2.png}{Imagen 12: Barra inteligente de filtros rápidos de búsqueda.}{manual-seccion-5-2.png}
+
+\newpage
+
+\subsection{5.3 Vista de Calendario}
+\label{sec:vista-calendario}
+Alterna a la vista \textbf{"Calendario"} para ver la programación semanal completa en una cuadrícula. Usa las flechas para navegar entre semanas. Cada celda muestra las clases disponibles en ese día y horario.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-5-3.png}{Imagen 13: Calendario interactivo semanal de clases programadas.}{manual-seccion-5-3.png}
+
+\newpage
+
+\subsection{5.4 Horarios Disponibles}
+\label{sec:horarios}
+Al seleccionar una clase del catálogo, verás la lista de próximas sesiones con su estado: \textbf{"Disponible"} (puedes reservar), \textbf{"Lleno"} (sin cupos) o \textbf{"Cancelada"} (no se dictará).
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-5-4.png}{Imagen 14: Próximos horarios y estados de disponibilidad para una clase seleccionada.}{manual-seccion-5-4.png}
+
+\newpage
+
+\subsection{5.5 Detalle de Clase}
+\label{sec:detalle}
+Al presionar una sesión disponible, verás todos los detalles: nombre de la clase, imagen, instructor, día y horario, capacidad (ej. 12/30 asientos ocupados) y precio. Desde aquí inicias el proceso de reserva presionando \textbf{"Inscribirse"}.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-5-5.png}{Imagen 15: Ficha con los detalles técnicos de una sesión particular.}{manual-seccion-5-5.png}
+
+\newpage
+
+% ==================== SECCIÓN 6 ====================
+\section{6. Reservar una Clase}
+\label{sec:reservar}
+
+\subsection{6.1 Selección de Asientos}
+\label{sec:asientos}
+El mapa interactivo de asientos te permite elegir exactamente dónde quieres ubicarte en la sala. La sala tiene capacidad para 30 personas.
+
+\begin{enumerate}[label=\arabic*.]
+  \item Después de presionar \textbf{"Inscribirse"}, se abre el mapa de asientos.
+  \item Los asientos disponibles se muestran en color \textbf{verde}.
+  \item Los asientos ya ocupados aparecen en \textbf{gris}.
+  \item Presiona los asientos que deseas reservar (se marcarán en \textbf{naranja}).
+  \item Puedes seleccionar múltiples asientos si reservas para acompañantes.
+  \item El precio total se actualiza automáticamente según la cantidad de asientos.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-6-1.png}{Imagen 16: Mapa de asientos interactivo 6x5 en tiempo real.}{manual-seccion-6-1.png}
+
+\newpage
+
+\subsection{6.2 Temporizador de Reserva}
+\label{sec:temporizador}
+Al seleccionar tus asientos, estos quedan bloqueados exclusivamente para ti durante \textbf{10 minutos}. Verás un temporizador en pantalla con la cuenta regresiva. Debes completar el pago dentro de este tiempo. Si el temporizador llega a cero, los asientos se liberan automáticamente.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-6-2.png}{Imagen 17: Temporizador de 10 minutos para retención de asientos.}{manual-seccion-6-2.png}
+
+\begin{warningbox}{ATENCIÓN}
+Si se agota el temporizador de 10 minutos, tus asientos volverán a estar disponibles de inmediato en el mapa general y el pago no podrá ser completado.
+\end{warningbox}
+
+\newpage
+
+% ==================== SECCIÓN 7 ====================
+\section{7. Pago}
+\label{sec:pago}
+
+\subsection{7.1 Métodos de Pago Disponibles}
+\label{sec:metodos-pago}
+ReservaFit ofrece diferentes métodos de pago según la plataforma que estés utilizando:
+\begin{itemize}
+  \item \textbf{Web:} Pago mediante Yape o PLIN.
+  \item \textbf{App móvil (iOS):} Tarjetas de crédito/débito y Apple Pay a través de Stripe.
+  \item \textbf{App móvil (Android):} Tarjetas de crédito/débito y billeteras digitales a través de Mercado Pago.
+\end{itemize}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-7-1.png}{Imagen 18: Selección de pasarela y método de pago en Checkout.}{manual-seccion-7-1.png}
+
+\newpage
+
+\subsection{7.2 Completar el Pago}
+\label{sec:completar-pago}
+Al presionar \textbf{"Continuar con el pago"} desde la selección de asientos, serás redirigido a la pasarela de pagos. Sigue las instrucciones en pantalla para completar la transacción de forma segura.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-7-2.png}{Imagen 19: Resumen final de la compra previa confirmación del pago.}{manual-seccion-7-2.png}
+
+\newpage
+
+\subsection{7.3 Pago Exitoso}
+\label{sec:pago-exitoso}
+Al completar el pago correctamente, verás una pantalla de confirmación con todos los detalles de tu reserva: nombre de la clase, día, horario, instructor, asientos reservados y comprobante. Presiona \textbf{"Ir al inicio"} para volver al panel.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-7-3.png}{Imagen 20: Confirmación visual de compra exitosa.}{manual-seccion-7-3.png}
+
+\newpage
+
+\subsection{7.4 Pago Fallido o Pendiente}
+\label{sec:pago-fallido}
+Si el pago es rechazado, verás una pantalla con el motivo del error y la opción de \textbf{"Intentar de nuevo"} o \textbf{"Ir al inicio"}. Si el pago queda en estado pendiente, el sistema verificará automáticamente su estado y te notificará cuando se apruebe.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-7-4.png}{Imagen 21: Pantalla informativa de error en el pago.}{manual-seccion-7-4.png}
+
+\newpage
+
+% ==================== SECCIÓN 8 A 11 ====================
+\section{8. Gestionar Reservas}
+\label{sec:gestionar}
+
+\subsection{8.1 Cancelar una Reserva}
+\label{sec:cancelar}
+Si necesitas cancelar una reserva, puedes hacerlo fácilmente desde tu panel de inicio:
+\begin{enumerate}[label=\arabic*.]
+  \item Ve a la sección \textbf{"Mis Clases"} en el panel de inicio.
+  \item Busca la clase que deseas cancelar.
+  \item Presiona el botón \textbf{"Cancelar"} en la tarjeta de la reserva.
+  \item Confirma la cancelación en el diálogo que aparece.
+  \item La reserva se cancela inmediatamente y los asientos vuelven a estar disponibles.
+\end{enumerate}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-8-1.png}{Imagen 22: Diálogo de confirmación para liberar reserva.}{manual-seccion-8-1.png}
+
+\newpage
+
+\subsection{8.2 Política de Cancelación y Reembolsos}
+\label{sec:politica}
+Las cancelaciones son inmediatas y sin penalización. Si cancelas una reserva pagada, el monto se te reembolsará en MonedasFit automáticamente. Estas monedas podrás usarlas para futuras reservas. Si tu reserva fue gratuita o pagada con MonedasFit, simplemente se liberan los cupos sin reembolso adicional.
+
+\newpage
+
+\section{9. Historial de Pagos}
+\label{sec:historial}
+Desde la pestaña \textbf{"Pagos"} en la barra inferior (móvil) o el panel de navegación (web) puedes consultar tu historial completo de transacciones. Cada entrada muestra: nombre de la clase, monto, fecha, método de pago utilizado y estado (aprobado, pendiente, fallido). Presiona cualquier entrada para ver el comprobante detallado.
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-9.png}{Imagen 23: Historial administrativo de pagos del usuario.}{manual-seccion-9.png}
+
+\newpage
+
+\section{10. Perfil y Configuración}
+\label{sec:perfil}
+Para acceder a tu perfil, presiona tu nombre (en web) o el ícono de perfil (en móvil). Desde aquí puedes:
+
+\begin{itemize}[leftmargin=0.5cm]
+  \item \textbf{10.1 Editar Información Personal:} Modifica tu nombre, apellidos y número de teléfono. El correo electrónico no es editable por seguridad.\label{sec:editar-perfil}
+  \item \textbf{10.2 Código de Referido:} En tu perfil encontrarás tu código de referido único. Compártelo con amigos para que lo ingresen al registrarse.\label{sec:referido}
+  \item \textbf{10.3 Cerrar Sesión:} Para cerrar sesión, usa la opción "Cerrar Sesión" en el menú lateral (web) o en la parte inferior de la pantalla de perfil (móvil).\label{sec:salir}
+\end{itemize}
+
+\screenshot{../../frontend/assets/images/manual/manual-seccion-10-1.png}{Imagen 24: Configuración de información personal.}{manual-seccion-10-1.png}
+
+\newpage
+
+\section{11. Centro de Ayuda y Soporte}
+\label{sec:ayuda}
+Si tienes dudas, puedes consultar las Preguntas Frecuentes (FAQ) en la pestaña correspondiente de este centro de ayuda. Para consultas que no encuentres aquí, escríbenos a \textbf{soporte@reservafit.com} o escríbenos a \textbf{reservafitgym@gmail.com} y te atenderemos a la brevedad.
+
+\begin{infobox}{¿Necesitas más ayuda?}
+Escríbenos directamente a \textbf{reservafitgym@gmail.com} y responderemos a la brevedad.
+\end{infobox}
+
+\end{document}
