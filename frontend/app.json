@@ -34,6 +34,20 @@
             "imageWidth": 76
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir a ReservaFit acceder a tu cámara para tomar fotos de perfil e imágenes de clases."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Permitir a ReservaFit acceder a tus fotos para seleccionar imágenes de perfil y clases.",
+          "savePhotosPermission": "Permitir a ReservaFit guardar fotos en tu dispositivo.",
+          "isAccessMediaLocationEnabled": false
+        }
       ]
     ],
     "experiments": {
