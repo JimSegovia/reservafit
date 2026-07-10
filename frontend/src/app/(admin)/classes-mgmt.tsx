@@ -6,6 +6,8 @@ import { useAppStore, ClassItem } from '@/store/useStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Tooltip } from '@/components/ui/tooltip';
+import { AttachmentSheet } from '@/components/ui/attachment-sheet';
+import { uploadClassImage } from '@/services/upload.service';
 import { Image as ExpoImage } from 'expo-image';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
@@ -43,6 +45,10 @@ export default function AdminClassesScreen() {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [price, setPrice] = useState('5');
+  
+  // Image upload states
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [showAttachmentSheet, setShowAttachmentSheet] = useState(false);
 
   const filteredClasses = classes.filter((cls) =>
     cls.title.toLowerCase().includes(search.toLowerCase())
@@ -61,6 +67,7 @@ export default function AdminClassesScreen() {
     setDescription('');
     setImageUrl('');
     setPrice('5');
+    setSelectedImageUri(null);
     setModalVisible(true);
   };
 
@@ -71,6 +78,7 @@ export default function AdminClassesScreen() {
     setDescription(cls.theme || '');
     setImageUrl(cls.image || '');
     setPrice(cls.price?.toString() || '5');
+    setSelectedImageUri(null); // No cargar la imagen existente, solo si el usuario quiere cambiarla
     setModalVisible(true);
   };
 
@@ -81,6 +89,8 @@ export default function AdminClassesScreen() {
     }
     
     try {
+      let classId: string | null = editingId;
+      
       if (editingId) {
         if (!editingId || editingId === 'undefined') {
           showToast('No se encontró el ID de la clase a editar.', 'error');
@@ -89,7 +99,7 @@ export default function AdminClassesScreen() {
         await updateClass(editingId, { title, theme: description.trim(), image: imageUrl.trim(), price: Number(price) || 5 });
         showToast('Clase actualizada con éxito.', 'success');
       } else {
-        await addClass({
+        const newClassId = await addClass({
           title,
           schedule: '',
           instructorName: '',
@@ -100,9 +110,27 @@ export default function AdminClassesScreen() {
           theme: description.trim(),
           image: imageUrl.trim()
         });
+        classId = newClassId || null;
         showToast('Clase creada con éxito.', 'success');
       }
+      
+      // Subir imagen si hay una seleccionada y tenemos el ID de la clase
+      if (selectedImageUri && classId) {
+        try {
+          await uploadClassImage(classId, selectedImageUri);
+          await fetchClasses(); // Refrescar para mostrar la nueva imagen
+        } catch (uploadError: any) {
+          console.error('Error subiendo imagen:', uploadError);
+          // No bloquear el guardado si falla la subida de imagen
+          showToast(
+            'La clase se guardó correctamente, pero hubo un error al subir la imagen. Puedes intentar actualizarla después.',
+            'warning'
+          );
+        }
+      }
+      
       setModalVisible(false);
+      setSelectedImageUri(null);
     } catch (e) {
       console.error(e);
       showToast('Error al guardar la clase.', 'error');
@@ -286,15 +314,43 @@ export default function AdminClassesScreen() {
               />
             </View>
 
+            {/* Image Upload Area */}
             <View className="mb-6">
-              <Text className="text-gray-500 font-bold text-xs mb-1.5">URL de Imagen</Text>
-              <TextInput
-                value={imageUrl}
-                onChangeText={setImageUrl}
-                placeholder="https://cloudinary.com/mi-imagen.jpg"
-                placeholderTextColor="#9CA3AF"
-                className="w-full border border-gray-200 rounded-2xl bg-white px-4 py-3 text-secondary text-sm"
-              />
+              <Text className="text-gray-500 font-bold text-xs mb-1.5">Imagen de la Clase</Text>
+              <TouchableOpacity
+                onPress={() => setShowAttachmentSheet(true)}
+                className="w-full border border-gray-200 rounded-2xl bg-white overflow-hidden"
+                activeOpacity={0.7}
+              >
+                {selectedImageUri ? (
+                  <View className="relative">
+                    <ExpoImage
+                      source={{ uri: selectedImageUri }}
+                      style={{ width: '100%', height: 180 }}
+                      contentFit="cover"
+                    />
+                    <View className="absolute bottom-2 right-2 bg-primary rounded-full p-2">
+                      <Ionicons name="camera" size={16} color="white" />
+                    </View>
+                  </View>
+                ) : imageUrl ? (
+                  <View className="relative">
+                    <ExpoImage
+                      source={{ uri: imageUrl }}
+                      style={{ width: '100%', height: 180 }}
+                      contentFit="cover"
+                    />
+                    <View className="absolute bottom-2 right-2 bg-gray-600 rounded-full p-2">
+                      <Ionicons name="create-outline" size={16} color="white" />
+                    </View>
+                  </View>
+                ) : (
+                  <View className="h-[180px] items-center justify-center bg-gray-50">
+                    <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+                    <Text className="text-sm text-gray-500 mt-2">Toca para agregar imagen</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -306,6 +362,16 @@ export default function AdminClassesScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Attachment Sheet for Image Selection */}
+      <AttachmentSheet
+        visible={showAttachmentSheet}
+        onClose={() => setShowAttachmentSheet(false)}
+        onAttach={(uris) => {
+          setSelectedImageUri(uris[0]);
+          setShowAttachmentSheet(false);
+        }}
+      />
 
       <ConfirmDialog
         visible={!!classToDelete}

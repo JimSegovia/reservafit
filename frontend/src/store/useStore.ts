@@ -22,6 +22,7 @@ export interface Instructor {
   name: string;
   specialty: string;
   status: 'Activo' | 'Inactivo';
+  photoUrl?: string;
 }
 
 export interface ClassItem {
@@ -125,7 +126,7 @@ interface AppState {
   deleteInstructor: (id: string) => Promise<void>;
   
   // Class actions (CRUD)
-  addClass: (classItem: Omit<ClassItem, 'id'>) => Promise<void>;
+  addClass: (classItem: Omit<ClassItem, 'id'>) => Promise<string | undefined>;
   updateClass: (id: string, classItem: Partial<ClassItem>) => Promise<void>;
   deleteClass: (id: string) => Promise<void>;
   
@@ -377,20 +378,28 @@ export const useAppStore = create<AppState>((set, get) => {
       const mappedInstructors: Instructor[] = backendInstructors.map((i: any) => {
         let specialty = 'General';
         let status: 'Activo' | 'Inactivo' = 'Activo';
+        let photoUrl: string | undefined = undefined;
         
-        try {
-          if (i.foto_url && i.foto_url.startsWith('{')) {
-            const parsed = JSON.parse(i.foto_url);
-            specialty = parsed.specialty || specialty;
-            status = parsed.status || status;
-          }
-        } catch (e) {}
+        // Verificar si foto_url es una URL real de imagen (Cloudinary)
+        if (i.foto_url && (i.foto_url.startsWith('http://') || i.foto_url.startsWith('https://'))) {
+          photoUrl = i.foto_url;
+        } else {
+          // Si no es URL, intentar parsear como JSON para obtener specialty y status
+          try {
+            if (i.foto_url && i.foto_url.startsWith('{')) {
+              const parsed = JSON.parse(i.foto_url);
+              specialty = parsed.specialty || specialty;
+              status = parsed.status || status;
+            }
+          } catch (e) {}
+        }
 
         return {
           id: i.id_instructor,
           name: `${i.nombre} ${i.apellidos}`,
           specialty,
-          status
+          status,
+          photoUrl
         };
       });
       set({ instructors: mappedInstructors });
@@ -600,7 +609,7 @@ export const useAppStore = create<AppState>((set, get) => {
   // Class CRUD
   addClass: async (classItem) => {
     try {
-      await classesService.create({
+      const response = await classesService.create({
         nombre: classItem.title,
         descripcion: classItem.theme || '',
         imagen_url: classItem.image || '',
@@ -608,6 +617,9 @@ export const useAppStore = create<AppState>((set, get) => {
       });
 
       await get().fetchClasses();
+      
+      // Retornar el ID de la clase creada
+      return response.data?.id_clase;
     } catch (error) {
       console.error('Add class error:', error);
       throw error;
