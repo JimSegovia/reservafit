@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, Alert, useWindowDimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useAppStore, Instructor } from '@/store/useStore';
 import api from '@/api/api';
+import { AttachmentSheet } from '@/components/ui/attachment-sheet';
+import { uploadInstructorPhoto } from '@/services/upload.service';
 
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -39,6 +42,10 @@ export default function AdminInstructorsScreen() {
   const [selectedStatus, setSelectedStatus] = useState('Todos');
   const [showClassMenu, setShowClassMenu] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  
+  // Photo upload states
+  const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null);
+  const [showAttachmentSheet, setShowAttachmentSheet] = useState(false);
 
   const filteredInstructors = instructors.filter((inst) => {
     const matchesSearch = inst.name.toLowerCase().includes(search.toLowerCase());
@@ -52,6 +59,7 @@ export default function AdminInstructorsScreen() {
     setName('');
     setSpecialty('');
     setStatus('Activo');
+    setSelectedPhotoUri(null);
     setModalVisible(true);
   };
 
@@ -60,6 +68,7 @@ export default function AdminInstructorsScreen() {
     setName(inst.name);
     setSpecialty(inst.specialty);
     setStatus(inst.status);
+    setSelectedPhotoUri(null); // No cargar la foto existente, solo si el usuario quiere cambiarla
     setModalVisible(true);
   };
 
@@ -85,15 +94,33 @@ export default function AdminInstructorsScreen() {
         foto_url: serializedFields
       };
 
+      let instructorId = editingId;
+
       if (editingId) {
         await api.patch(`/instructores/${editingId}`, payload);
       } else {
-        await api.post('/instructores', payload);
+        const response = await api.post('/instructores', payload);
+        instructorId = response.data.data.id_instructor;
+      }
+
+      // Subir foto si hay una seleccionada y tenemos el ID del instructor
+      if (selectedPhotoUri && instructorId) {
+        try {
+          await uploadInstructorPhoto(instructorId, selectedPhotoUri);
+        } catch (uploadError: any) {
+          console.error('Error subiendo foto:', uploadError);
+          // No bloquear el guardado si falla la subida de foto
+          Alert.alert(
+            'Aviso', 
+            'El instructor se guardó correctamente, pero hubo un error al subir la foto. Puedes intentar actualizarla después.'
+          );
+        }
       }
 
       setName('');
       setSpecialty('');
       setStatus('Activo');
+      setSelectedPhotoUri(null);
       setEditingId(null);
       setModalVisible(false);
       await fetchInstructors();
@@ -204,6 +231,10 @@ export default function AdminInstructorsScreen() {
           ) : (
             filteredInstructors.map((inst) => {
               const isActive = inst.status === 'Activo';
+              // Verificar si foto_url es una URL real de imagen (no JSON serializado)
+              const hasRealPhoto = inst.photoUrl && 
+                (inst.photoUrl.startsWith('http://') || inst.photoUrl.startsWith('https://'));
+              
               return (
                 <Animated.View
                   key={inst.id}
@@ -213,10 +244,19 @@ export default function AdminInstructorsScreen() {
                 >
                   <View className={`${isMobile ? 'flex-col' : 'flex-row items-center flex-1'}`}>
                     <View className={`${isMobile ? 'flex-row items-center mb-3' : 'flex-row items-center flex-1'}`}>
-                      {/* Circle Photo Placeholder */}
-                      <View className="w-12 h-12 rounded-full bg-gray-200 mr-3 items-center justify-center">
-                        <Ionicons name="person" size={22} color="gray" />
-                      </View>
+                      {/* Circle Photo */}
+                      {hasRealPhoto ? (
+                        <Image
+                          source={{ uri: inst.photoUrl }}
+                          style={{ width: 48, height: 48, borderRadius: 24 }}
+                          contentFit="cover"
+                          className="mr-3"
+                        />
+                      ) : (
+                        <View className="w-12 h-12 rounded-full bg-gray-200 mr-3 items-center justify-center">
+                          <Ionicons name="person" size={22} color="gray" />
+                        </View>
+                      )}
                       <View className="flex-1">
                         <Text className="text-base font-semibold text-secondary">{inst.name}</Text>
                         <Text className="text-sm text-gray-500 font-normal mt-0.5">{inst.specialty}</Text>
@@ -271,6 +311,31 @@ export default function AdminInstructorsScreen() {
                 <Ionicons name="close" size={24} color="#1F0F08" />
               </TouchableOpacity>
             </View>
+
+            {/* Photo Upload Area */}
+            <TouchableOpacity
+              onPress={() => setShowAttachmentSheet(true)}
+              className="mb-4 items-center"
+              activeOpacity={0.7}
+            >
+              {selectedPhotoUri ? (
+                <View className="relative">
+                  <Image
+                    source={{ uri: selectedPhotoUri }}
+                    style={{ width: 120, height: 120, borderRadius: 60 }}
+                    contentFit="cover"
+                  />
+                  <View className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5">
+                    <Ionicons name="camera" size={16} color="white" />
+                  </View>
+                </View>
+              ) : (
+                <View className="w-[120px] h-[120px] rounded-full bg-gray-100 border-2 border-dashed border-gray-300 items-center justify-center">
+                  <Ionicons name="camera-outline" size={32} color="#9CA3AF" />
+                  <Text className="text-xs text-gray-500 mt-1">Agregar foto</Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
             <View className="mb-4">
               <Text className="text-gray-500 font-bold text-xs mb-1.5">Nombre</Text>
@@ -331,6 +396,16 @@ export default function AdminInstructorsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Attachment Sheet for Photo Selection */}
+      <AttachmentSheet
+        visible={showAttachmentSheet}
+        onClose={() => setShowAttachmentSheet(false)}
+        onAttach={(uris) => {
+          setSelectedPhotoUri(uris[0]);
+          setShowAttachmentSheet(false);
+        }}
+      />
     </View>
   );
 }
