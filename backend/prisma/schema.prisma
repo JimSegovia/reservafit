@@ -25,7 +25,7 @@ model Instructor {
   nombre         String         @db.VarChar(100)
   apellidos      String         @db.VarChar(100)
   fecha_creacion DateTime       @default(now()) @db.Timestamp(6)
-  foto_url       String?        @db.VarChar(200)
+  foto_url       String?        @db.VarChar(2048)
   detalles_clase DetalleClase[]
 
   @@map("Instructores")
@@ -35,7 +35,7 @@ model Clase {
   id_clase       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre         String         @db.VarChar(100)
   descripcion    String
-  imagen_url     String?        @db.VarChar(300)
+  imagen_url     String?        @db.VarChar(2048)
   precio         Decimal        @default(5) @db.Decimal(10, 2)
   detalles_clase DetalleClase[]
 
